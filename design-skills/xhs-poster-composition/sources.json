@@ -1,0 +1,12 @@
+{
+  "installedDate": "2026-11-05",
+  "mode": "local-adaptation",
+  "name": "xhs-poster-composition",
+  "repository": "ArnavPuri/designskills",
+  "revision": "c7873015add8571ca95043febad0d9e6c97ee5c6",
+  "paths": [
+    "skills/poster-design/SKILL.md"
+  ],
+  "license": "MIT",
+  "adaptation": "保留构图与层级方法；移除默认整图生成、字体与印刷尺寸示例。"
+}

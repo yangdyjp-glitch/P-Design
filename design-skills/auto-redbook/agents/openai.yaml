@@ -1,0 +1,6 @@
+interface:
+  display_name: "Auto-Redbook 卡片"
+  short_description: "使用十三套主题、五种封面布局和分页工具渲染小红书图片卡片"
+  default_prompt: "请用 $auto-redbook 完成本次Markdown 模板卡片，保留当前任务的内容与视觉要求。"
+policy:
+  allow_implicit_invocation: true

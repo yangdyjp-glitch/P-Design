@@ -1,0 +1,13 @@
+{
+  "installedDate": "2026-11-05",
+  "mode": "local-adaptation",
+  "name": "xhs-reference-contract",
+  "repository": "nexu-io/open-design",
+  "revision": "f697a2e421214b48ff499736fe970e3f279e8506",
+  "paths": [
+    "skills/reference-design-contract/SKILL.md",
+    "skills/reference-design-contract/references/checklist.md"
+  ],
+  "license": "Apache-2.0",
+  "adaptation": "静态图片参考分析；简化交接；移除网页格式和固定案例。"
+}

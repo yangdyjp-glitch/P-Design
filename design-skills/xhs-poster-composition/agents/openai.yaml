@@ -1,0 +1,6 @@
+interface:
+  display_name: "小红书海报构图"
+  short_description: "为小红书封面与内页建立主视觉、图文分区、清晰层级和系列构图变化"
+  default_prompt: "请用 $xhs-poster-composition 推敲本次小红书图片的构图和文字层级。"
+policy:
+  allow_implicit_invocation: true

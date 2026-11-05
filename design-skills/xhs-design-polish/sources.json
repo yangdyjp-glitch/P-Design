@@ -1,0 +1,14 @@
+{
+  "installedDate": "2026-11-05",
+  "mode": "local-adaptation",
+  "name": "xhs-design-polish",
+  "repository": "pbakaus/impeccable",
+  "revision": "c8891a9ae865d6ee311836ae5199bfce0fe115b1",
+  "paths": [
+    "skill/reference/typeset.md",
+    "skill/reference/layout.md",
+    "skill/reference/polish.md"
+  ],
+  "license": "Apache-2.0",
+  "adaptation": "提炼静态排版精修方法；不安装完整上游运行时、检测二进制或网页交互流程。"
+}

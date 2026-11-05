@@ -1,0 +1,6 @@
+interface:
+  display_name: "Baoyu 封面生成"
+  short_description: "按类型、表现方式、文字和情绪组织生成式封面及视觉素材"
+  default_prompt: "请用 $baoyu-cover-image 完成本次生成式封面，保留当前任务的内容与视觉要求。"
+policy:
+  allow_implicit_invocation: true

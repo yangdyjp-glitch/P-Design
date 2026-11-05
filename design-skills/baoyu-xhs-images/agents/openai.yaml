@@ -1,0 +1,6 @@
+interface:
+  display_name: "Baoyu 小红书组图"
+  short_description: "使用风格与布局组合生成小红书插画卡片，支持系列视觉一致性"
+  default_prompt: "请用 $baoyu-xhs-images 完成本次小红书插画组图，保留当前任务的内容与视觉要求。"
+policy:
+  allow_implicit_invocation: true

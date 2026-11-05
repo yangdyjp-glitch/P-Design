@@ -1,0 +1,16 @@
+{
+  "installedDate": "2026-11-05",
+  "name": "xhs-writer",
+  "repository": "JuneYaooo/xhs-writer-skill",
+  "revision": "6adef3b97db63dd931a1fd6b29550b31832355bd",
+  "sourcePath": ".",
+  "license": "Apache-2.0",
+  "mode": "upstream-bundle-with-local-compatibility",
+  "modifications": [
+    "入口名称与Codex元数据规范化。",
+    "添加通用小红书约束及专长按需调用说明，保留原版工具与参考。",
+    "当前主题、原文和已确认方案覆盖示例中的产品、格式、字体、配色和页数。"
+  ],
+  "nativeImageTool": "imagegen",
+  "externalApiConfigured": false
+}

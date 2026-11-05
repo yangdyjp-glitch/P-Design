@@ -1,0 +1,6 @@
+interface:
+  display_name: "小红书图文设计"
+  short_description: "通用小红书封面与组图设计，包含分页、中文排版、渲染和可编辑交付"
+  default_prompt: "请用 $xiaohongshu-design 根据本次主题、原文与素材制作小红书图片，并交付高清图和可编辑工程。"
+policy:
+  allow_implicit_invocation: true

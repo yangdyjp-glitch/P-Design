@@ -1,0 +1,6 @@
+interface:
+  display_name: "小红书文字卡片"
+  short_description: "使用九套主题与中文字体，将知识、清单和教程渲染为分页卡片"
+  default_prompt: "请用 $xhs-note-creator 完成本次文字卡片渲染，保留当前任务的内容与视觉要求。"
+policy:
+  allow_implicit_invocation: true

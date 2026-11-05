@@ -1,0 +1,7 @@
+{
+  "python": "C:/Users/Administrator/.codex/local-runtimes/xhs-specialists/Scripts/python.exe",
+  "node": "node",
+  "playwright": "1.64.1",
+  "imageBackend": "native imagegen when requested",
+  "externalApiConfigured": false
+}

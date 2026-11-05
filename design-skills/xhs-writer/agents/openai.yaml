@@ -1,0 +1,6 @@
+interface:
+  display_name: "小红书内容策划"
+  short_description: "从本次主题与文字图片素材策划小红书内容、图文卡片和发布配文"
+  default_prompt: "请用 $xhs-writer 完成本次素材与内容策划，保留当前任务的内容与视觉要求。"
+policy:
+  allow_implicit_invocation: true

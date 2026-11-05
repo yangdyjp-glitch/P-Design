@@ -1,0 +1,6 @@
+interface:
+  display_name: "Baoyu 信息图"
+  short_description: "组合信息结构与视觉风格，生成流程、对比和层级关系信息图"
+  default_prompt: "请用 $baoyu-infographic 完成本次生成式信息图，保留当前任务的内容与视觉要求。"
+policy:
+  allow_implicit_invocation: true

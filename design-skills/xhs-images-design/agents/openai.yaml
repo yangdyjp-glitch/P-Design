@@ -1,0 +1,6 @@
+interface:
+  display_name: "小红书插画卡片"
+  short_description: "为已选择的插画、卡通和手绘方案组织风格、布局及系列图像生成"
+  default_prompt: "请用 $xhs-images-design 完成本次插画卡片生成，保留当前任务的内容与视觉要求。"
+policy:
+  allow_implicit_invocation: true

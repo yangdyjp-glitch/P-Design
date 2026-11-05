@@ -1,0 +1,6 @@
+interface:
+  display_name: "小红书参考转规范"
+  short_description: "拆解参考图的层级、网格与节奏，形成可执行的小红书视觉规范和交接"
+  default_prompt: "请用 $xhs-reference-contract 将本次参考图整理为小红书图片的视觉规范。"
+policy:
+  allow_implicit_invocation: true

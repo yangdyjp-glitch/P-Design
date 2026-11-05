@@ -1,0 +1,61 @@
+{
+  "version": "1.1.0",
+  "installedDate": "2026-11-05",
+  "scope": "通用小红书封面与静态图文组图",
+  "mode": "local-master-and-adapted-modules",
+  "modules": [
+    {
+      "name": "xhs-reference-contract",
+      "repository": "nexu-io/open-design",
+      "revision": "f697a2e421214b48ff499736fe970e3f279e8506",
+      "paths": [
+        "skills/reference-design-contract/SKILL.md",
+        "skills/reference-design-contract/references/checklist.md"
+      ],
+      "license": "Apache-2.0",
+      "adaptation": "静态图片参考分析；简化交接；移除网页格式和固定案例。"
+    },
+    {
+      "name": "xhs-poster-composition",
+      "repository": "ArnavPuri/designskills",
+      "revision": "c7873015add8571ca95043febad0d9e6c97ee5c6",
+      "paths": [
+        "skills/poster-design/SKILL.md"
+      ],
+      "license": "MIT",
+      "adaptation": "保留构图与层级方法；移除默认整图生成、字体与印刷尺寸示例。"
+    },
+    {
+      "name": "xhs-cover-lab",
+      "repository": "atian-create/xhs-cover-lab-open-skill",
+      "revision": "2cb8ac794d42027b9fae20b131c7c424deff344b",
+      "paths": [
+        "SKILL.md",
+        "references/cover_archetypes.md",
+        "references/benchmark_rules.md",
+        "references/cover_brief_contract.md",
+        "references/track_router.md"
+      ],
+      "license": "MIT",
+      "adaptation": "封面分析与通用内容路由；移除推广跳转和固定内容案例。"
+    },
+    {
+      "name": "xhs-design-polish",
+      "repository": "pbakaus/impeccable",
+      "revision": "c8891a9ae865d6ee311836ae5199bfce0fe115b1",
+      "paths": [
+        "skill/reference/typeset.md",
+        "skill/reference/layout.md",
+        "skill/reference/polish.md"
+      ],
+      "license": "Apache-2.0",
+      "adaptation": "提炼静态排版精修方法；不安装完整上游运行时、检测二进制或网页交互流程。"
+    }
+  ],
+  "specialists": [{"name":"baoyu-xhs-images","repository":"JimLiu/baoyu-skills","revision":"5792c7dc8d09a28d6969e8970166c5eb090ce6ad","path":"skills/baoyu-xhs-images","license":"MIT"},{"name":"baoyu-cover-image","repository":"JimLiu/baoyu-skills","revision":"5792c7dc8d09a28d6969e8970166c5eb090ce6ad","path":"skills/baoyu-cover-image","license":"MIT"},{"name":"baoyu-infographic","repository":"JimLiu/baoyu-skills","revision":"5792c7dc8d09a28d6969e8970166c5eb090ce6ad","path":"skills/baoyu-infographic","license":"MIT"},{"name":"auto-redbook","repository":"TecSong/Auto-Redbook-Skills","revision":"60315cfc6ea11832fa12d2ae576c81e1a9c7caae","path":".","license":"MIT (declared in package.json)"},{"name":"blcaptain-style-skill","repository":"dososo/blcaptain-style-skill","revision":"5022ba3d63964ba3b78154a3cc570968a614700c","path":".","license":"Upstream custom dual license; see LICENSE"},{"name":"xhs-writer","repository":"JuneYaooo/xhs-writer-skill","revision":"6adef3b97db63dd931a1fd6b29550b31832355bd","path":".","license":"Apache-2.0"},{"name":"xhs-note-creator","repository":"tensorslab/xhs-skills","revision":"cb5ce71f1066fd1b648d98081afc149e42167f5a","path":"skills/xhs-note-creator","license":"MIT"},{"name":"xhs-images-design","repository":"tensorslab/xhs-skills","revision":"cb5ce71f1066fd1b648d98081afc149e42167f5a","path":"skills/xhs-images-design","license":"MIT"}],
+  "notes": [
+    "主题、品牌、受众、价格展示、字体、配色、素材题材和页数均由当前任务决定。",
+    "外部模块是本地适配版，不宣称完整安装原版产品或复制整套运行时。",
+    "保留第三方许可与固定版本，原版备份位于工作区的skill-source-archives。"
+  ]
+}

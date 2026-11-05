@@ -1,0 +1,6 @@
+interface:
+  display_name: "BLCaptain 图文风格"
+  short_description: "用静纸、实证和跨平台视觉语言及确定性引擎制作中文图文组图"
+  default_prompt: "请用 $blcaptain-style-skill 完成本次已选 BLCaptain 风格的图文组图，保留当前任务的内容与视觉要求。"
+policy:
+  allow_implicit_invocation: true

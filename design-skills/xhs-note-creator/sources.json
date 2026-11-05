@@ -1,0 +1,16 @@
+{
+  "installedDate": "2026-11-05",
+  "name": "xhs-note-creator",
+  "repository": "tensorslab/xhs-skills",
+  "revision": "cb5ce71f1066fd1b648d98081afc149e42167f5a",
+  "sourcePath": "skills/xhs-note-creator",
+  "license": "MIT",
+  "mode": "upstream-bundle-with-local-compatibility",
+  "modifications": [
+    "入口名称与Codex元数据规范化。",
+    "添加通用小红书约束及专长按需调用说明，保留原版工具与参考。",
+    "当前主题、原文和已确认方案覆盖示例中的产品、格式、字体、配色和页数。"
+  ],
+  "nativeImageTool": "imagegen",
+  "externalApiConfigured": false
+}

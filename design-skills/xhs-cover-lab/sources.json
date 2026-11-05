@@ -1,0 +1,16 @@
+{
+  "installedDate": "2026-11-05",
+  "mode": "local-adaptation",
+  "name": "xhs-cover-lab",
+  "repository": "atian-create/xhs-cover-lab-open-skill",
+  "revision": "2cb8ac794d42027b9fae20b131c7c424deff344b",
+  "paths": [
+    "SKILL.md",
+    "references/cover_archetypes.md",
+    "references/benchmark_rules.md",
+    "references/cover_brief_contract.md",
+    "references/track_router.md"
+  ],
+  "license": "MIT",
+  "adaptation": "封面分析与通用内容路由；移除推广跳转和固定内容案例。"
+}
