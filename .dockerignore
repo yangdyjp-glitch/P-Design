@@ -1,0 +1,17 @@
+.git
+node_modules
+.env
+.env.*
+!.env.example
+.dev.vars*
+.sites-runtime
+.wrangler
+.vinext
+.next
+dist
+outputs
+qa
+private-seed
+*.tsbuildinfo
+*.tuxu.json
+*.tar.gz

@@ -2,10 +2,14 @@ import handler from "vinext/server/fetch-handler";
 import { runWithConnectorBinding } from "../lib/connector-context";
 import type { ConnectorBinding } from "../lib/connector-contract.mjs";
 import {webhook} from '../server/webhooks';
+import {visitorContext,visitorResponse} from '../server/visitor-session';
 
 const worker = {
-  fetch(request: Request, env: Cloudflare.Env, ctx: ExecutionContext<{ CONNECTORS?: ConnectorBinding }>) {
+  async fetch(request: Request, env: Cloudflare.Env, ctx: ExecutionContext<{ CONNECTORS?: ConnectorBinding }>) {
     if(new URL(request.url).pathname==='/api/openai/webhook')return webhook(request,ctx);
+    const visitor=await visitorContext(request,env as unknown as Parameters<typeof visitorContext>[1]);
+    if(visitor instanceof Response)return visitor;
+    if(visitor)request=visitor.request;
     let binding = ctx.props?.CONNECTORS;
     // Local preview emulates the same request-scoped capability. This branch and
     // the auxiliary service binding are absent from production builds.
@@ -25,7 +29,7 @@ const worker = {
         },
       };
     }
-    return runWithConnectorBinding(binding, () => handler.fetch(request, env, ctx));
+    return visitorResponse(await runWithConnectorBinding(binding, () => handler.fetch(request, env, ctx)),visitor);
   },
 };
 

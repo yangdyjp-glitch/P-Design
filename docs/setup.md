@@ -1,5 +1,7 @@
 # 开发与部署
 
+Railway 的无账号 AI 试用模式见 [railway.md](railway.md)。下文默认描述原 Sites 开发环境，两者的服务端变量和数据库不会自动共享。
+
 ## 本机
 
 使用Node>=22.13与npm。首次运行npm ci安装锁定依赖，再运行npm run build，按下文初始化本地数据库，最后npm run dev。日常修改src后运行npm run build:editor重建编辑器；npm run build会自动包含该步骤。类型检查为npx tsc --noEmit。完整跨电脑步骤见[HANDOFF.md](../HANDOFF.md)。
