@@ -3445,8 +3445,8 @@
     },
     {
       "path": "docs/setup.md",
-      "bytes": 2206,
-      "sha256": "1e16d57286cc296c22b02364e9eac124473fe126e754ca5c3e4f880a097819cf"
+      "bytes": 2625,
+      "sha256": "34fd8f83ee697cd9629d2d6043902be96d9ab71e2054f9b579327439f88d18c9"
     },
     {
       "path": "drizzle/0000_peaceful_sleeper.sql",
@@ -3492,6 +3492,11 @@
       "path": "examples/d1/db/schema.ts",
       "bytes": 370,
       "sha256": "d89eabd95716ce404f5f7ca2a254220435be8ddce7c899d7ef461ff22ec80454"
+    },
+    {
+      "path": "HANDOFF.md",
+      "bytes": 19070,
+      "sha256": "0923a580578a6fb5cbecfa93fe8acfa3f39d4139a6f6bad6be1215a0b0478abd"
     },
     {
       "path": "hooks/use-mobile.ts",
@@ -3615,8 +3620,8 @@
     },
     {
       "path": "README.md",
-      "bytes": 2561,
-      "sha256": "29050e71b2e129677a043688b965147ea4693fcbb285122dae3430c144027613"
+      "bytes": 2790,
+      "sha256": "e77644ca07a375e6bf1ab92f4d03e54d8eaf0de9569859d330a6a3c45052b1cd"
     },
     {
       "path": "scripts/api-local.mjs",

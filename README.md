@@ -2,6 +2,8 @@
 
 从文案与真实素材，到可编辑的小红书图文。网站现已提供云端项目和真正的 AI 技能执行，保留原编辑器及高清导出。
 
+换电脑接续开发，请先读 [HANDOFF.md](HANDOFF.md)，包含首次运行、AI配置、源码入口、发布步骤和当前限制。
+
 - 登录后按账号保存项目、素材、任务与交付文件。
 - AI 设计、局部改稿、封面、排版复核、参考分析、文案创作、生成素材和模板制图。
 - 14个完整设计模块，可自动路由，也可选择主技能。
@@ -12,7 +14,7 @@
 
 网站已部署：[打开图序](https://tuxu-design-studio-20261106.phd-yang.chatgpt.site)。当前保留所有者私有范围，分享设置由Sites管理；已支持多个获准访问的用户，数据按账号隔离。本仓库保存源码和技能资源，不包含运行凭证或用户作品。部署状态与公开源码差异见[部署记录](docs/deployment.md)。
 
-开发需要 Node>=22.13。依次运行 `npm ci`、`npm run build:editor`、`npm run dev`。本地地址为 http://127.0.0.1:5173 。类型检查运行 `npx tsc --noEmit`，构建运行 `npm run build`。开发凭证放在被忽略的 `.env.local`，生产凭证通过 Sites 的服务端秘密配置管理；网页代码无需填写密钥。Windows 代理环境可运行开发专用 `scripts/dev-ai-proxy.mjs`，生产站点不经过本机。数据库与云端初始化见[开发与部署说明](docs/setup.md)。
+开发需要 Node>=22.13。首次运行 `npm ci`、`npm run build`，按[开发与部署说明](docs/setup.md)初始化本地数据库，再运行 `npm run dev`。本地地址为 http://127.0.0.1:5173 。类型检查运行 `npx tsc --noEmit`，构建运行 `npm run build`。开发凭证放在被忽略的 `.env.local`，生产凭证通过 Sites 的服务端秘密配置管理；网页代码无需填写密钥。当前本地真实AI还需要技能上传清单和开发转发服务 `scripts/dev-ai-proxy.mjs`，详见[交接文件](HANDOFF.md#4-新电脑本地真实-ai)。生产站点不经过本机。
 
 `design-skills/` 包含14个模块的完整说明、脚本、模板、字体、参考及各自许可。`node scripts/pack-skills.mjs` 从本仓库打包技能；`node scripts/upload-skills.mjs` 用已配置的服务端API凭证上传。打包结果位于被忽略的 `outputs/skill-release/`。上传文件ID和网站运行密钥不进入本仓库。
 
