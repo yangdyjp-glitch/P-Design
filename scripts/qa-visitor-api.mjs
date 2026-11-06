@@ -66,6 +66,14 @@ try {
     assert.equal(limited.response.status, 429);
     assert.equal((await api('jobs/' + first.value.job.id + '/cancel', { method: 'POST', body: '{}' }, a.cookie)).value.job.status, 'cancelled');
     mark('完整技能就绪，任务创建、幂等、并发限制及取消通过（未调用付费 AI）');
+    const automatic=await api('jobs',{method:'POST',body:JSON.stringify({...request,requestId:crypto.randomUUID(),kind:'design',workflow:'automatic'})},a.cookie);
+    assert.equal(automatic.response.status,201,automatic.value instanceof ArrayBuffer?new TextDecoder().decode(automatic.value).slice(0,400):JSON.stringify(automatic.value));
+    assert.equal(automatic.value.job.automatic,true);
+    assert.equal(automatic.value.job.skillIds.length,14);
+    const premature=await api('jobs',{method:'POST',body:JSON.stringify({...request,requestId:crypto.randomUUID(),kind:'design',workflow:'automatic',repairOf:automatic.value.job.id})},a.cookie);
+    assert.equal(premature.response.status,409);
+    await api('jobs/'+automatic.value.job.id+'/cancel',{method:'POST',body:'{}'},a.cookie);
+    mark('自动流程准备14个可择用技能，未完成任务不能创建修正分支（未调用付费 AI）');
   }
   await api('projects/' + projectId, { method: 'DELETE' }, a.cookie);
   const result = { checks, transportBase:base, browserOrigin, completedAt: new Date().toISOString(), liveAIExecuted: false };

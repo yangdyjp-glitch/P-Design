@@ -42,7 +42,7 @@ async function persist({skipCloud=false}={}){
  try{
   if(!S.db)throw Error("浏览器存储不可用");
   await new Promise((resolve,reject)=>{const t=S.db.transaction("workspace","readwrite");t.objectStore("workspace").put({projects:S.projects,activeId:S.activeId},"state");t.oncomplete=resolve;t.onerror=()=>reject(t.error);t.onabort=()=>reject(t.error);});
-  if(label)label.textContent=S.session?.user?"正在同步云端…":"已保存到此浏览器";
+  if(label)label.textContent=S.session?.user?(skipCloud?(p?._cloudDirty?"已保存到本机":"已保存到云端"):"正在同步云端…"):"已保存到此浏览器";
   if(!skipCloud&&p&&S.session?.user){try{await Cloud.save(p);}catch(e){if(label)label.textContent="本机已保存 · 云端待同步";toast(e.message);}}
  }catch(e){if(label)label.textContent="尚未保存 · 请备份项目";toast("浏览器存储不足或不可用，请下载项目备份以免丢失。");}
 }
@@ -61,22 +61,22 @@ function render(){
  '<aside class="sidebar"><div class="brand"><img src="icon.svg" alt=""><div><b>图序</b><small>DESIGN STUDIO</small></div></div>'+
  button("new","新建图文","plus","btn primary full")+
  '<div class="nav-heading">工作空间</div>'+
- button("workspace","设计工作台","grid","nav-item active")+button("ai-design","AI 设计","leaf","nav-item")+button("ai-tasks","AI 任务","history","nav-item")+button("skills","设计技能库","grid","nav-item")+button("assets","素材库","image","nav-item")+button("brand","品牌与样式","palette","nav-item")+button("history","版本记录","history","nav-item")+
+ button("workspace","设计工作台","grid","nav-item active")+button("assets","项目素材","image","nav-item")+button("ai-tasks","设计记录","history","nav-item")+
  '<div class="nav-heading between"><span>我的项目</span><button class="icon-btn" aria-label="导入项目" data-action="import-project">'+icon("plus")+'</button></div><div class="project-list">'+
  S.projects.map(pr=>'<button class="project-item '+(pr.id===p.id?"active":"")+'" data-action="switch-project" data-id="'+esc(pr.id)+'"><i></i><span>'+esc(pr.name)+'</span></button>').join("")+'</div>'+
  '<div class="sidebar-bottom"><div class="storage-card"><div class="row">'+icon("leaf")+'<b style="font-size:11px">留住每一次好设计</b></div><p>'+(visitor?'无需登录即可使用 AI。换设备前下载备份，带走可编辑作品。':'登录后项目自动同步到云端。下载备份，也能带走可编辑作品。')+'</p>'+button("backup","备份当前项目","download","btn small full")+'</div><div class="sidebar-footer"><span>图序工作台 · AI 版</span><button data-action="settings" aria-label="工作台说明">'+icon("settings")+'</button></div></div></aside>'+
  '<div class="workspace"><header class="topbar"><div class="breadcrumbs"><span class="mobile-title">图序</span><span>工作空间</span><span>/</span><b>小红书图文</b></div><div class="top-actions">'+button("mobile-menu","菜单","grid","btn small mobile-menu-button")+'<span class="save-label"><i class="dot"></i><span id="save-status">'+(S.session?.user?(p._cloudDirty?"正在同步云端…":"已保存到云端"):"已保存到此浏览器")+'</span></span>'+button("account",visitor?"访客空间":S.session?.user?"我的账户":"登录云端","settings","btn flat small")+'</div></header>'+
- '<section class="project-header between"><div><div class="project-heading"><h1>'+esc(p.name)+'</h1><button class="icon-btn" aria-label="项目设置" data-action="project-settings">'+icon("down")+'</button><span class="pill">图文组图</span></div><div class="project-description"><span id="page-total">'+p.pages.length+'</span> 个画面 · 小红书 3:4 · 高清导出 2160 × 2880</div></div><div class="project-toolbar">'+
- '<button class="icon-btn" title="撤销 Ctrl+Z" aria-label="撤销" data-action="undo" '+(!p.history?.length?"disabled":"")+'>'+icon("undo")+'</button><button class="icon-btn" title="重做 Ctrl+Shift+Z" aria-label="重做" data-action="redo" '+(!p.redo?.length?"disabled":"")+'>'+icon("redo")+'</button><span style="height:20px;border-left:1px solid var(--line);margin:0 4px"></span>'+
- button("ai-design","AI 设计","leaf","btn")+button("overview","整套预览","grid","btn","title=\"整套预览\"")+button("audit","检查","checkcircle","btn")+button("export","导出作品","download","btn primary")+
- '</div></section><div class="stage-layout"><aside class="page-rail"><div class="rail-label"><span>页面</span><span>'+p.pages.length+'</span></div><div id="page-list">'+p.pages.map((pg,i)=>'<button class="page-item '+(pg.id===page.id?"active":"")+'" data-action="select-page" data-id="'+pg.id+'" title="'+esc(pg.label)+'"><span class="thumb"><iframe tabindex="-1" title="第'+(i+1)+'页缩略预览" data-thumb="'+pg.id+'"></iframe></span><span class="page-index">'+String(i+1).padStart(2,"0")+'</span></button>').join("")+'</div><button class="rail-add" title="添加页面" aria-label="添加页面" data-action="add-page">'+icon("plus")+'</button></aside>'+
+ '<section class="project-header between"><div><div class="project-heading"><h1>'+esc(p.name)+'</h1><button class="icon-btn" aria-label="项目与版本" data-action="more">'+icon("down")+'</button><span class="pill">AI 自动设计</span></div><div class="project-description"><span id="page-total">'+p.pages.length+'</span> 个画面 · AI 自行判断分页与视觉 · 高清导出 2160 × 2880</div></div><div class="project-toolbar">'+
+ button("overview","预览","eye","btn")+button("export","下载作品","download","btn")+button("ai-design","AI 自动设计","leaf","btn primary")+
+ '</div></section><div class="stage-layout"><aside class="page-rail"><div class="rail-label"><span>画面</span><span>'+p.pages.length+'</span></div><div id="page-list">'+p.pages.map((pg,i)=>'<button class="page-item '+(pg.id===page.id?"active":"")+'" data-action="select-page" data-id="'+pg.id+'" title="'+esc(pg.label)+'"><span class="thumb"><iframe tabindex="-1" title="第'+(i+1)+'页缩略预览" data-thumb="'+pg.id+'"></iframe></span><span class="page-index">'+String(i+1).padStart(2,"0")+'</span></button>').join("")+'</div></aside>'+
  '<main class="canvas-workspace"><div class="canvas-bar"><div class="row"><span>画面 '+String(activePageIndex()+1).padStart(2,"0")+'</span><span style="color:#b7c0ac">/</span><span>'+esc(page.label.slice(0,18))+'</span></div><div class="row"><span>'+icon("lock")+' 原文保真排版</span></div></div><div class="canvas-area"><div class="canvas-holder"><iframe id="canvas-frame" title="当前页面可编辑预览"></iframe><div class="canvas-loading">正在呈现画面…</div></div></div><div class="view-hint">点击画面中的文字，可定位到右侧文案</div><div class="canvas-footer"><div class="zoom-control"><button data-action="zoom-out" aria-label="缩小">−</button><span id="zoom-label">适应</span><button data-action="zoom-in" aria-label="放大">＋</button><button data-action="fit" title="适应画布" aria-label="适应画布">'+icon("expand")+'</button></div>'+button("phone","手机预览","phone","btn small")+'</div></main>'+
- '<aside class="inspector"><div class="inspector-tabs">'+["copy","visual","check"].map((t,i)=>'<button class="'+(S.tab===t?"active":"")+'" data-action="tab" data-tab="'+t+'">'+["文案","画面","检查"][i]+'</button>').join("")+'</div><div class="inspector-body" id="inspector-body"></div><div class="assistant"><div class="assistant-title">'+icon("settings")+' 快捷调整 <span class="muted" style="font-size:9px;margin-left:auto">支持本次局部修改</span></div><form id="quick-form"><div class="assistant-box"><textarea id="quick-input" rows="2" aria-label="快捷调整要求" placeholder="例如：第4页照片放大20%"></textarea><button title="应用快捷调整" aria-label="应用快捷调整" type="submit">'+icon("arrow")+'</button></div></form><div class="assistant-footnote">快捷指令直接应用；复杂要求进入 AI 提案</div></div></aside></div></div></div>';
+ '<aside class="inspector"><div class="copy-panel-head"><b>文案</b><span>你负责内容，AI 负责画面</span></div><div class="inspector-body" id="inspector-body"></div><div class="assistant automatic-assistant"><label class="assistant-title" for="design-notes">补充要求 <span class="muted">选填</span></label><textarea id="design-notes" rows="2" aria-label="给 AI 的补充要求" placeholder="例如：希望轻松一些，优先使用上传的照片。">'+esc(p.brief||'')+'</textarea><div class="automatic-state"><span class="ai-state-dot"></span><p id="automatic-state" aria-live="polite"></p></div><div class="assistant-footnote">AI 自动选择方案并检查，最多自动修正一次。</div></div></aside></div></div></div>';
  for(const pg of p.pages){const fr=$('[data-thumb="'+pg.id+'"]');fr.srcdoc=markup(pg);fr.addEventListener("load",()=>fr.contentDocument?.fonts.ready.then(()=>applyFontScale(fr.contentDocument,pg.settings.fontScale||1)),{once:true});}
- renderInspector();updatePreview();fitCanvas();
+ renderInspector();updatePreview();fitCanvas();Cloud.updateBadge();
 }
 function renderInspector(){
  const pg=current(),p=project(),el=$("#inspector-body");if(!el)return;
+ S.tab="copy";
  $$(".inspector-tabs button").forEach(b=>b.classList.toggle("active",b.dataset.tab===S.tab));
  if(S.tab==="copy"){
   el.innerHTML='<div class="between"><h2 class="section-title" style="margin-bottom:13px">页面文案</h2><span class="tiny muted">'+pg.copy.reduce((n,c)=>n+c.text.length,0)+' 字</span></div><div class="preserve-note">'+icon("lock")+' 自动排版不改字，手动编辑单独留痕。</div>'+
@@ -118,15 +118,16 @@ function modal(title,body,footer="",wide=false){
 }
 function closeModal(){const d=$("dialog");if(d){d.close();d.remove();}}
 function newProjectDialog(){
- modal("开始一套新图文",'<form id="new-project-form"><div class="form-field"><label for="new-name">项目名称</label><input id="new-name" placeholder="例如：周末城市散步指南" maxlength="100" required></div><div class="form-field"><label for="new-copy">原始文案</label><textarea class="import-text" id="new-copy" placeholder="每页第一行作为标题。\n\n用 --- 分隔页面，也支持（1P）（2P）标记。\n\n所有文字会原样保留。" required></textarea><p class="small-note">完整文案直接保真排版；可在生成后逐页选择照片与调整构图。</p></div><div class="project-summary">'+icon("lock")+' 原文保真 <span style="margin-left:auto">3:4 · 高清图片</span></div></form>',button("close","取消",null,"btn")+ '<button class="btn primary" type="submit" form="new-project-form">'+icon("plus")+'创建并排版</button>');
+ modal("把文案交给 AI",'<form id="new-project-form"><div class="form-field"><label for="new-copy">原始文案</label><textarea class="import-text" id="new-copy" maxlength="60000" placeholder="粘贴完整文案。AI 会判断如何分页、构图和安排照片，文字、数字与顺序会保留。" required></textarea></div><div class="new-asset-input"><label class="btn" for="new-photos">'+icon("image")+'添加图片（选填）</label><input id="new-photos" type="file" accept="image/png,image/jpeg,image/webp" multiple hidden><span id="new-photo-count" class="small-note">最多 8 张，AI 自行判断用途与摆放</span></div><div class="form-field"><label for="new-brief">其他要求 <span class="muted">选填</span></label><textarea id="new-brief" rows="2" placeholder="有希望保留的品牌要求或表达重点，可以写在这里。"></textarea></div><div class="project-summary">'+icon("lock")+' 保留原文 · AI 设计 · 自动检查</div><p class="small-note">AI 会自行择用设计技能；必要时生成示意素材。每轮最多自动修正一次，用量计入每日任务额度。</p></form>',button("close","取消",null,"btn")+'<button class="btn primary" type="submit" form="new-project-form">'+icon("leaf")+'开始 AI 设计</button>');
 }
 function projectSettings(){
  modal("项目设置",'<div class="form-field"><label for="project-name">项目名称</label><input id="project-name" maxlength="100" value="'+esc(project().name)+'"></div><div class="between"><span class="small-note">创建于 '+formatDate(project().createdAt)+'</span>'+button("delete-project","删除项目","trash","btn flat small delete-link",S.projects.length===1?"disabled":"")+'</div>',button("close","取消",null,"btn")+button("save-project-name","保存名称","check","btn primary"));
 }
 function showAssets(){
  const p=project();
- modal("本项目素材库",'<div class="file-drop" data-action="upload">'+icon("upload")+'<br>点击上传 JPG、PNG 或 WebP<br><span class="tiny muted">每张不超过 12 MB，原图保存在当前项目中</span></div><div class="gallery-large" style="margin-top:20px">'+p.assets.map(a=>'<figure><img src="'+esc(a.url)+'" alt="'+esc(a.name)+'"><figcaption>'+esc(a.name)+'</figcaption></figure>').join("")+'</div><p class="small-note">上传后，切换到右侧「画面」可为当前页选择照片。照片不会自动套用到所有页面。</p>');
+ modal("项目素材",'<div class="file-drop" data-action="upload">'+icon("upload")+'<br>添加照片或图片<br><span class="tiny muted">JPG、PNG、WebP · 每张不超过 12 MB</span></div><div class="gallery-large" style="margin-top:20px">'+p.assets.map(a=>'<figure><img src="'+esc(a.url)+'" alt="'+esc(a.name)+'"><figcaption>'+esc(a.name)+(a.generated?' · AI 生成示意素材':'')+'</figcaption></figure>').join("")+'</div><p class="small-note">AI 会读取本项目最近 8 张图片，判断使用位置与裁切。真实照片会作为本次素材保留。</p>');
 }
+function showMore(){modal("项目与版本",'<div class="mobile-actions">'+button("project-settings","修改项目名称",null,"btn full")+button("history","查看版本记录","history","btn full")+button("undo","撤销上一次修改","undo","btn full",!project().history?.length?"disabled":"")+button("backup","备份当前项目","save","btn full")+button("skills","AI 的设计能力","leaf","btn full")+'</div>');}
 function showBrand(){
  const p=project();
  modal("品牌与样式",'<div class="form-field"><label>项目强调色</label><div class="color-dots">'+PALETTES.map(c=>'<button class="color-dot" style="background:'+c.color+'" aria-label="'+c.name+'" title="'+c.name+'" data-action="brand-color" data-color="'+c.color+'"></button>').join("")+'</div></div><div class="settings-item"><b>同一套作品，保留视觉连贯</b><p>强调色可统一应用到整套；每页仍可保留不同构图、底色与照片比例。</p></div><div class="settings-item"><b>字体与高清输出</b><p>已内置 Noto Sans SC 中文字体，保留真实字重。所有页面使用 1080 × 1440 母版，按 2 倍清晰度导出。</p></div><p class="small-note">品牌与产品资料属于本次项目，不会成为其他项目的固定要求。</p>');
@@ -136,7 +137,7 @@ function showHistory(){
  modal("版本记录",'<div class="project-summary">'+icon("history")+'保留最近25次操作，可撤销或恢复。<span style="margin-left:auto">'+hist.length+' 条</span></div>'+
  (hist.length?hist.slice().reverse().map(h=>'<div class="version-item"><div>'+esc(h.label)+'<small>'+formatDate(h.at)+'</small></div>'+button("restore-history","恢复",null,"btn small",'data-id="'+h.id+'"')+'</div>').join(""):'<div class="empty">还没有修改记录。<br>修改文案、构图或照片后，记录会出现在这里。</div>'));
 }
-function showSettings(){modal("关于图序工作台",'<div class="settings-item"><b>从文案与素材，到可编辑作品</b><p>逐页编辑、真实照片裁切、整套检查和高清 PNG / 可编辑 HTML 导出。</p></div><div class="settings-item"><b>云端 AI 设计</b><p>登录后可调用设计、改稿、参考分析、内容创作、模板制作与生成视觉素材。完整技能和脚本在独立云端环境执行，结果需查看后应用。</p></div><div class="settings-item"><b>你的工作空间</b><p>项目与素材按账号隔离，自动同步云端。本机缓存和项目备份帮助你继续编辑。每个新项目都从本次主题与素材出发。</p></div><p class="small-note">版本 0.2 · 可编辑设计 · 14 个设计模块</p>');}
+function showSettings(){modal("关于图序工作台",'<div class="settings-item"><b>你负责内容，AI 负责画面</b><p>准备文案与图片后，AI 自行决定分页、视觉方向、照片安排和设计技能，并执行渲染与网页检查。检查通过后自动呈现。</p></div><div class="settings-item"><b>保留你的修改</b><p>右侧文案始终可以编辑。如果生成期间更新了文案，旧方案会保留，新内容不会被旧结果覆盖。</p></div><div class="settings-item"><b>带走可编辑作品</b><p>可下载高清图片、可编辑 HTML 和项目备份。使用其他电脑前，请先备份项目。</p></div><p class="small-note">版本 0.3 · AI 自动设计 · 14 个设计模块按需择用</p>');}
 function showExport(){
  modal("导出你的作品",'<div class="project-summary"><b>'+project().pages.length+'</b><div>个画面已准备就绪<br><span class="tiny muted">2160 × 2880 · 高清 PNG</span></div></div><div class="settings-item"><b>导出整套高清图</b><p>每页生成一张PNG，并打包成ZIP。导出前会自动检查缺字、越界与图片加载。</p></div><div class="panel-actions">'+button("export-all","整套PNG · ZIP","download","btn primary")+button("export-one","仅导出当前页",null,"btn")+'</div><div class="inspector-divider"></div><div class="settings-item"><b>保留可编辑作品</b><p>项目备份可再次导入图序；HTML工程包含正式文字、布局、照片和字体许可。</p></div><div class="panel-actions">'+button("backup","项目备份 · JSON","save","btn")+button("export-source","可编辑HTML · ZIP","folder","btn")+'</div>');
 }
@@ -150,10 +151,10 @@ function confirmDelete(kind){
  const p=project(),isProject=kind==="project";
  modal(isProject?"删除这个项目？":"删除这个页面？",'<p style="font-size:12px;line-height:1.9">将删除'+esc(isProject?p.name:"当前第 "+(activePageIndex()+1)+" 页")+'。'+(isProject?"建议先下载项目备份。":"页面删除后可以撤销。")+'</p>',button("close","取消",null,"btn")+button(isProject?"confirm-delete-project":"confirm-delete-page","确认删除","trash","btn primary"));
 }
-function mobileMenu(){modal("你的工作空间",'<div class="mobile-actions">'+button("new","新建图文","plus","btn full")+button("ai-design","AI 设计","leaf","btn primary full")+button("ai-tasks","AI 任务","history","btn full")+button("mobile-copy","编辑当前页文案","type","btn full")+button("assets","项目素材","image","btn full")+button("skills","设计技能库","grid","btn full")+button("account","账户与云端","settings","btn full")+button("backup","备份当前作品","save","btn full")+'</div>');}
+function mobileMenu(){modal("你的工作空间",'<div class="mobile-actions">'+button("new","新建图文","plus","btn full")+button("mobile-copy","编辑文案","type","btn full")+button("assets","项目素材","image","btn full")+button("ai-tasks","设计记录","history","btn full")+button("account","当前工作空间","settings","btn full")+button("backup","备份当前作品","save","btn full")+'</div>');}
 function mobileCopy(){modal("编辑当前页文案",current().copy.map((c,i)=>'<label class="copy-field"><span class="field-heading">'+(i===0?"标题":"内容 "+i)+'</span><textarea data-copy-field="'+esc(c.id)+'" rows="4">'+esc(c.text)+'</textarea></label>').join(""),button("close","完成编辑","check","btn primary"));}
 const actions={
- "mobile-menu":mobileMenu,"mobile-copy":mobileCopy,"ai-design":()=>Cloud.showAI("","design"),"ai-tasks":()=>Cloud.showTasks(),skills:()=>Cloud.showSkills(),account:()=>Cloud.showAccount(),new:newProjectDialog,workspace:()=>{closeModal();},assets:showAssets,brand:showBrand,history:showHistory,settings:showSettings,
+ "mobile-menu":mobileMenu,"mobile-copy":mobileCopy,"ai-design":()=>Cloud.startDesign(),"ai-tasks":()=>Cloud.showTasks(),skills:()=>Cloud.showSkills(),account:()=>Cloud.showAccount(),new:newProjectDialog,workspace:()=>{closeModal();},assets:showAssets,more:showMore,history:showHistory,settings:showSettings,
  close:()=>{if(!S.busy)closeModal();},export:showExport,overview:()=>showOverview(),phone:()=>showOverview(true),
  "project-settings":projectSettings,"save-project-name":()=>{const n=$("#project-name").value.trim();if(!n)return toast("请输入项目名称。");project().name=n;closeModal();scheduleSave();render();},
  "select-page":b=>{S.pageId=b.dataset.id;S.selectedCopy=null;S.editing=null;S.zoom=1;render();},
@@ -183,15 +184,20 @@ const actions={
 
 function progress(title){S.busy=true;const d=modal(title,'<div class="row"><div class="loading-ring"></div><span>正在准备…</span></div><div class="progress-track"><i></i></div><div class="progress-status"></div>');d.addEventListener("cancel",e=>e.preventDefault());return (n,t)=>{const bar=$(".progress-track i",d),status=$(".progress-status",d);if(bar)bar.style.width=Math.round(n*100)+"%";if(status)status.textContent=t;};}
 function endProgress(){S.busy=false;closeModal();}
-async function renderFrame(pg){
+async function renderFrame(pg,targetProject=project()){
  const fr=document.createElement("iframe");fr.style.cssText="position:fixed;left:-20000px;top:0;width:1080px;height:1440px;border:0;pointer-events:none";
  document.body.append(fr);
  try{
-  await new Promise((resolve,reject)=>{const timer=setTimeout(()=>reject(Error("画面加载超时，请重试。")),45000);fr.onload=()=>{clearTimeout(timer);resolve();};fr.onerror=reject;fr.srcdoc=markup(pg);});
+  await new Promise((resolve,reject)=>{const timer=setTimeout(()=>reject(Error("画面加载超时，请重试。")),45000);fr.onload=()=>{clearTimeout(timer);resolve();};fr.onerror=reject;fr.srcdoc=frameDocument(pg,targetProject,S.baseCSS);});
   const doc=fr.contentDocument;await doc.fonts.ready;applyFontScale(doc,pg.settings.fontScale||1);
   await Promise.all([...doc.images].map(im=>im.decode().catch(()=>{})));
   return {frame:fr,doc,root:doc.querySelector(".xhs-card"),remove:()=>fr.remove()};
  }catch(e){fr.remove();throw e;}
+}
+async function auditProposal(draft){
+ const report=[];
+ for(const page of draft.pages){const rendered=await renderFrame(page,draft);try{report.push({id:page.id,label:page.label,issues:auditPage(rendered.doc,page)});}finally{rendered.remove();}}
+ return report;
 }
 async function checkAll(){
  if(S.busy)return;
@@ -300,19 +306,24 @@ document.addEventListener("click",e=>{
  const b=e.target.closest("[data-action]");if(!b||b.disabled)return;
  const fn=actions[b.dataset.action];if(fn&&!S.busy)Promise.resolve(fn(b)).catch(err=>toast(err.message));
 });
-document.addEventListener("submit",e=>{
+async function readImageFiles(input){
+ const files=[...input];if(files.length>8)throw Error("每次最多添加8张图片。");
+ const images=[];for(const file of files){
+  if(!["image/png","image/jpeg","image/webp"].includes(file.type))throw Error("请上传PNG、JPG或WebP图片。");
+  if(file.size>12*1024*1024)throw Error(file.name+"超过12MB，请先压缩。");
+  const url=await new Promise((resolve,reject)=>{const reader=new FileReader();reader.onload=()=>resolve(reader.result);reader.onerror=reject;reader.readAsDataURL(file);});
+  images.push({id:uid(),name:file.name,url});
+ }return images;
+}
+document.addEventListener("submit",async e=>{
  if(e.target.id==="new-project-form"){
-  e.preventDefault();try{
-   const name=$("#new-name").value.trim(),text=$("#new-copy").value;if(!name)return toast("请填写项目名称。");
-   const p={id:uid(),name,pages:parseManuscript(text),assets:[],history:[],redo:[],createdAt:Date.now(),updatedAt:Date.now()};
-   S.projects.unshift(p);S.activeId=p.id;S.pageId=p.pages[0].id;S.tab="copy";S.zoom=1;S.audit=null;closeModal();render();scheduleSave();toast("项目已创建，全部原文已保留。");
-  }catch(err){toast(err.message);}
- }else if(e.target.id==="quick-form"){
-  e.preventDefault();const command=$("#quick-input").value.trim();if(!command)return;
+  e.preventDefault();const submit=e.submitter;if(submit)submit.disabled=true;
   try{
-   const draft=clone(project()),result=quickAdjustment(draft,current(),command);
-   edit(result.label,()=>{project().pages=draft.pages;S.pageId=result.pageId;});toast("已应用到指定页面，其余页面保持原样。");
-  }catch(err){Cloud.showAI(command,"revise");}
+   const text=$("#new-copy").value,brief=$("#new-brief").value.slice(0,6000),pages=parseManuscript(text,{preserveText:true});
+   const assets=await readImageFiles($("#new-photos").files);
+   const p={id:uid(),name:(pages[0].copy[0]?.text||"新的图文").slice(0,80),brief,pages,assets,history:[],redo:[],createdAt:Date.now(),updatedAt:Date.now()};
+   S.projects.unshift(p);S.activeId=p.id;S.pageId=p.pages[0].id;S.tab="copy";S.zoom=1;S.audit=null;closeModal();render();scheduleSave();await Cloud.startDesign();
+  }catch(err){toast(err.message);if(submit?.isConnected)submit.disabled=false;}
  }
 });
 document.addEventListener("input",e=>{
@@ -322,6 +333,8 @@ document.addEventListener("input",e=>{
   if(S.editing!==c.id){remember("修改文案 · "+(pg.copy.indexOf(c)===0?"标题":"内容"));S.editing=c.id;}
   c.text=el.value;S.audit=null;const label=$('[data-count="'+c.id+'"]');if(label)label.textContent=c.text.length+" 字";
   scheduleSave();clearTimeout(previewTimer);previewTimer=setTimeout(updatePreview,320);
+ }else if(el.id==="design-notes"){
+  project().brief=el.value.slice(0,6000);scheduleSave();
  }else if(el.matches("[data-setting]")){
   const setting=el.dataset.setting;
   if(S.editing!==setting){remember("调整画面 · "+({fontScale:"文字大小",photoZoom:"照片缩放",photoX:"水平裁切",photoY:"垂直裁切"})[setting]);S.editing=setting;}
@@ -331,19 +344,11 @@ document.addEventListener("input",e=>{
  }
 });
 document.addEventListener("focusout",e=>{if(e.target.matches("[data-copy-field],[data-setting]"))S.editing=null;});
-document.addEventListener("change",e=>{if(e.target.id==="custom-color")edit("自定义强调色",()=>{current().settings.accent=e.target.value;},{full:false});});
+document.addEventListener("change",e=>{if(e.target.id==="new-photos"){const label=$("#new-photo-count");if(label)label.textContent=e.target.files.length?"已选 "+e.target.files.length+" 张图片":"最多 8 张，AI 自行判断用途与摆放";}});
 $("#file-images").addEventListener("change",async e=>{
  try{
-  const files=[...e.target.files];if(!files.length)return;
-  if(files.length+project().assets.length>100)throw Error("每个项目最多保存100张照片。");
-  const entries=[];
-  for(const f of files){
-   if(!["image/png","image/jpeg","image/webp"].includes(f.type))throw Error("请上传PNG、JPG或WebP图片。");
-   if(f.size>12*1024*1024)throw Error(f.name+"超过12MB，请先压缩。");
-   const url=await new Promise((res,rej)=>{const reader=new FileReader();reader.onload=()=>res(reader.result);reader.onerror=rej;reader.readAsDataURL(f);});
-   entries.push({id:uid(),name:f.name,url});
-  }
-  project().assets.push(...entries);scheduleSave();if($("dialog"))showAssets();else{S.tab="visual";renderInspector();}toast("已添加"+entries.length+"张照片，可在画面面板选择使用。");
+  const files=[...e.target.files];if(!files.length)return;if(files.length+project().assets.length>100)throw Error("项目素材已满，请另建项目。");
+  const entries=await readImageFiles(files);project().assets.push(...entries);scheduleSave();if($("dialog"))showAssets();toast("已添加"+entries.length+"张图片，下次设计时由AI自行安排。");
  }catch(err){toast(err.message);}finally{e.target.value="";}
 });
 $("#file-project").addEventListener("change",async e=>{
@@ -363,7 +368,7 @@ document.addEventListener("keydown",e=>{
 });
 window.addEventListener("resize",fitCanvas);
 window.addEventListener("beforeunload",()=>{clearTimeout(saveTimer);if(S.db)persist();});
-const Cloud=createCloud({S,project,current,modal,closeModal,toast,render,remember,persist,button,baseCSS:()=>S.baseCSS});
+const Cloud=createCloud({S,project,current,modal,closeModal,toast,render,remember,persist,button,baseCSS:()=>S.baseCSS,auditProposal});
 async function legacyProjects(name="tuxu-studio"){return new Promise(resolve=>{const r=indexedDB.open(name,1);r.onupgradeneeded=()=>{r.transaction.abort();resolve([]);};r.onerror=()=>resolve([]);r.onsuccess=()=>{try{const q=r.result.transaction("workspace").objectStore("workspace").get("state");q.onsuccess=()=>{resolve(q.result?.projects||[]);r.result.close();};q.onerror=()=>resolve([]);}catch{resolve([]);}};});}
 async function boot(){
  try{
@@ -374,9 +379,9 @@ async function boot(){
   for(const p of remote){const local=S.projects.find(x=>x.id===p.id);if(!local)S.projects.push(p);else if(!local._cloudDirty&&p.cloudRevision>(local.cloudRevision||0))S.projects[S.projects.indexOf(local)]=p;}
   if(!S.projects.length&&S.session.isAdmin)S.projects=await legacyProjects();
   if(!S.projects.length&&S.session.accessMode==='visitor'){S.projects=await legacyProjects('tuxu-studio-guest');for(const p of S.projects){delete p.cloudRevision;delete p._syncConflict;p._cloudDirty=true;}}
-  if(!S.projects.length){const p={id:uid(),name:"我的第一套图文",pages:parseManuscript("让好内容，被看见\\n把你的主题、原文与真实素材带进来。\\n使用 AI 设计，探索适合这次内容的画面。\\n---\\n从一份清晰的文案开始\\n新建项目后，可以逐页编辑、上传照片，或者请 AI 为你制作新的排版提案。"),assets:[],history:[],redo:[],createdAt:Date.now(),updatedAt:Date.now()};S.projects=[p];}
+  if(!S.projects.length){const p={id:uid(),name:"从文案开始",pages:parseManuscript("让好内容，被看见\n把你的完整文案放在右侧，也可以上传本次图片。\n画面、分页和设计检查，交给 AI 自行完成。",{preserveText:true}),assets:[],history:[],redo:[],createdAt:Date.now(),updatedAt:Date.now()};S.projects=[p];}
   if(!project())S.activeId=S.projects[0].id;S.pageId=project().pages[0].id;render();Cloud.updateBadge();await persist({skipCloud:!project()._cloudDirty&&!!project().cloudRevision});Cloud.startPolling();
-  window.TuXu={getState:()=>clone({projects:S.projects,activeId:S.activeId,pageId:S.pageId,user:S.session.user,jobs:S.jobs}),auditCurrent:()=>auditPage($("#canvas-frame").contentDocument,current()),version:"0.2.0"};
+  window.TuXu={getState:()=>clone({projects:S.projects,activeId:S.activeId,pageId:S.pageId,user:S.session.user,jobs:S.jobs}),auditCurrent:()=>auditPage($("#canvas-frame").contentDocument,current()),version:"0.3.0"};
  }catch(e){$("#app").innerHTML='<div class="boot"><h1>工作台暂时未能打开</h1><p>'+esc(e.message)+'</p><button class="btn primary" onclick="location.reload()">重新打开</button></div>';}
 }
 boot();

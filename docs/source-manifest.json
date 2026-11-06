@@ -1,6 +1,9 @@
 {
   "deployedCommit": "38ac060abe604bb3a574bcff3e6ddc85f1d727e3",
   "siteProjectId": "appgprj_6aecb5faa0b881919c03675fe284bf42",
+  "sourceVersion": "0.3.0",
+  "sourceBranch": "feat/ai-first-workflow-20261106",
+  "railwayReleasePendingProjectBackup": true,
   "skills": [
     "xiaohongshu-design",
     "victor-design",
@@ -28,6 +31,26 @@
     "deployment repository history"
   ],
   "files": [
+    {
+      "path": "docs/automatic-workflow.md",
+      "bytes": 5159,
+      "sha256": "791fdc5ca91cacef1f0981a1af36626e0e234b4f2d78ea0fef5a52a65a6a8a0d"
+    },
+    {
+      "path": "server/automatic-workflow.ts",
+      "bytes": 1239,
+      "sha256": "09624cd3e32b9440f96090d06aed289d450c667774f1da2efabcaa5b447a27bd"
+    },
+    {
+      "path": "src/ai-workflow.js",
+      "bytes": 1100,
+      "sha256": "8cc8cf96280753b8b2419c7b8a9b7ae38b72fbe8c04b4375a9dabebbddd89fc1"
+    },
+    {
+      "path": "tests/automatic-workflow.test.mjs",
+      "bytes": 12015,
+      "sha256": "33a9ebfa7176d54c5295a246cba4ffd85197d877ed354f77875a5052f1bea9ea"
+    },
     {
       "path": ".dockerignore",
       "bytes": 158,
@@ -3450,8 +3473,8 @@
     },
     {
       "path": "docs/railway.md",
-      "bytes": 8737,
-      "sha256": "6c400fa1807de61e2d925151d12628b8abf4fedb0ac9f579f7a23a456c39070e"
+      "bytes": 9014,
+      "sha256": "abe8168b989f845459290a8eadcb1c283d30dad63195b5fd265f54eae6d0fb4e"
     },
     {
       "path": "docs/setup.md",
@@ -3505,8 +3528,8 @@
     },
     {
       "path": "HANDOFF.md",
-      "bytes": 19849,
-      "sha256": "e57ea7157948dd5867a4e39f9f5cb9f153bd3cc3620b85a0834d3ce5bf0bb2a9"
+      "bytes": 20712,
+      "sha256": "10526c7eed72b5a167afe7ef2c2b82e67c678346f3a9b937b7d99922b0277f1e"
     },
     {
       "path": "hooks/use-mobile.ts",
@@ -3556,12 +3579,12 @@
     {
       "path": "package-lock.json",
       "bytes": 509661,
-      "sha256": "339920d147c519c313238c30e9a331308429420abffcb7c6bce14422f7bb565d"
+      "sha256": "c66374bb7e2471d42f956f925607f6d3f87386c2b881d496b20064b7d35d3f37"
     },
     {
       "path": "package.json",
-      "bytes": 2373,
-      "sha256": "199587fba32f5220a28c15cc549f2cf67c0d307bb357f0a5e984af58599199a8"
+      "bytes": 2444,
+      "sha256": "6997d6ffb2b5f9db1ad54dc958307a253d337a567de065f101ed55d8c1389162"
     },
     {
       "path": "postcss.config.mjs",
@@ -3570,8 +3593,8 @@
     },
     {
       "path": "public/ai.css",
-      "bytes": 3177,
-      "sha256": "d85152aba45ee0be244657b623c52dd5c7ee98064e454f4fa742908e25022cf6"
+      "bytes": 4717,
+      "sha256": "1c4557d6a3b9d3fb8afa2df9ca126b82265da39cad7babb4356cbf25cce58933"
     },
     {
       "path": "public/app.css",
@@ -3605,8 +3628,8 @@
     },
     {
       "path": "public/editor.js",
-      "bytes": 194068,
-      "sha256": "8984ba356d65a1d4015218d1ceece1fd11c6be5bb91935919056b6bc2da57393"
+      "bytes": 192316,
+      "sha256": "38a66e7a8897791e432c92492177efd808a5d595ac930b53b4cc58197112943f"
     },
     {
       "path": "public/editor.js.LEGAL.txt",
@@ -3625,13 +3648,13 @@
     },
     {
       "path": "QA.md",
-      "bytes": 6799,
-      "sha256": "7ab32cc9d92d4b7ea7af3f0cbda393b322762b3064f9bc2f9907ee309e89920d"
+      "bytes": 9376,
+      "sha256": "3b2bc52f3cf73cfe9739b8634c33f5e5f561ee53cc0e82dade99c6828b3aa43c"
     },
     {
       "path": "README.md",
-      "bytes": 3096,
-      "sha256": "4cca38b30a52e7fdbe1e5391b1d3a8a57e79b7d788070d3971d42e5eb6f0168d"
+      "bytes": 3204,
+      "sha256": "cc6df435288021a11621ded0139f32e6a6c977e0702f6dfce4225f25076518a5"
     },
     {
       "path": "scripts/api-local.mjs",
@@ -3745,8 +3768,8 @@
     },
     {
       "path": "scripts/qa-visitor-api.mjs",
-      "bytes": 5778,
-      "sha256": "326addb1fb7fc787609f6766eb160b8adebe8db6139e78171457b4caa8876e6b"
+      "bytes": 6682,
+      "sha256": "0c5a1d4242f92755db585b6a49628e34227a070d08663f2f34ea652e320acaf9"
     },
     {
       "path": "scripts/qa-visual.mjs",
@@ -3815,8 +3838,8 @@
     },
     {
       "path": "server/agent.ts",
-      "bytes": 18292,
-      "sha256": "b79a3850f1d7ac40b33c50321b7b8f1808d6ce9c17eb4dbb6b5a5b8d3cec1b39"
+      "bytes": 27701,
+      "sha256": "649ffa17f9702dda96b1f61836cc2bf86e4ae4ecc03879e48df26c5182289db0"
     },
     {
       "path": "server/copy-integrity.ts",
@@ -3835,13 +3858,13 @@
     },
     {
       "path": "server/routes.ts",
-      "bytes": 11308,
-      "sha256": "014bb7695fef9ef422f4b0864156a2a90dd743b36d126129a5d57e89787b948a"
+      "bytes": 12679,
+      "sha256": "3bb105a8429be2ffcaee2a468c38f2b28f5805836728171560b3b25e923882d5"
     },
     {
       "path": "server/skills.ts",
-      "bytes": 2494,
-      "sha256": "c76761b9dbb98e694cb1491cab989568578896f4b5548f7f2382dbf7004c6ff6"
+      "bytes": 2550,
+      "sha256": "c7d1fbefa8fd0d2b56edb5142c6150a741114ac142e6b71188f39abaa1a7ff66"
     },
     {
       "path": "server/visitor-session.ts",
@@ -3855,18 +3878,18 @@
     },
     {
       "path": "src/app.js",
-      "bytes": 47677,
-      "sha256": "3fd4537d1ca53abb090b3c9850c9486f3ff9a90af60a802d36ccc0a889d79014"
+      "bytes": 47899,
+      "sha256": "846e92894fc8b6396ffcb745be187fa0092aa7a59870300c4beb752e235497ed"
     },
     {
       "path": "src/cloud.js",
-      "bytes": 16141,
-      "sha256": "09427d488917e743910d60277e527347fe658e54680a7d8fe011820739a39aab"
+      "bytes": 15954,
+      "sha256": "9cc08b975d1898a9eba4db8ed59f7b3b4fa66ec4608f2e4f4b581cc08c7294e0"
     },
     {
       "path": "src/engine.js",
-      "bytes": 15832,
-      "sha256": "115b0c34fc72449e6564a4fe2e814ede2876dc87c3c366f57bd99d23af18ba81"
+      "bytes": 15923,
+      "sha256": "a65eb915ce9a98f35ea8ff706b952e0965d550f2a2b27c5a83bb7d97432991e3"
     },
     {
       "path": "tests/visitor-session.test.mjs",
@@ -3910,8 +3933,8 @@
     },
     {
       "path": "server/design-result.ts",
-      "bytes": 3165,
-      "sha256": "96d7c95bf710e7be30568588b439033c70b2bac72af690d249a25b0dc0765eab"
+      "bytes": 5175,
+      "sha256": "ea70b53e015f13271cfdbf69f8a9a9c242833757a46d90540c96d6bf4cabea13"
     },
     {
       "path": "src/style-safety.js",

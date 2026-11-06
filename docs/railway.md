@@ -100,6 +100,7 @@ npm run start:railway
 npx tsc --noEmit
 npm run test:visitor
 npm run test:design-result
+npm run test:automatic
 npm run build
 ```
 
@@ -114,6 +115,8 @@ npm run qa:visitor
 Windows 上构建后的 Worker 若无法经本机系统代理访问 OpenAI，可单独运行 `scripts/dev-ai-proxy.mjs`，并在本地 Railway 启动进程设置 `DEV_OPENAI_BASE_URL=http://127.0.0.1:8789`。只有 `APP_ORIGIN` 与转发地址均为回环地址时，构建后的程序才允许此测试转发。公网 Railway 配置忽略它，仍直接访问官方 OpenAI API。
 
 测试记录位于 [QA.md](../QA.md)。正式修改应保留原文校验、结果预览与版本冲突保护，不因访客模式放宽这些约束。
+
+0.3 自动分页、技能按需装载、自动检查与修正、版本保护及接续入口见 [自动设计工作流](automatic-workflow.md)。界面不再要求人工设置画面或技能；正常版本自动呈现，历史手动提案仍可查看。
 
 ## 排版结果被拒绝时
 

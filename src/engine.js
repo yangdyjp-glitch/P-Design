@@ -5,7 +5,7 @@ export const escape=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&l
 export const clone=o=>structuredClone(o);
 export const LAYOUTS={original:"保留当前构图",cover:"大字封面",editorial:"编辑式正文",photo:"图文分区",list:"信息清单",timeline:"步骤路径",closing:"行动结尾"};
 export const PALETTES=[{name:"海盐蓝",color:"#214BE1"},{name:"森林绿",color:"#3F6552"},{name:"朱砂红",color:"#B44235"},{name:"鸢尾紫",color:"#665090"},{name:"近墨黑",color:"#252C33"}];
-export function parseManuscript(text){
+export function parseManuscript(text,{preserveText=false}={}){
  text=String(text).replace(/\r\n?/g,"\n").trim();
  if(!text)throw Error("请先输入需要制作的文案。");
  let chunks=text.split(/\n\s*---+\s*\n/g);
@@ -13,9 +13,9 @@ export function parseManuscript(text){
  if(!chunks.length)chunks=[text];
  if(chunks.length>20)throw Error("一套作品最多20页，请分成两个项目。");
  const pages=chunks.map((chunk,i)=>{
-  const lines=chunk.trim().split("\n").map(s=>s.trim()).filter(Boolean);
-  const title=(lines.shift()||"").replace(/^#{1,3}\s+/,"");
-  const paragraphs=lines.map(s=>s.replace(/^[-*]\s+/,""));
+  const lines=chunk.trim().split("\n").map(s=>preserveText?s:s.trim()).filter(s=>s.trim());
+  const first=lines.shift()||"",title=preserveText?first:first.replace(/^#{1,3}\s+/,"");
+  const paragraphs=preserveText?lines:lines.map(s=>s.replace(/^[-*]\s+/,""));
   const id=uid(),copy=[{id:id+"-title",text:title},...paragraphs.map((text,j)=>({id:id+"-body-"+j,text}))];
   const layout=i===0?"cover":/阶段|步骤|路径/.test(title)?"timeline":/咨询|报名|联系|回复/.test(title)?"closing":"editorial";
   return {id,label:title.slice(0,24),layout,copy,originalCopy:clone(copy),html:"",settings:{accent:"#214BE1",fontScale:1,photoZoom:1,photoX:50,photoY:50},photoAssetId:null};
