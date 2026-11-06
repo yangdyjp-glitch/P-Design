@@ -1,4 +1,4 @@
-
+import {styleIssue} from './style-safety.js';
 export const uid=()=>crypto.randomUUID();
 export const clean=s=>String(s??"").replace(/\s+/gu,"");
 export const escape=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
@@ -33,16 +33,16 @@ export function genericCard(p,assetUrl){
  else body='<div class="generic-body">'+rest.map(paragraph).join("")+'</div>';
  return '<section class="xhs-card generic generic-'+escape(p.layout)+'" data-page="'+escape(p.label)+'">'+h+photo+body+'</section>';
 }
-export function sanitizeCSS(value){const s=String(value||"");if(s.length>80000||/[<>]|@import|url\s*\(|expression\s*\(|javascript:|@font-face/i.test(s))throw Error("页面样式包含不支持的内容。");return s;}
+export function sanitizeCSS(value){const s=String(value||"");const issue=styleIssue(s);if(issue)throw Error(issue.message+"。");return s;}
 export function sanitizeHTML(value){
  const d=new DOMParser().parseFromString(value,"text/html");
- const allowed=new Set("SECTION HEADER FOOTER ARTICLE MAIN ASIDE DIV P H1 H2 H3 SPAN STRONG EM B I BR FIGURE IMG SVG PATH RECT LINE CIRCLE POLYLINE UL OL LI SMALL".split(" "));
+ const allowed=new Set("SECTION HEADER FOOTER ARTICLE MAIN ASIDE DIV P H1 H2 H3 SPAN STRONG EM B I BR FIGURE IMG SVG G PATH RECT LINE CIRCLE POLYLINE UL OL LI SMALL".split(" "));
  for(const el of [...d.body.querySelectorAll("*")]){
   if(!allowed.has(el.tagName.toUpperCase())){el.remove();continue;}
   for(const a of [...el.attributes]){
-   if(!/^(class|data-copy|data-page|data-vds-role|data-vds-cause|aria-hidden|alt|src|style|data-asset-id|viewbox|d|x|y|x1|y1|x2|y2|width|height|rx|ry|cx|cy|r|points|fill|stroke|stroke-width|stroke-linecap|stroke-linejoin)$/i.test(a.name))el.removeAttribute(a.name);
+   if(!/^(class|data-copy|data-page|data-vds-role|data-vds-cause|aria-hidden|alt|src|style|data-asset-id|viewbox|d|x|y|x1|y1|x2|y2|width|height|rx|ry|cx|cy|r|points|fill|stroke|stroke-width|stroke-linecap|stroke-linejoin|transform|opacity)$/i.test(a.name))el.removeAttribute(a.name);
   }
-  if(el.hasAttribute("style")&&/[<>]|url\s*\(|expression\s*\(|javascript:|@import/i.test(el.getAttribute("style")))el.removeAttribute("style");
+  if(el.hasAttribute("style")&&styleIssue(el.getAttribute("style")))el.removeAttribute("style");
   if(el.tagName==="IMG"){
    const s=el.getAttribute("src")||"";
    if(!/^(assets\/photos\/[^?#]+|\/api\/files\/[a-zA-Z0-9_-]+|data:image\/(png|jpeg|webp);base64,[A-Za-z0-9+/=]+)$/.test(s))el.removeAttribute("src");

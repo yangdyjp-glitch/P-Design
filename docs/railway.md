@@ -99,6 +99,7 @@ npm run start:railway
 ```powershell
 npx tsc --noEmit
 npm run test:visitor
+npm run test:design-result
 npm run build
 ```
 
@@ -113,3 +114,11 @@ npm run qa:visitor
 Windows 上构建后的 Worker 若无法经本机系统代理访问 OpenAI，可单独运行 `scripts/dev-ai-proxy.mjs`，并在本地 Railway 启动进程设置 `DEV_OPENAI_BASE_URL=http://127.0.0.1:8789`。只有 `APP_ORIGIN` 与转发地址均为回环地址时，构建后的程序才允许此测试转发。公网 Railway 配置忽略它，仍直接访问官方 OpenAI API。
 
 测试记录位于 [QA.md](../QA.md)。正式修改应保留原文校验、结果预览与版本冲突保护，不因访客模式放宽这些约束。
+
+## 排版结果被拒绝时
+
+`src/style-safety.js` 由服务端结果校验及浏览器预览、应用、导出共用。CSS 子元素选择器的 `>` 是正常语法；标准 SVG 的 `xmlns` 只是命名空间，也不属于外部资源请求。浏览器保留 SVG 的 `g` 分组及常用变换、透明度属性，避免删掉整组矢量图。不要把这些正常结构作为危险内容整体拦截。
+
+结果校验错误会记录 `AI_RESULT_VALIDATION_FAILURE`、任务编号、固定错误代码及页码原因，不记录原始文案、HTML 或密钥。脚本、事件、外部资源、字体定义和样式导入仍拒绝；锁定原文、页面范围和应用前版本检查继续保留。可下载 HTML 母版与 `result.json` 的页面片段不同：片段不能带 `head/style/script/link` 等整页配置。
+
+旧版只有笼统错误，且失败后已清理托管环境。不能仅凭历史截图断定具体触发项，也不能宣称旧任务结果已恢复。发布修复前应先备份项目，尤其在没有 Railway Volume 时。

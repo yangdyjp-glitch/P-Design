@@ -12,6 +12,7 @@
     "start": "node scripts/start.mjs",
     "start:railway": "node scripts/start-railway.mjs",
     "test:visitor": "node --test tests/visitor-session.test.mjs",
+    "test:design-result": "node --test tests/design-result.test.mjs",
     "qa:visitor": "node scripts/qa-visitor-api.mjs",
     "lint": "eslint . --ignore-pattern dist --ignore-pattern .next",
     "db:generate": "drizzle-kit generate",
