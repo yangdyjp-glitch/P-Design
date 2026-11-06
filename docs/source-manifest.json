@@ -2,8 +2,8 @@
   "deployedCommit": "38ac060abe604bb3a574bcff3e6ddc85f1d727e3",
   "siteProjectId": "appgprj_6aecb5faa0b881919c03675fe284bf42",
   "sourceVersion": "0.3.0",
-  "sourceBranch": "feat/ai-first-workflow-20261106",
-  "railwayReleasePendingProjectBackup": true,
+  "sourceBranch": "main",
+  "railwayReleasePendingProjectBackup": false,
   "skills": [
     "xiaohongshu-design",
     "victor-design",
@@ -33,8 +33,8 @@
   "files": [
     {
       "path": "docs/automatic-workflow.md",
-      "bytes": 5159,
-      "sha256": "791fdc5ca91cacef1f0981a1af36626e0e234b4f2d78ea0fef5a52a65a6a8a0d"
+      "bytes": 5272,
+      "sha256": "bf8e70c028f27ad8b109c1f41533692db18f5b5a98bc18338ec8317e8da21a96"
     },
     {
       "path": "server/automatic-workflow.ts",
@@ -3473,8 +3473,8 @@
     },
     {
       "path": "docs/railway.md",
-      "bytes": 9014,
-      "sha256": "abe8168b989f845459290a8eadcb1c283d30dad63195b5fd265f54eae6d0fb4e"
+      "bytes": 9275,
+      "sha256": "5a631ca0ab80aa04a064a0f8576fbd9d90c7f0c499cd52291bdad91dce73be51"
     },
     {
       "path": "docs/setup.md",
@@ -3528,8 +3528,8 @@
     },
     {
       "path": "HANDOFF.md",
-      "bytes": 20712,
-      "sha256": "10526c7eed72b5a167afe7ef2c2b82e67c678346f3a9b937b7d99922b0277f1e"
+      "bytes": 20871,
+      "sha256": "8fbc11fc8e34a1de1443655122f3646e1b9be03185b629773a3aed8fc8ab8036"
     },
     {
       "path": "hooks/use-mobile.ts",
@@ -3648,13 +3648,13 @@
     },
     {
       "path": "QA.md",
-      "bytes": 9376,
-      "sha256": "3b2bc52f3cf73cfe9739b8634c33f5e5f561ee53cc0e82dade99c6828b3aa43c"
+      "bytes": 9526,
+      "sha256": "db36c1c378d50ca7e1e6651b3f05780cdb9a06f3ae1d3bf092b7554768afd9e7"
     },
     {
       "path": "README.md",
-      "bytes": 3204,
-      "sha256": "cc6df435288021a11621ded0139f32e6a6c977e0702f6dfce4225f25076518a5"
+      "bytes": 3296,
+      "sha256": "1d5efe9d397eab653bc5c9ef13b977b1d9373fe2bfc8938b21638cc264ff9527"
     },
     {
       "path": "scripts/api-local.mjs",

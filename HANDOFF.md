@@ -6,7 +6,7 @@
 
 Railway 随后已配置密钥，公网文案生成及实际文件下载验证通过，14 个技能就绪。后续排版失败排查发现正常 CSS 子选择器与标准 SVG 命名空间被误拦；修复入口是 `server/design-result.ts`、`src/style-safety.js`，验证方法和发布前备份要求见上述 Railway 说明及 [QA.md](QA.md)。发布仍需单独核验，不把本地修复或提交视为已上线。
 
-最新 0.3 自动工作流在 `feat/ai-first-workflow-20261106`：保留右侧文案，AI 自行择用 14 个模块、安排分页和画面并自动检查，合格且版本一致后自动呈现。技能按需加载，避免整批 ZIP 超出启动限制；见 [自动设计接续说明](docs/automatic-workflow.md)。该分支包含先前的排版兼容性修复，发布前仍待项目备份确认。下表是原 Sites 的历史生产基线，不能当成 0.3 已部署记录。
+最新 0.3 自动工作流已合入 `main`，开发来源为 `feat/ai-first-workflow-20261106`：保留右侧文案，AI 自行择用 14 个模块、安排分页和画面并自动检查，合格且版本一致后自动呈现。技能按需加载，避免整批 ZIP 超出启动限制；见 [自动设计接续说明](docs/automatic-workflow.md)。2026-11-07 用户已确认没有需要保留的云端项目，发布前的数据保留限制已解除；已合入先前的排版兼容性修复并开始 Railway 发布，实际就绪状态需按上述说明核验。下表是原 Sites 的历史生产基线，不能当成 0.3 已部署记录。
 
 ## 1. 先看这里
 
@@ -34,7 +34,7 @@ appgprj_6aecb5faa0b881919c03675fe284bf42~appgver_4cc3db99fef48191a2c046f739c0ece
 
 部署 ID：`appgdep_6aecdc5b9de4819194b34b2e8b69bb42`。以上是交接记录，接续发布前应通过 Sites 工具读取现状。
 
-**Sites 需单独发布；Railway 的 main 推送可能触发自动部署。** 当前改版只推送功能分支，等待项目备份确认后再合入 main。下文涉及原 Sites 生产站点的发布操作应与 Railway 区分。
+**Sites 需单独发布；Railway 的 main 推送可能触发自动部署。** 当前改版已获发布授权并合入 main。下文涉及原 Sites 生产站点的发布操作应与 Railway 区分；后续发布仍应先处理需要保留的云端项目。
 
 ## 2. 产品要求与完成范围
 
@@ -72,7 +72,7 @@ appgprj_6aecb5faa0b881919c03675fe284bf42~appgver_4cc3db99fef48191a2c046f739c0ece
 ```powershell
 git clone https://github.com/yangdyjp-glitch/P-Design.git
 cd P-Design
-git switch feat/ai-first-workflow-20261106
+git switch main
 npm ci
 npx tsc --noEmit
 npm run build

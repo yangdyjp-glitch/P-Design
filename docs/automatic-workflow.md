@@ -59,6 +59,6 @@ npm run qa:visitor
 
 ## 发布
 
-本改版与之前的排版兼容性修复一起保存在功能分支。Railway 尚无持久化卷；发布前仍需确认需要保留的项目已下载备份，再合入 main 并单独核验部署。原 Sites 私有站点不随 Railway 分支推送更新。
+2026-11-07 用户明确确认没有需要保留的云端项目，发布前的数据保留限制已解除。本改版与之前的排版兼容性修复一起合入 main 进行 Railway 发布，仍需单独核验部署及真实任务。Railway 尚无持久化卷，后续发布前仍应备份需要保留的项目。原 Sites 私有站点不随 Railway 分支推送更新。
 
 环境文件加载方式参考 [OpenAI Files and artifacts](https://developers.openai.com/api/docs/guides/agents-api/environments/files)。50 MiB 总量限制来自本轮真实 API 错误，不能把它混同于文档中每个文件的 50 MiB 限制。
