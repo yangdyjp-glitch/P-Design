@@ -2,8 +2,8 @@
   "deployedCommit": "38ac060abe604bb3a574bcff3e6ddc85f1d727e3",
   "siteProjectId": "appgprj_6aecb5faa0b881919c03675fe284bf42",
   "sourceVersion": "0.3.1",
-  "sourceBranch": "fix/page-design-notes-20261108",
-  "railwayReleasePendingProjectBackup": true,
+  "sourceBranch": "main",
+  "railwayReleasePendingProjectBackup": false,
   "skills": [
     "xiaohongshu-design",
     "victor-design",
@@ -33,8 +33,8 @@
   "files": [
     {
       "path": "docs/page-notes.md",
-      "bytes": 2439,
-      "sha256": "8d23595995922d5e528a21de60e1b179e5f0fef2fc6a4687872d3367ec844a7a"
+      "bytes": 2590,
+      "sha256": "6d1fd6ef887c1927838eea92d31bfe86a744466f9767161868973c002dbd3679"
     },
     {
       "path": "docs/automatic-workflow.md",
@@ -3533,8 +3533,8 @@
     },
     {
       "path": "HANDOFF.md",
-      "bytes": 21254,
-      "sha256": "6f77a9126c6d30620868ce37daeeb785756c7b2e3c4be4101f992b4adcfe0b98"
+      "bytes": 21450,
+      "sha256": "a972a0f752fed054a2f9b7060663f22d498bbfa10d779ec75e7aa54a12b9a586"
     },
     {
       "path": "hooks/use-mobile.ts",
@@ -3653,13 +3653,13 @@
     },
     {
       "path": "QA.md",
-      "bytes": 11789,
-      "sha256": "e5f3fd3422b264bcbc4c9ee64d9b7569084684bfc27716bfe88910ea6a651f5f"
+      "bytes": 11995,
+      "sha256": "d1235649215c073d0130c09c137c09a9c52024218a43dfb0d39d6266faf12795"
     },
     {
       "path": "README.md",
-      "bytes": 3565,
-      "sha256": "dd8d47941ba2264da38b4ea172b2ea2979073eae3a97fc004738b33e0b207a18"
+      "bytes": 3656,
+      "sha256": "c7f41c39d3c4f40a2137dcc043b6bec423e9e40c6b6ed8cb8d5ebc782275824b"
     },
     {
       "path": "scripts/api-local.mjs",

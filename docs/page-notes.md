@@ -24,4 +24,4 @@
 
 源码入口：`src/app.js`、`src/cloud.js`、`src/ai-workflow.js`、`server/routes.ts`、`server/design-result.ts`、`server/automatic-workflow.ts`。不涉及数据库迁移或新的密钥。
 
-验证命令与实际记录见 [QA.md](../QA.md)。本次开发分支为 `fix/page-design-notes-20261108`；发布时仍应根据 Railway 的实际持久化状态保护当前项目，不能把源码完成视为已上线。
+验证命令与实际记录见 [QA.md](../QA.md)。本次从 `fix/page-design-notes-20261108` 合入 `main` 发布；2026-11-08 用户确认没有需要保留的项目并授权发布。部署后应核验公网资源版本、服务和单图范围接口，证据保存在忽略的 `qa/railway/`。后续发布仍应根据 Railway 的实际持久化状态保护当前项目。
