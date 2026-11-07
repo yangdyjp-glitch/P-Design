@@ -3,13 +3,13 @@ import {test} from 'node:test';
 import fs from 'node:fs/promises';
 import {DatabaseSync} from 'node:sqlite';
 import {build} from 'esbuild';
-import {canApplyAutomatic,hasAuditErrors,automaticMessage} from '../src/ai-workflow.js';
+import {canApplyAutomatic,hasAuditErrors,automaticMessage,designProposal,jobApplied} from '../src/ai-workflow.js';
 import {parseManuscript} from '../src/engine.js';
 
 async function bundle(entry,plugins=[]){const {outputFiles}=await build({entryPoints:[entry],bundle:true,write:false,platform:'node',format:'esm',plugins});return import('data:text/javascript;base64,'+Buffer.from(outputFiles[0].text).toString('base64'));}
 const {validateDesignResult}=await bundle('server/design-result.ts');
 const {skills,routeSkills}=await bundle('server/skills.ts');
-const {imageAllowed,repairAllowed,renderAudit}=await bundle('server/automatic-workflow.ts');
+const {imageAllowed,repairAllowed,renderAudit,automaticPages,automaticAssets}=await bundle('server/automatic-workflow.ts');
 const blocks=[{id:'c1',text:'周末阅读'},{id:'c2',text:'给自己 10 分钟。'},{id:'c3',text:'翻开一本喜欢的书。'}];
 const source={workflow:'automatic',pages:[{id:'source-page',copy:blocks}],assets:[]};
 const job={kind:'design',snapshot:JSON.stringify(source),skill_ids:JSON.stringify(skills.map(s=>s.id))};
@@ -67,6 +67,38 @@ test('a literal website address in locked copy is text rather than an external r
  const current={...job,snapshot:JSON.stringify({...source,pages:[{id:'source-page',copy}]})};
  const result={...validResult,pages:[{id:'one-page',html:markup(copy),css:''}]};
  assert.equal(validateDesignResult(result,current).pages[0].copy[0].text,copy[0].text);
+});
+test('single-image requests and their corrections cannot widen or switch the selected page',()=>{
+ const pages=[{id:'page-a'},{id:'page-b'}],parent={scope:'page',pages:[pages[1]]};
+ assert.deepEqual(automaticPages(pages,['page-b'],'page'),[pages[1]]);
+ assert.deepEqual(automaticPages(pages,['page-b'],'page',parent),[pages[1]]);
+ assert.deepEqual(automaticPages(pages,['page-a'],'project'),pages);
+ for(const args of [[pages,['page-a','page-b'],'page'],[pages,['unknown'],'page'],[pages,['page-a'],'page',parent],[pages,['page-b'],'project',parent],[pages,['page-b'],'other']])assert.throws(()=>automaticPages(...args));
+});
+test('single-image results preserve one page ID, all original copy, and cannot repaginate',()=>{
+ const scoped={...job,kind:'revise',snapshot:JSON.stringify({...source,scope:'page'})};
+ const raw={...validResult,pages:[{...validResult.pages[0],id:'source-page'}]};
+ const result=validateDesignResult(raw,scoped);assert.equal(result.replacePages,false);assert.deepEqual(result.pages[0].copy,blocks);
+ for(const bad of [validResult,{...raw,pages:[raw.pages[0],{...raw.pages[0],id:'another-page'}]},{...raw,pages:[{...raw.pages[0],html:markup(blocks).replace('10 分钟','20 分钟')}]}])assert.throws(()=>validateDesignResult(bad,scoped));
+});
+test('applying a single-image proposal preserves every other image and each image requirement',()=>{
+ const pages=[{id:'page-a',copy:blocks,requirements:'第一张要求',html:markup(blocks),css:'.xhs-card{color:#123456}',layout:'original',settings:{fontScale:1}},{id:'page-b',copy:blocks,requirements:'图片完整显示，不要裁切',html:markup(blocks),css:'',layout:'editorial',settings:{fontScale:1}}];
+ const project={id:'project',pages:structuredClone(pages),assets:[]};
+ const task={id:'change-b',projectId:project.id,scope:'page',pageIds:['page-b'],result:{pages:[{id:'page-b',html:markup(blocks),css:'.xhs-card{color:#345448}',photoAssetId:null}],replacePages:false}};
+ const changed=designProposal(task,project);assert.deepEqual(changed.pages[0],pages[0]);assert.equal(changed.pages[1].requirements,pages[1].requirements);assert.deepEqual(changed.pages[1].copy,pages[1].copy);assert.notEqual(changed.pages[1].css,pages[1].css);assert.deepEqual(project.pages,pages);
+ assert.throws(()=>designProposal({...task,result:{...task.result,replacePages:true}},project));
+ assert.throws(()=>designProposal({...task,result:{...task.result,pages:[{...task.result.pages[0],id:'page-a'}]}},project));
+});
+test('a referenced older photograph is retained instead of being displaced by recent uploads',()=>{
+ const assets=Array.from({length:12},(_,i)=>({id:'photo-'+i}));
+ const selected=automaticAssets(assets,[{photoAssetId:'photo-0',html:'<img data-asset-id="photo-1">'}]);
+ assert.equal(selected.length,8);assert(selected.some(a=>a.id==='photo-0'));assert(selected.some(a=>a.id==='photo-1'));assert(selected.some(a=>a.id==='photo-11'));
+ assert.throws(()=>automaticAssets(assets,assets.slice(0,9).map(asset=>({photoAssetId:asset.id}))));
+});
+test('single-image completion remains recognized after another page has been updated',()=>{
+ const task={id:'change-a',scope:'page',pageIds:['page-a']},project={lastAIJobId:'change-b',pages:[{id:'page-a',lastAIJobId:'change-a'},{id:'page-b',lastAIJobId:'change-b'}]};
+ assert.equal(jobApplied(task,project),true);assert.match(automaticMessage({...task,status:'completed'},project),/本图已更新/);
+ assert.equal(jobApplied({...task,pageIds:['page-b']},project),false);
 });
 
 const coreMock={name:'isolated-provider',setup(build){

@@ -33,10 +33,14 @@ try {
   mark('没有有效访客凭证时不能伪造平台身份');
   const projectId = 'qa-' + crypto.randomUUID();
   const project = { id: projectId, name: '访客 AI 验证', pages: [{ id: 'page-1', label: '第一页', copy: [{ id: 'title-1', text: '保留中文与数字 2026' }], settings: { accent: '#456439', fontScale: 1, photoZoom: 1, photoX: 50, photoY: 50 }, layout: 'editorial' }], assets: [] };
+  project.pages[0].requirements='第一张保持封面风格';
+  project.pages.push({...structuredClone(project.pages[0]),id:'page-2',label:'第二页',requirements:'只在第二张图片完整显示',copy:[{id:'title-2',text:'第二张原文保持不变'}]});
   const put = await api('projects/' + projectId, { method: 'PUT', body: JSON.stringify({ project, revision: 0 }) }, a.cookie);
   assert.equal(put.response.status, 200);
   const own = await api('projects', {}, a.cookie);
   assert(own.value.projects.some(p => p.id === projectId));
+  assert.deepEqual(own.value.projects.find(p=>p.id===projectId).pages.map(page=>page.requirements),project.pages.map(page=>page.requirements));
+  assert.equal((await api('projects/'+projectId,{method:'PUT',body:JSON.stringify({project:{...project,pages:project.pages.map(page=>({...page,requirements:'长'.repeat(5001)}))},revision:1})},a.cookie)).response.status,400);
   const other = await api('projects', { headers: { 'oai-authenticated-user-id': a.session.user.id, 'oai-authenticated-user-email': 'owner@workspace.invalid' } }, b.cookie);
   assert(!other.value.projects.some(p => p.id === projectId));
   assert.equal((await api('projects/' + projectId, { method: 'DELETE' }, b.cookie)).response.status, 404);
@@ -74,6 +78,12 @@ try {
     assert.equal(premature.response.status,409);
     await api('jobs/'+automatic.value.job.id+'/cancel',{method:'POST',body:'{}'},a.cookie);
     mark('自动流程准备14个可择用技能，未完成任务不能创建修正分支（未调用付费 AI）');
+    const single=await api('jobs',{method:'POST',body:JSON.stringify({...request,requestId:crypto.randomUUID(),kind:'revise',workflow:'automatic',scope:'page',pageIds:['page-2'],prompt:project.pages[1].requirements})},a.cookie);
+    assert.equal(single.response.status,201);assert.equal(single.value.job.scope,'page');assert.equal(single.value.job.automatic,true);assert.deepEqual(single.value.job.pageIds,['page-2']);assert.equal(single.value.job.prompt,project.pages[1].requirements);
+    const widened=await api('jobs',{method:'POST',body:JSON.stringify({...request,requestId:crypto.randomUUID(),kind:'revise',workflow:'automatic',scope:'page',pageIds:['page-1','page-2']})},a.cookie);
+    assert.equal(widened.response.status,400);
+    await api('jobs/'+single.value.job.id+'/cancel',{method:'POST',body:'{}'},a.cookie);
+    mark('每张图的要求独立保存，单图任务只含目标页，不能扩展为多页（未调用付费 AI）');
   }
   await api('projects/' + projectId, { method: 'DELETE' }, a.cookie);
   const result = { checks, transportBase:base, browserOrigin, completedAt: new Date().toISOString(), liveAIExecuted: false };

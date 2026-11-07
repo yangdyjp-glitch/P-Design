@@ -67,10 +67,10 @@ function render(){
  '<div class="sidebar-bottom"><div class="storage-card"><div class="row">'+icon("leaf")+'<b style="font-size:11px">留住每一次好设计</b></div><p>'+(visitor?'无需登录即可使用 AI。换设备前下载备份，带走可编辑作品。':'登录后项目自动同步到云端。下载备份，也能带走可编辑作品。')+'</p>'+button("backup","备份当前项目","download","btn small full")+'</div><div class="sidebar-footer"><span>图序工作台 · AI 版</span><button data-action="settings" aria-label="工作台说明">'+icon("settings")+'</button></div></div></aside>'+
  '<div class="workspace"><header class="topbar"><div class="breadcrumbs"><span class="mobile-title">图序</span><span>工作空间</span><span>/</span><b>小红书图文</b></div><div class="top-actions">'+button("mobile-menu","菜单","grid","btn small mobile-menu-button")+'<span class="save-label"><i class="dot"></i><span id="save-status">'+(S.session?.user?(p._cloudDirty?"正在同步云端…":"已保存到云端"):"已保存到此浏览器")+'</span></span>'+button("account",visitor?"访客空间":S.session?.user?"我的账户":"登录云端","settings","btn flat small")+'</div></header>'+
  '<section class="project-header between"><div><div class="project-heading"><h1>'+esc(p.name)+'</h1><button class="icon-btn" aria-label="项目与版本" data-action="more">'+icon("down")+'</button><span class="pill">AI 自动设计</span></div><div class="project-description"><span id="page-total">'+p.pages.length+'</span> 个画面 · AI 自行判断分页与视觉 · 高清导出 2160 × 2880</div></div><div class="project-toolbar">'+
- button("overview","预览","eye","btn")+button("export","下载作品","download","btn")+button("ai-design","AI 自动设计","leaf","btn primary")+
+ button("overview","预览","eye","btn")+button("export","下载作品","download","btn")+button("ai-design","AI 设计整套","leaf","btn primary")+
  '</div></section><div class="stage-layout"><aside class="page-rail"><div class="rail-label"><span>画面</span><span>'+p.pages.length+'</span></div><div id="page-list">'+p.pages.map((pg,i)=>'<button class="page-item '+(pg.id===page.id?"active":"")+'" data-action="select-page" data-id="'+pg.id+'" title="'+esc(pg.label)+'"><span class="thumb"><iframe tabindex="-1" title="第'+(i+1)+'页缩略预览" data-thumb="'+pg.id+'"></iframe></span><span class="page-index">'+String(i+1).padStart(2,"0")+'</span></button>').join("")+'</div></aside>'+
  '<main class="canvas-workspace"><div class="canvas-bar"><div class="row"><span>画面 '+String(activePageIndex()+1).padStart(2,"0")+'</span><span style="color:#b7c0ac">/</span><span>'+esc(page.label.slice(0,18))+'</span></div><div class="row"><span>'+icon("lock")+' 原文保真排版</span></div></div><div class="canvas-area"><div class="canvas-holder"><iframe id="canvas-frame" title="当前页面可编辑预览"></iframe><div class="canvas-loading">正在呈现画面…</div></div></div><div class="view-hint">点击画面中的文字，可定位到右侧文案</div><div class="canvas-footer"><div class="zoom-control"><button data-action="zoom-out" aria-label="缩小">−</button><span id="zoom-label">适应</span><button data-action="zoom-in" aria-label="放大">＋</button><button data-action="fit" title="适应画布" aria-label="适应画布">'+icon("expand")+'</button></div>'+button("phone","手机预览","phone","btn small")+'</div></main>'+
- '<aside class="inspector"><div class="copy-panel-head"><b>文案</b><span>你负责内容，AI 负责画面</span></div><div class="inspector-body" id="inspector-body"></div><div class="assistant automatic-assistant"><label class="assistant-title" for="design-notes">补充要求 <span class="muted">选填</span></label><textarea id="design-notes" rows="2" aria-label="给 AI 的补充要求" placeholder="例如：希望轻松一些，优先使用上传的照片。">'+esc(p.brief||'')+'</textarea><div class="automatic-state"><span class="ai-state-dot"></span><p id="automatic-state" aria-live="polite"></p></div><div class="assistant-footnote">AI 自动选择方案并检查，最多自动修正一次。</div></div></aside></div></div></div>';
+ '<aside class="inspector"><div class="copy-panel-head"><b>文案</b><span>你负责内容，AI 负责画面</span></div><div class="inspector-body" id="inspector-body"></div><div class="assistant automatic-assistant"><label class="assistant-title" for="design-notes">本图补充要求 <span class="muted">第 '+String(activePageIndex()+1).padStart(2,"0")+' 张</span></label><textarea id="design-notes" rows="2" maxlength="5000" aria-label="给本图的补充要求" aria-describedby="page-notes-help" placeholder="例如：本图的照片完整显示，不要裁切。">'+esc(page.requirements||'')+'</textarea><p class="page-notes-help" id="page-notes-help">只修改当前这张图，其他图保持不变。</p>'+button("ai-page","发送并修改本图","arrow","btn primary full")+'<div class="automatic-state"><span class="ai-state-dot"></span><p id="automatic-state" aria-live="polite"></p></div><div class="assistant-footnote">AI 自动检查并呈现 · Ctrl + Enter 发送</div></div></aside></div></div></div>';
  for(const pg of p.pages){const fr=$('[data-thumb="'+pg.id+'"]');fr.srcdoc=markup(pg);fr.addEventListener("load",()=>fr.contentDocument?.fonts.ready.then(()=>applyFontScale(fr.contentDocument,pg.settings.fontScale||1)),{once:true});}
  renderInspector();updatePreview();fitCanvas();Cloud.updateBadge();
 }
@@ -118,7 +118,7 @@ function modal(title,body,footer="",wide=false){
 }
 function closeModal(){const d=$("dialog");if(d){d.close();d.remove();}}
 function newProjectDialog(){
- modal("把文案交给 AI",'<form id="new-project-form"><div class="form-field"><label for="new-copy">原始文案</label><textarea class="import-text" id="new-copy" maxlength="60000" placeholder="粘贴完整文案。AI 会判断如何分页、构图和安排照片，文字、数字与顺序会保留。" required></textarea></div><div class="new-asset-input"><label class="btn" for="new-photos">'+icon("image")+'添加图片（选填）</label><input id="new-photos" type="file" accept="image/png,image/jpeg,image/webp" multiple hidden><span id="new-photo-count" class="small-note">最多 8 张，AI 自行判断用途与摆放</span></div><div class="form-field"><label for="new-brief">其他要求 <span class="muted">选填</span></label><textarea id="new-brief" rows="2" placeholder="有希望保留的品牌要求或表达重点，可以写在这里。"></textarea></div><div class="project-summary">'+icon("lock")+' 保留原文 · AI 设计 · 自动检查</div><p class="small-note">AI 会自行择用设计技能；必要时生成示意素材。每轮最多自动修正一次，用量计入每日任务额度。</p></form>',button("close","取消",null,"btn")+'<button class="btn primary" type="submit" form="new-project-form">'+icon("leaf")+'开始 AI 设计</button>');
+ modal("把文案交给 AI",'<form id="new-project-form"><div class="form-field"><label for="new-copy">原始文案</label><textarea class="import-text" id="new-copy" maxlength="60000" placeholder="粘贴完整文案。AI 会判断如何分页、构图和安排照片，文字、数字与顺序会保留。" required></textarea></div><div class="new-asset-input"><label class="btn" for="new-photos">'+icon("image")+'添加图片（选填）</label><input id="new-photos" type="file" accept="image/png,image/jpeg,image/webp" multiple hidden><span id="new-photo-count" class="small-note">最多 8 张，AI 自行判断用途与摆放</span></div><div class="form-field"><label for="new-brief">整套初始方向 <span class="muted">选填</span></label><textarea id="new-brief" rows="2" placeholder="有希望保留的品牌要求或表达重点，可以写在这里。"></textarea></div><div class="project-summary">'+icon("lock")+' 保留原文 · AI 设计 · 自动检查</div><p class="small-note">AI 会自行择用设计技能；必要时生成示意素材。每轮最多自动修正一次，用量计入每日任务额度。</p></form>',button("close","取消",null,"btn")+'<button class="btn primary" type="submit" form="new-project-form">'+icon("leaf")+'开始 AI 设计</button>');
 }
 function projectSettings(){
  modal("项目设置",'<div class="form-field"><label for="project-name">项目名称</label><input id="project-name" maxlength="100" value="'+esc(project().name)+'"></div><div class="between"><span class="small-note">创建于 '+formatDate(project().createdAt)+'</span>'+button("delete-project","删除项目","trash","btn flat small delete-link",S.projects.length===1?"disabled":"")+'</div>',button("close","取消",null,"btn")+button("save-project-name","保存名称","check","btn primary"));
@@ -137,7 +137,7 @@ function showHistory(){
  modal("版本记录",'<div class="project-summary">'+icon("history")+'保留最近25次操作，可撤销或恢复。<span style="margin-left:auto">'+hist.length+' 条</span></div>'+
  (hist.length?hist.slice().reverse().map(h=>'<div class="version-item"><div>'+esc(h.label)+'<small>'+formatDate(h.at)+'</small></div>'+button("restore-history","恢复",null,"btn small",'data-id="'+h.id+'"')+'</div>').join(""):'<div class="empty">还没有修改记录。<br>修改文案、构图或照片后，记录会出现在这里。</div>'));
 }
-function showSettings(){modal("关于图序工作台",'<div class="settings-item"><b>你负责内容，AI 负责画面</b><p>准备文案与图片后，AI 自行决定分页、视觉方向、照片安排和设计技能，并执行渲染与网页检查。检查通过后自动呈现。</p></div><div class="settings-item"><b>保留你的修改</b><p>右侧文案始终可以编辑。如果生成期间更新了文案，旧方案会保留，新内容不会被旧结果覆盖。</p></div><div class="settings-item"><b>带走可编辑作品</b><p>可下载高清图片、可编辑 HTML 和项目备份。使用其他电脑前，请先备份项目。</p></div><p class="small-note">版本 0.3 · AI 自动设计 · 14 个设计模块按需择用</p>');}
+function showSettings(){modal("关于图序工作台",'<div class="settings-item"><b>你负责内容，AI 负责画面</b><p>准备文案与图片后，AI 自行决定分页、视觉方向、照片安排和设计技能，并执行渲染与网页检查。检查通过后自动呈现。</p></div><div class="settings-item"><b>保留你的修改</b><p>右侧文案始终可以编辑。如果生成期间更新了文案，旧方案会保留，新内容不会被旧结果覆盖。</p></div><div class="settings-item"><b>带走可编辑作品</b><p>可下载高清图片、可编辑 HTML 和项目备份。使用其他电脑前，请先备份项目。</p></div><p class="small-note">版本 0.3.1 · 逐图补充要求 · AI 自动检查</p>');}
 function showExport(){
  modal("导出你的作品",'<div class="project-summary"><b>'+project().pages.length+'</b><div>个画面已准备就绪<br><span class="tiny muted">2160 × 2880 · 高清 PNG</span></div></div><div class="settings-item"><b>导出整套高清图</b><p>每页生成一张PNG，并打包成ZIP。导出前会自动检查缺字、越界与图片加载。</p></div><div class="panel-actions">'+button("export-all","整套PNG · ZIP","download","btn primary")+button("export-one","仅导出当前页",null,"btn")+'</div><div class="inspector-divider"></div><div class="settings-item"><b>保留可编辑作品</b><p>项目备份可再次导入图序；HTML工程包含正式文字、布局、照片和字体许可。</p></div><div class="panel-actions">'+button("backup","项目备份 · JSON","save","btn")+button("export-source","可编辑HTML · ZIP","folder","btn")+'</div>');
 }
@@ -154,7 +154,7 @@ function confirmDelete(kind){
 function mobileMenu(){modal("你的工作空间",'<div class="mobile-actions">'+button("new","新建图文","plus","btn full")+button("mobile-copy","编辑文案","type","btn full")+button("assets","项目素材","image","btn full")+button("ai-tasks","设计记录","history","btn full")+button("account","当前工作空间","settings","btn full")+button("backup","备份当前作品","save","btn full")+'</div>');}
 function mobileCopy(){modal("编辑当前页文案",current().copy.map((c,i)=>'<label class="copy-field"><span class="field-heading">'+(i===0?"标题":"内容 "+i)+'</span><textarea data-copy-field="'+esc(c.id)+'" rows="4">'+esc(c.text)+'</textarea></label>').join(""),button("close","完成编辑","check","btn primary"));}
 const actions={
- "mobile-menu":mobileMenu,"mobile-copy":mobileCopy,"ai-design":()=>Cloud.startDesign(),"ai-tasks":()=>Cloud.showTasks(),skills:()=>Cloud.showSkills(),account:()=>Cloud.showAccount(),new:newProjectDialog,workspace:()=>{closeModal();},assets:showAssets,more:showMore,history:showHistory,settings:showSettings,
+ "mobile-menu":mobileMenu,"mobile-copy":mobileCopy,"ai-design":()=>Cloud.startDesign(),"ai-page":()=>Cloud.startPageDesign(),"ai-tasks":()=>Cloud.showTasks(),skills:()=>Cloud.showSkills(),account:()=>Cloud.showAccount(),new:newProjectDialog,workspace:()=>{closeModal();},assets:showAssets,more:showMore,history:showHistory,settings:showSettings,
  close:()=>{if(!S.busy)closeModal();},export:showExport,overview:()=>showOverview(),phone:()=>showOverview(true),
  "project-settings":projectSettings,"save-project-name":()=>{const n=$("#project-name").value.trim();if(!n)return toast("请输入项目名称。");project().name=n;closeModal();scheduleSave();render();},
  "select-page":b=>{S.pageId=b.dataset.id;S.selectedCopy=null;S.editing=null;S.zoom=1;render();},
@@ -194,9 +194,9 @@ async function renderFrame(pg,targetProject=project()){
   return {frame:fr,doc,root:doc.querySelector(".xhs-card"),remove:()=>fr.remove()};
  }catch(e){fr.remove();throw e;}
 }
-async function auditProposal(draft){
+async function auditProposal(draft,pageIds){
  const report=[];
- for(const page of draft.pages){const rendered=await renderFrame(page,draft);try{report.push({id:page.id,label:page.label,issues:auditPage(rendered.doc,page)});}finally{rendered.remove();}}
+ for(const page of draft.pages.filter(page=>!pageIds||pageIds.includes(page.id))){const rendered=await renderFrame(page,draft);try{report.push({id:page.id,label:page.label,issues:auditPage(rendered.doc,page)});}finally{rendered.remove();}}
  return report;
 }
 async function checkAll(){
@@ -334,7 +334,7 @@ document.addEventListener("input",e=>{
   c.text=el.value;S.audit=null;const label=$('[data-count="'+c.id+'"]');if(label)label.textContent=c.text.length+" 字";
   scheduleSave();clearTimeout(previewTimer);previewTimer=setTimeout(updatePreview,320);
  }else if(el.id==="design-notes"){
-  project().brief=el.value.slice(0,6000);scheduleSave();
+  current().requirements=el.value.slice(0,5000);scheduleSave();Cloud.updateBadge();
  }else if(el.matches("[data-setting]")){
   const setting=el.dataset.setting;
   if(S.editing!==setting){remember("调整画面 · "+({fontScale:"文字大小",photoZoom:"照片缩放",photoX:"水平裁切",photoY:"垂直裁切"})[setting]);S.editing=setting;}
@@ -363,6 +363,7 @@ window.addEventListener("message",e=>{
  const field=$('[data-copy-field="'+c.id+'"]');field?.scrollIntoView({block:"center",behavior:"smooth"});field?.focus({preventScroll:true});
 });
 document.addEventListener("keydown",e=>{
+ if((e.ctrlKey||e.metaKey)&&e.key==="Enter"&&e.target.id==="design-notes"&&!e.isComposing){e.preventDefault();const send=$('[data-action="ai-page"]');if(send&&!send.disabled)Cloud.startPageDesign();return;}
  if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==="s"){e.preventDefault();persist();toast("已保存到此浏览器。");}
  if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==="z"&&!["TEXTAREA","INPUT"].includes(document.activeElement?.tagName)&&!S.busy){e.preventDefault();actions[e.shiftKey?"redo":"undo"]();}
 });

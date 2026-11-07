@@ -2,6 +2,22 @@ export function automaticJob(job:{snapshot:string;kind:string}){
  const snapshot=JSON.parse(job.snapshot);
  return snapshot.workflow==='automatic'&&['design','revise'].includes(job.kind);
 }
+export function automaticPages(pages:any[],pageIds:string[],scope:unknown='project',parent?:any){
+ if(scope!=='project'&&scope!=='page')throw Error('AI 修改范围不正确。');
+ if(!Array.isArray(pageIds)||!pageIds.length||pageIds.some(id=>!pages.some(page=>page.id===id)))throw Error('页面范围不正确。');
+ if(parent&&(parent.scope||'project')!==scope)throw Error('自动修正不能改变原任务的修改范围。');
+ if(scope==='page'){
+  if(pageIds.length!==1||parent&&(parent.pages.length!==1||parent.pages[0].id!==pageIds[0]))throw Error('单图修改只能针对原来选中的一张图。');
+  return pages.filter(page=>page.id===pageIds[0]);
+ }
+ return pages;
+}
+export function automaticAssets(assets:any[],pages:any[]){
+ const referenced=new Set<string>();for(const page of pages){if(page.photoAssetId)referenced.add(page.photoAssetId);for(const match of String(page.html||'').matchAll(/\bdata-asset-id\s*=\s*["']([^"']+)["']/g))referenced.add(match[1]);}
+ const selected=assets.filter(asset=>referenced.has(asset.id));if(selected.length>8)throw Error('本次画面已使用超过8张图片，请减少后再试。');
+ for(const asset of assets.slice().reverse())if(selected.length<8&&!selected.some(item=>item.id===asset.id))selected.push(asset);
+ return selected;
+}
 export function imageAllowed(job:{snapshot:string;kind:string}){
  const snapshot=JSON.parse(job.snapshot);
  return job.kind==='image'||automaticJob(job)&&!snapshot.repairOf;
