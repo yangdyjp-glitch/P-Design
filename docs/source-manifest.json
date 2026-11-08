@@ -32,6 +32,61 @@
   ],
   "files": [
     {
+      "path": "db/context.ts",
+      "bytes": 512,
+      "sha256": "2943e1a9890b166c7747c9daa90e1b30dc8bd7cfb30f5e2f0c93aff491065d12"
+    },
+    {
+      "path": "db/import-local-d1.mjs",
+      "bytes": 3500,
+      "sha256": "c8a8c1e9f6a1137c2afc6a67325b8c6eeea157277aa6b310d38f1473cd778880"
+    },
+    {
+      "path": "db/migrate-postgres.mjs",
+      "bytes": 1534,
+      "sha256": "2423c0882f1771c92f8deb1f19f224038f0d17bd6805ae5470ad8a90622207a2"
+    },
+    {
+      "path": "db/postgres-options.mjs",
+      "bytes": 2558,
+      "sha256": "986d7cd0d35549efc890b54a7efa91e02e9c11b39ecffa1df7360164b889f835"
+    },
+    {
+      "path": "db/postgres.ts",
+      "bytes": 4725,
+      "sha256": "d62e0d957524e5acf2cb4d3d1d19851ef98a856d2092ccff75d8507b9a5c3f6b"
+    },
+    {
+      "path": "db/schema.postgres.ts",
+      "bytes": 2544,
+      "sha256": "b3be672830ffd742380b556ea7074c6d8aa9cfeaa3507fabf82b15785a966cef"
+    },
+    {
+      "path": "docs/supabase.md",
+      "bytes": 5395,
+      "sha256": "e94b607eca028ffecd6c5a4402632fd7ad7414be075f20a629ad883f87800b28"
+    },
+    {
+      "path": "postgres/0000_initial.sql",
+      "bytes": 2065,
+      "sha256": "2e86febab32c48062873bbc90f26203b206c0e584c2c2534679a639155c75c9b"
+    },
+    {
+      "path": "scripts/migrate-postgres.mjs",
+      "bytes": 1487,
+      "sha256": "b1708a3cfcdcbc65f81830008968457c84c7776aad9aa97e08d2d227b4286162"
+    },
+    {
+      "path": "server/database.ts",
+      "bytes": 1288,
+      "sha256": "2354141ca478465fe42d1e1eaf8a2bd5a002df0d05a7247851e024e3b1be4f57"
+    },
+    {
+      "path": "tests/postgres.test.mjs",
+      "bytes": 12798,
+      "sha256": "646d64eee010aff19d983ea366c839d1ff39027efb0c7baecc554bf7d019be79"
+    },
+    {
       "path": "docs/style-presets.md",
       "bytes": 2775,
       "sha256": "1191e250a7801eb46dbc34c749d3085bb36d1c4941786abc7895eb02dc7d4aae"
@@ -73,8 +128,8 @@
     },
     {
       "path": "server/photo-search.ts",
-      "bytes": 12514,
-      "sha256": "c0204f493393542b2a74b70ca30b0ec838241012407198fdd58a535527b6f6f2"
+      "bytes": 12516,
+      "sha256": "384e8e31d47e43377dda2232d67300405022141beb13e9dfdb480901f49a6b03"
     },
     {
       "path": "server/raw-imports.d.ts",
@@ -123,8 +178,8 @@
     },
     {
       "path": ".env.example",
-      "bytes": 543,
-      "sha256": "31836aeddbf00d986c5cb0bd8c498d9fb75861c47cb1e7ecfa7bbe1a69d56fcc"
+      "bytes": 790,
+      "sha256": "70c0d11c86cbcfd005566b1b7853978f4eff3b085769cc8cd1bbaa7ecc67a6f9"
     },
     {
       "path": ".gitattributes",
@@ -183,8 +238,8 @@
     },
     {
       "path": "cloudflare-env.d.ts",
-      "bytes": 99,
-      "sha256": "8b0eca84aa3364cc7ccc43cc3af6beb88dd34ebd410de08690bf094ce39fbcb0"
+      "bytes": 157,
+      "sha256": "593ed0b212435d49dc3d34c4a0c116eaec6838b18193ec2540be73449a7b8751"
     },
     {
       "path": "components/connector-error.tsx",
@@ -503,8 +558,8 @@
     },
     {
       "path": "db/index.ts",
-      "bytes": 423,
-      "sha256": "dc7610b00b918e0ffff1360a63626f16655ced3064b2eaf96095a4101fb14bcd"
+      "bytes": 713,
+      "sha256": "d30bc3719ba3583cbf0f19c90bb447fe58665ce8b7802cd62b21d538bde8ff8e"
     },
     {
       "path": "db/schema.ts",
@@ -3538,8 +3593,8 @@
     },
     {
       "path": "docs/railway.md",
-      "bytes": 9275,
-      "sha256": "5a631ca0ab80aa04a064a0f8576fbd9d90c7f0c499cd52291bdad91dce73be51"
+      "bytes": 9839,
+      "sha256": "507c61aa060124e1e653675999a8e007eeedb903a3ccbf365f6a4098f2d39e4f"
     },
     {
       "path": "docs/setup.md",
@@ -3593,8 +3648,8 @@
     },
     {
       "path": "HANDOFF.md",
-      "bytes": 22894,
-      "sha256": "dd894cac4df3058089ab318a1418e5cd8a66e64fec5c9739f05a9009b529bb79"
+      "bytes": 23436,
+      "sha256": "9d3c5895ee1ce421f1d4004f773518772857f58ed963d866b7a174f4a722063a"
     },
     {
       "path": "hooks/use-mobile.ts",
@@ -3643,13 +3698,13 @@
     },
     {
       "path": "package-lock.json",
-      "bytes": 509661,
-      "sha256": "bde0f9d777ab7cb3ecc1e1662569f9f1893bbd2e97a8ea6ea7e4d1b4f0396adf"
+      "bytes": 515996,
+      "sha256": "6f63c78bdb3cadc347032a76fe66c5445e49bd7f6b89d9b42fa5ad00881be0cc"
     },
     {
       "path": "package.json",
-      "bytes": 2570,
-      "sha256": "af9429df330d872be138c15c10eea38c75c8bb31bc0eab745f73c3d4f8b31ea4"
+      "bytes": 2779,
+      "sha256": "f7b68fe653785cb327b9260954cda3889a70885958dea94161ac811eb9bd2372"
     },
     {
       "path": "postcss.config.mjs",
@@ -3713,13 +3768,13 @@
     },
     {
       "path": "QA.md",
-      "bytes": 15421,
-      "sha256": "4955db19340dcb719ab3a3471597cd395dd3c74904ecb8fa354ed2c4bd522b3e"
+      "bytes": 16461,
+      "sha256": "8d21059b2d7ef00b01c9356f98240591f344cbf5d33bdec56419069e5c6a7fd7"
     },
     {
       "path": "README.md",
-      "bytes": 4352,
-      "sha256": "251d536bb987d0cd162a03261964623f502b4314f30f18796b193e48c15d9391"
+      "bytes": 4681,
+      "sha256": "e6f9e976bfa19916881f9bc49c4e058a99f71b615f8299a2763a4dd76ea30948"
     },
     {
       "path": "scripts/api-local.mjs",
@@ -3868,8 +3923,8 @@
     },
     {
       "path": "scripts/start-railway.mjs",
-      "bytes": 5704,
-      "sha256": "441b97ebfe263cc9ab14d73f2686145c85e09429527512c8fb91a33417434964"
+      "bytes": 6356,
+      "sha256": "de15ee334bf5646f384f55d65bf6f7b997cfe640a005fc5efc9c1c2f8ec77ac1"
     },
     {
       "path": "scripts/start.mjs",
@@ -3913,8 +3968,8 @@
     },
     {
       "path": "server/core.ts",
-      "bytes": 7035,
-      "sha256": "6caf4220c7f14abcdb42127d064dc8d2e11c13fdabdc7c8f3c99ee5bf83c1a99"
+      "bytes": 7244,
+      "sha256": "a7854b4e99b5f442b406df88ec15aa70f4aeca1907cc40cbb42c2476627eea7a"
     },
     {
       "path": "server/legacy-photos.json",
@@ -3923,8 +3978,8 @@
     },
     {
       "path": "server/routes.ts",
-      "bytes": 13975,
-      "sha256": "1fb5570fd05caf5fd28d3a068de1c25ffbe607d2aebccde6db188ba850508288"
+      "bytes": 14693,
+      "sha256": "7c6dd4d9efd0caa896151b57264242ebd7968c9a9867fd91dd17d667390fcc2c"
     },
     {
       "path": "server/skills.ts",
@@ -3938,8 +3993,8 @@
     },
     {
       "path": "server/webhooks.ts",
-      "bytes": 2647,
-      "sha256": "784e4ce358237ac138ed938216fcca2b7a246ba7e932173dd3070afdea8f3918"
+      "bytes": 2827,
+      "sha256": "19e2e7251153d8aa8271df8df4c5063ded118aadb2e2950f985df758343d76ce"
     },
     {
       "path": "src/app.js",
@@ -3993,8 +4048,8 @@
     },
     {
       "path": "worker/index.ts",
-      "bytes": 1743,
-      "sha256": "1d052e467ded0b9bd2b7159fe0fa4029f0f1a7a8a66e1c5618bc4683eeb72556"
+      "bytes": 2774,
+      "sha256": "c04bb82e19b14bd72e2ed702488074654935f686971687b5c7b7a464d96a919e"
     },
     {
       "path": "server/design-result.ts",

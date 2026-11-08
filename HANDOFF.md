@@ -10,6 +10,8 @@ Railway 随后已配置密钥，公网文案生成及实际文件下载验证通
 
 ## 1. 先看这里
 
+Supabase 接入代码位于 `feat/supabase-storage-20261108`。Railway 配置 `DATABASE_URL` 时使用 PostgreSQL，启动创建 `tuxu` schema，并只将卷内旧 D1 数据导入空目标；图片、结果和访客签名秘密继续保存在卷中。原 Sites 保留 D1。详见 [Supabase 接续说明](docs/supabase.md)。本机迁移/事务/API 测试已通过；真实 Supabase 接通与部署状态必须另查 `/api/health` 的 `databaseProvider`、`databaseConnected` 与 `storagePersistent`，不能把源码完成视为已上线。
+
 0.4.1 增加三个 [固定风格预案入口](docs/style-presets.md)，位于新建图文的「整套初始方向」。当前按用户要求先建入口，三个风格均待设定；后续逐一修改 `src/style-presets.js` 对应条目。选择随项目保存，服务端解析可信规则并将版本固定在任务快照，自动修正沿用同一版本。原文、素材、裁剪和单图范围规则优先。开发来源为 `feat/style-preset-entries-20261108`，发布目标仍为 Railway 的 main；实际部署核验记录位于忽略的 `qa/railway/style-presets/`。
 
 0.4 图片规则已从 `feat/photo-rules-and-search-20261108` 合入 `main` 发布：上传图保留至少 80% 的原图面积，搜图由项目开关明确授权，网络配图优先实景并保存真实来源。裁剪检查同时用于 AI 渲染记录、网页应用和导出；搜图采用可恢复的真实下载和环境附件流程。启动时自动应用 `0002_whole_pandemic.sql`，不增加密钥。本次沿用既有 Railway 发布目标；实际就绪需核对部署、公网资源与接口，证据保存在忽略的 `qa/railway/photo-rules/`。详细语义、来源边界和接续入口见 [docs/photo-policy.md](docs/photo-policy.md)。

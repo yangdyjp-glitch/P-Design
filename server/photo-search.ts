@@ -77,8 +77,8 @@ export async function advancePhotoSearch(job:any){
  }
  if(state.assets.length>=state.count||state.next>=state.candidates.length){await toolResult(job,state,state.assets);return true;}
  const candidate=state.candidates[state.next],index=state.next++,id='web-'+job.id+'-'+index,objectKey=job.user_id+'/web/'+id;
- const usage=await e.DB.prepare('SELECT count(*) AS count,coalesce(sum(size),0) AS bytes,sum(CASE WHEN project_id=? THEN 1 ELSE 0 END) AS projectCount FROM assets WHERE user_id=?').bind(job.project_id,job.user_id).first<any>();
- if(usage.count>=400||usage.bytes>342*1024*1024||usage.projectCount>=100){state.next=state.candidates.length;await save(job,state);return true;}
+ const usage=await e.DB.prepare('SELECT count(*) AS count,coalesce(sum(size),0) AS bytes,sum(CASE WHEN project_id=? THEN 1 ELSE 0 END) AS project_count FROM assets WHERE user_id=?').bind(job.project_id,job.user_id).first<any>();
+ if(usage.count>=400||usage.bytes>342*1024*1024||usage.project_count>=100){state.next=state.candidates.length;await save(job,state);return true;}
  try{
   let row=await e.DB.prepare('SELECT * FROM assets WHERE id=? AND user_id=? AND project_id=?').bind(id,job.user_id,job.project_id).first<any>();
   if(!row){const photo=await downloadPhoto(candidate.imageUrl);await e.BUCKET.put(objectKey,photo.bytes,{httpMetadata:{contentType:photo.mime}});try{await e.DB.prepare("INSERT INTO assets(id,user_id,project_id,object_key,name,mime,size,generated,source,source_url,image_url,created_at) VALUES(?,?,?,?,?,?,?,0,'web',?,?,?)").bind(id,job.user_id,job.project_id,objectKey,candidate.name,photo.mime,photo.bytes.length,candidate.sourceUrl,photo.imageUrl,Date.now()).run();}catch(error){await e.BUCKET.delete(objectKey);throw error;}row={mime:photo.mime};}

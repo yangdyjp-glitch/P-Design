@@ -6,6 +6,8 @@
 
 Railway 部署新增无需账号的访客 AI 模式，配置与验证见 [Railway 接入说明](docs/railway.md)。推荐启动命令为 `npm run start:railway`，此前带 sites-env 预加载的长命令也已兼容；需要配置 Railway 服务端密钥。原 Sites 站点仍沿用原认证与存储。
 
+Railway 可通过服务端 `DATABASE_URL` 接入 Supabase PostgreSQL，自动建表并将卷里的旧数据导入空的业务 schema；图片继续保存在现有卷。设置及验收见 [Supabase 接入说明](docs/supabase.md)。此能力需部署本次代码并核对健康接口，不能仅凭添加变量认定已生效。
+
 - Railway 无需登录即可使用独立访客空间；原 Sites 保留平台身份路径。
 - 保留右侧文案编辑，AI 自行判断分页、构图、配色、字重、照片安排和必要的示意素材。
 - 14 个完整设计模块由 AI 按需加载与使用，界面无需选择任务类型、主技能或排版参数。
