@@ -125,4 +125,6 @@ scripts/qa-cloud.mjs 实际通过13项：匿名云端读取拒绝；登录及14�
 - 本地自签名 PostgreSQL TLS 端点复现 workerd 连接断开；同一配置的 Node 启动检查可连接。Railway 改由容器内部回环监听端口转发 PostgreSQL 协议，远端 TLS 在 Node 按 `DATABASE_URL` / `DATABASE_CA_CERT` 执行，认证继续由数据库完成。
 - 新增 3 项传输检查，当前全部 64 项测试、类型检查与生产构建通过。覆盖实际 PostgreSQL 查询、自定义 CA 验证、不受信任/非 TLS 端点收到认证数据前拒绝，以及实际 workerd 请求查询。
 - 构建后的完整 `start:railway` 启动流程连接本地 TLS PostgreSQL 引擎，13 项 API 检查全部通过，含访客隔离、项目版本、图片上传下载、任务幂等/配额/取消及三个预案保存。测试对象已清理，未推进付费 AI。证据在忽略的 `qa/railway/supabase/`；本段不代替修复部署后的公网核验。
+- 真实 Railway 部署 `531aad75-b1af-4fd6-8a0c-37fdde25d7f8` / 源码 `41236e33909acd3a4a274bcbff20d440f4c0ac37` 已成功。公网健康接口返回 `status=ok`、`databaseProvider=postgresql`、`databaseConnected=true`、`databaseSchema=tuxu`、数据库及文件持久标记为 true，14 个技能就绪。独立测试访客实际保存项目、上传并逐字节读回 PNG、更新到 revision=2；旧版本覆盖、跨站写入、其他访客读图和删除均被拒绝。没有推进 AI 任务。
+- 跨部署检查保持同一访客 Cookie，等待后续健康版本后核对完整项目、图片 SHA-256 与访客身份，再删除自身临时项目和图片。实际结果、两个版本及清理状态保存在执行电脑忽略的 `qa/railway/supabase/retention.json`，以该报告为准；生产用户的作品不参与删除测试。
 

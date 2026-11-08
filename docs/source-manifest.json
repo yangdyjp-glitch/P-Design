@@ -108,8 +108,8 @@
     },
     {
       "path": "docs/supabase.md",
-      "bytes": 6321,
-      "sha256": "eac40a6ed1e6fc9126ab5c9e8642e55590281278ff3b0953cde9fa40d46692e1"
+      "bytes": 6613,
+      "sha256": "d95011eb3341903daef51487b628eb266e196caae0f8a756ab01b839c82ce035"
     },
     {
       "path": "postgres/0000_initial.sql",
@@ -3693,8 +3693,8 @@
     },
     {
       "path": "HANDOFF.md",
-      "bytes": 24141,
-      "sha256": "97d99534067ef122b50aba82d4ef59d87dda9fc2ce2703b4df817a7d9d8bba53"
+      "bytes": 24368,
+      "sha256": "08df9995e5831303ce6df3d72dff4a4e5f32e3cc4bd82e64b3a209b1c18544b5"
     },
     {
       "path": "hooks/use-mobile.ts",
@@ -3813,8 +3813,8 @@
     },
     {
       "path": "QA.md",
-      "bytes": 22401,
-      "sha256": "b562a95102b3f4ce4f7d94d105fdd5cdaccae9f12f9611ef2a60457f72a38257"
+      "bytes": 23250,
+      "sha256": "986e952bd6e51ba69934829035b6d25cad27849e5afe201dc69b981b1271ded3"
     },
     {
       "path": "README.md",
