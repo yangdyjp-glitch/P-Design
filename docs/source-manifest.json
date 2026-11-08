@@ -1,7 +1,7 @@
 {
   "deployedCommit": "38ac060abe604bb3a574bcff3e6ddc85f1d727e3",
   "siteProjectId": "appgprj_6aecb5faa0b881919c03675fe284bf42",
-  "sourceVersion": "0.4.2",
+  "sourceVersion": "0.4.3",
   "sourceBranch": "main",
   "railwayReleasePendingProjectBackup": false,
   "skills": [
@@ -133,13 +133,13 @@
     },
     {
       "path": "docs/style-presets.md",
-      "bytes": 5810,
-      "sha256": "05944acb39595446e4ec7efa2f9ff89bd86562264c46d3b2e4f5ed30254f8c71"
+      "bytes": 9407,
+      "sha256": "f35d462c21d091083889c7abf993ea6495b0ddb063dad03f7c6aeaf52628fe23"
     },
     {
       "path": "src/style-presets.js",
-      "bytes": 7505,
-      "sha256": "0f4afce72f97207bfa26f1cb14a23904f461bfa459b9092ada9302b56fb314b4"
+      "bytes": 14939,
+      "sha256": "669a5e516c4d8092cc341a68f1cd867ff06e29ace0596caaa94535957288be84"
     },
     {
       "path": "tests/style-presets.test.mjs",
@@ -198,8 +198,8 @@
     },
     {
       "path": "docs/automatic-workflow.md",
-      "bytes": 5820,
-      "sha256": "2387975bf700627a5ca3f8a34cd9443c7e10d23a226d9690a25714b11f7ade29"
+      "bytes": 6338,
+      "sha256": "7033fd330ec332277564d991d2541fe56af3433a9c5d6549bcce4eec9d974b64"
     },
     {
       "path": "server/automatic-workflow.ts",
@@ -3693,8 +3693,8 @@
     },
     {
       "path": "HANDOFF.md",
-      "bytes": 24368,
-      "sha256": "08df9995e5831303ce6df3d72dff4a4e5f32e3cc4bd82e64b3a209b1c18544b5"
+      "bytes": 25073,
+      "sha256": "d51fd871040316748be6a222a5de32d92d034c5b95ca7d635764a1c9392c7f63"
     },
     {
       "path": "hooks/use-mobile.ts",
@@ -3733,8 +3733,8 @@
     },
     {
       "path": "next-env.d.ts",
-      "bytes": 284,
-      "sha256": "217ce9348b523c3e6954fb50bb93364b58781d86742c995f3a5b03ba88b9ba72"
+      "bytes": 291,
+      "sha256": "539b8eff936dcf0cb92eeecd475bfe28b068121f71631abd0a614b9c7707d6e4"
     },
     {
       "path": "next.config.ts",
@@ -3744,12 +3744,12 @@
     {
       "path": "package-lock.json",
       "bytes": 515996,
-      "sha256": "04fa957d9041f9ea52c6993d23f031b346d13bbf718358d06d6280c25fe4935d"
+      "sha256": "8a7b66161393b8ac70ffe9dd67df62b56c1ba7214dbc83d60dda45def4e0993f"
     },
     {
       "path": "package.json",
       "bytes": 2840,
-      "sha256": "ae10ff253b09acc1b99e8b09ac7b35527a6825a5885e1aff4cdf8113bd0678f9"
+      "sha256": "78229ce77240373dc6564e7e44937b01941a31bccdbbf3272462ce28d3f26259"
     },
     {
       "path": "postcss.config.mjs",
@@ -3793,8 +3793,8 @@
     },
     {
       "path": "public/editor.js",
-      "bytes": 223332,
-      "sha256": "13dcb18d0adbd86cfc40c31df448ffeb9548bede48060a7f27935a796802af36"
+      "bytes": 237922,
+      "sha256": "e433286966537355fabeb577672d94e587a593dc6b54113ee0a4894ce5a2485f"
     },
     {
       "path": "public/editor.js.LEGAL.txt",
@@ -3813,13 +3813,13 @@
     },
     {
       "path": "QA.md",
-      "bytes": 23250,
-      "sha256": "986e952bd6e51ba69934829035b6d25cad27849e5afe201dc69b981b1271ded3"
+      "bytes": 26344,
+      "sha256": "67cc5cff933c834983adf4fa754d84f8c39b9fa5768c5f654474a2886cafa9ae"
     },
     {
       "path": "README.md",
-      "bytes": 4917,
-      "sha256": "1b2e95fca2d64ca4c36a4a552d8454ad10ac1ea5f5972fb4e8dc7249c2cd9a0c"
+      "bytes": 4992,
+      "sha256": "a7fad10cace1b5f204c2c6d519a729cb4dbb876fcb3738a789f1dfd6df06d5dc"
     },
     {
       "path": "scripts/api-local.mjs",
@@ -4003,8 +4003,8 @@
     },
     {
       "path": "server/agent.ts",
-      "bytes": 34985,
-      "sha256": "0957ddfc73cbbb0f548afabbacda60768a06d68a88d5b538330084b79812952e"
+      "bytes": 36161,
+      "sha256": "c92f2d3712b5aabd9c1c335b666067949dcf26b8a9599821f23c904f6c6d9424"
     },
     {
       "path": "server/copy-integrity.ts",
@@ -4043,8 +4043,8 @@
     },
     {
       "path": "src/app.js",
-      "bytes": 55175,
-      "sha256": "b455ee4baf4d514a2cded2dfb96977080dc4c80b4082599ce996b4a6b5d02123"
+      "bytes": 55205,
+      "sha256": "40573d56203a13f89a42026c9e496ca70c69f1212f6b9b18e3a741363921dcd2"
     },
     {
       "path": "src/cloud.js",
