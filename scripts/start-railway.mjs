@@ -40,6 +40,10 @@ async function run(script, args = [], options = {}) {
   });
 }
 
+// Validate and migrate the external database before any skill upload. Local data
+// is read from the existing volume and copied only into an empty application schema.
+if (workerEnv.DATABASE_URL) await run('scripts/migrate-postgres.mjs');
+
 if (!workerEnv.SKILL_FILES_JSON && workerEnv.OPENAI_API_KEY) {
   workerEnv.SKILL_RELEASE_DIR = path.join(dataDir, 'skill-release');
   await run('scripts/pack-skills.mjs');
@@ -58,16 +62,19 @@ config.vars = {
   ACCESS_MODE: 'visitor', APP_ORIGIN: origin.origin,
   AI_ENABLED: process.env.AI_ENABLED || 'true', STORAGE_PERSISTENT: String(persistent),
   AGENT_MODEL: process.env.AGENT_MODEL || 'gpt-6-astra', IMAGE_MODEL: process.env.IMAGE_MODEL || 'gpt-image-2.5-flare',
+  APP_COMMIT: /^[a-f0-9]{40}$/i.test(process.env.RAILWAY_GIT_COMMIT_SHA || '') ? process.env.RAILWAY_GIT_COMMIT_SHA : '',
 };
 if(['127.0.0.1','localhost','[::1]'].includes(origin.hostname)&&process.env.DEV_OPENAI_BASE_URL)config.vars.DEV_OPENAI_BASE_URL=process.env.DEV_OPENAI_BASE_URL;
 // Only names are written to disk. Wrangler reads these from the child process
 // environment as secret_text bindings, so credentials remain masked in logs.
-config.secrets = { required: ['VISITOR_SESSION_SECRET', 'SKILL_FILES_JSON', ...(['OPENAI_API_KEY', 'OPENAI_WEBHOOK_SECRET'].filter(name => !!workerEnv[name]))] };
+config.secrets = { required: ['VISITOR_SESSION_SECRET', 'SKILL_FILES_JSON', ...(['OPENAI_API_KEY', 'OPENAI_WEBHOOK_SECRET', 'DATABASE_URL', 'DATABASE_CA_CERT'].filter(name => !!workerEnv[name]))] };
+if (workerEnv.DATABASE_URL) config.d1_databases = [];
 for (const db of config.d1_databases || []) db.migrations_dir = path.join(root, 'drizzle');
 await fs.writeFile(configPath, JSON.stringify(config));
 const stateDir = path.join(dataDir, 'state');
 const wrangler = 'node_modules/wrangler/bin/wrangler.js';
-await run(wrangler, ['d1', 'migrations', 'apply', 'DB', '--local', '--config', configPath, '--persist-to', stateDir]);
+if (!workerEnv.DATABASE_URL) await run(wrangler, ['d1', 'migrations', 'apply', 'DB', '--local', '--config', configPath, '--persist-to', stateDir]);
+console.log('TuXu database: ' + (workerEnv.DATABASE_URL ? 'PostgreSQL (tuxu)' : 'local D1') + '; file storage ' + (persistent ? 'persistent volume' : 'ephemeral') + '.');
 console.log('TuXu visitor workspace: ' + origin.origin + '; AI credential ' + (workerEnv.OPENAI_API_KEY ? 'configured' : 'missing') + '; skill resources ' + Object.keys(manifest).filter(x => x !== '_runtime').length + '/14.');
 if (!persistent) console.warn('No persistent volume is configured. Visitor projects and results must be exported before a redeployment.');
 

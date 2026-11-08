@@ -10,7 +10,9 @@ Railway 随后已配置密钥，公网文案生成及实际文件下载验证通
 
 ## 1. 先看这里
 
-0.4.2 将预案一设为 [实景编辑](docs/style-presets.md)：暖白与深墨底色、少量苔绿、真实照片优先、清晰中文层级和内容驱动的系列构图，风格版本为 2。预案二、三继续待设定。选择时显示说明，查看待设定入口不会覆盖已有选择；默认自动设计仍可用。本轮在独立工作副本 `feat/preset-one-editorial-20261108` 修改，保留原目录另行进行的存储改造；只将本次风格变更合入 main 发布，未将未提交的存储改造混入本次。实际验证产物位于忽略的 `qa/railway/preset-one/`。
+0.4.2 将预案一设为 [实景编辑](docs/style-presets.md)：暖白与深墨底色、少量苔绿、真实照片优先、清晰中文层级和内容驱动的系列构图，风格版本为 2。预案二、三继续待设定。选择时显示说明，查看待设定入口不会覆盖已有选择；默认自动设计仍可用。本轮在独立工作副本 `feat/preset-one-editorial-20261108` 修改，并合并已进入 main 的 PostgreSQL 适配，保留该存储升级。实际验证产物位于忽略的 `qa/railway/preset-one/`。
+
+Supabase 接入代码位于 `feat/supabase-storage-20261108`。Railway 配置 `DATABASE_URL` 时使用 PostgreSQL，启动创建 `tuxu` schema，并只将卷内旧 D1 数据导入空目标；图片、结果和访客签名秘密继续保存在卷中。原 Sites 保留 D1。详见 [Supabase 接续说明](docs/supabase.md)。本机迁移/事务/API 测试已通过；真实 Supabase 接通与部署状态必须另查 `/api/health` 的 `databaseProvider`、`databaseConnected` 与 `storagePersistent`，不能把源码完成视为已上线。
 
 0.4.1 增加三个固定风格预案入口，位于新建图文的「整套初始方向」，当时均待设定。后续逐一修改 `src/style-presets.js` 对应条目。选择随项目保存，服务端解析可信规则并将版本固定在任务快照，自动修正沿用同一版本。原文、素材、裁剪和单图范围规则优先。开发来源为 `feat/style-preset-entries-20261108`，发布目标仍为 Railway 的 main；实际部署核验记录位于忽略的 `qa/railway/style-presets/`。
 

@@ -21,6 +21,8 @@ npm run start:railway
 
 ## 必需配置
 
+Supabase PostgreSQL 接入见 [Supabase 说明](supabase.md)。配置 `DATABASE_URL` 的新版本会自动建表并尝试将卷里的旧 D1 数据导入空的 `tuxu` schema；图片和运行文件继续使用现有卷。未配置时保留原本地 D1 模式，健康接口会明确返回 `databaseProvider`。
+
 在 Railway 服务的 Variables 中安全设置：
 
 | 变量 | 内容 |
@@ -41,6 +43,8 @@ npm run start:railway
 | `VISITOR_SESSION_SECRET` | 可提供至少 32 字符的随机秘密；省略时在数据目录生成并保存，不会输出到日志 |
 | `AI_ENABLED` | 设为 `false` 可关闭新 AI 任务 |
 | `TUXU_DATA_DIR` | 自定义数据目录；默认优先使用平台卷挂载路径，否则使用容器内 `.wrangler/railway/` |
+| `DATABASE_URL` | 可选。Supabase Session pooler / 直连的 PostgreSQL URI；配置后使用外部数据库 |
+| `DATABASE_CA_CERT` | 可选。PostgreSQL TLS 的 CA 证书 PEM |
 
 `SKILL_FILES_JSON` 只能复用同一 OpenAI 项目的文件。它不是 API 密钥，但属于运行配置，不上传公开仓库。
 
@@ -65,7 +69,7 @@ npm run start:railway
 1. 检查端口与公网 origin，选择数据目录，加载或生成访客签名秘密。
 2. 若已有 `SKILL_FILES_JSON`，直接复用；否则使用服务端密钥打包、上传 14 个完整技能和共享字体，按包哈希复用缓存。
 3. 从构建结果生成忽略目录内的运行配置。配置只声明秘密名称，由 Wrangler 从子进程环境读取秘密值，并作为隐藏绑定使用。
-4. 按记录应用尚未执行的数据库迁移，不重复执行已完成迁移。
+4. 使用 Supabase 时先执行 `postgres/` 迁移与旧数据导入；本地 D1 模式按记录应用 `drizzle/` 迁移。不重复执行已完成迁移。
 5. 在 `0.0.0.0:$PORT` 启动网页与 API。
 
 首次上传技能可能需要等待，并受 OpenAI Files API 速率限制。上传会有限重试并保留成功记录；初始化失败会停止启动，不假装所有技能已连接。
