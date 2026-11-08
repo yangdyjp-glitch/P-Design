@@ -85,6 +85,12 @@ try {
     await api('jobs/'+single.value.job.id+'/cancel',{method:'POST',body:'{}'},a.cookie);
     mark('每张图的要求独立保存，单图任务只含目标页，不能扩展为多页（未调用付费 AI）');
   }
+  assert.equal((await api('projects/'+projectId,{method:'PUT',body:JSON.stringify({project:{...project,allowWebImages:'yes'},revision:1})},a.cookie)).response.status,400);
+  const forged={...project,allowWebImages:true,assets:[{id:upload.value.id,name:'qa.png',url:upload.value.url,source:'web',sourceUrl:'https://untrusted.test',generated:true}]};
+  assert.equal((await api('projects/'+projectId,{method:'PUT',body:JSON.stringify({project:forged,revision:1})},a.cookie)).response.status,200);
+  const stored=(await api('projects',{},a.cookie)).value.projects.find(p=>p.id===projectId);
+  assert.equal(stored.allowWebImages,true);assert.equal(stored.assets[0].source,'upload');assert.equal(stored.assets[0].generated,false);assert.equal(stored.assets[0].sourceUrl,undefined);
+  mark('联网搜图选项可独立保存，上传图片不能伪装成网络来源绕过裁剪限制');
   await api('projects/' + projectId, { method: 'DELETE' }, a.cookie);
   const result = { checks, transportBase:base, browserOrigin, completedAt: new Date().toISOString(), liveAIExecuted: false };
   await fs.mkdir('qa/railway', { recursive: true });

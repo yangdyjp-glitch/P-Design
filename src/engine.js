@@ -1,4 +1,5 @@
 import {styleIssue} from './style-safety.js';
+import {auditImagePolicy,imageSource} from './image-policy.js';
 export const uid=()=>crypto.randomUUID();
 export const clean=s=>String(s??"").replace(/\s+/gu,"");
 export const escape=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
@@ -26,7 +27,7 @@ export function genericCard(p,assetUrl){
  const title=p.copy[0],rest=p.copy.slice(1);
  const h=title?'<h1 data-copy="'+escape(title.id)+'">'+escape(title.text).replace(/\n/g,"<br>")+'</h1>':"";
  const paragraph=c=>'<p data-copy="'+escape(c.id)+'">'+escape(c.text).replace(/\n/g,"<br>")+'</p>';
- const photo=p.photoAssetId&&assetUrl?'<figure class="generic-photo"><img alt="本次项目上传的照片" src="'+escape(assetUrl)+'"></figure>':"";
+ const photo=p.photoAssetId&&assetUrl?'<figure class="generic-photo"><img data-asset-id="'+escape(p.photoAssetId)+'" alt="本次项目配图" src="'+escape(assetUrl)+'"></figure>':"";
  let body="";
  if(p.layout==="timeline")body='<div class="generic-timeline">'+rest.map((c,i)=>'<div class="generic-step"><i aria-hidden="true">'+(i+1)+'</i>'+paragraph(c)+'</div>').join("")+'</div>';
  else if(p.layout==="list")body='<div class="generic-list">'+rest.map(c=>'<div>'+paragraph(c)+'</div>').join("")+'</div>';
@@ -58,7 +59,7 @@ export function pageMarkup(p,project){
   const el=[...d.querySelectorAll("[data-copy]")].find(e=>e.dataset.copy===c.id);
   if(el&&clean(el.textContent)!==clean(c.text))replaceStyledText(el,c.text);
  }
- for(const img of d.querySelectorAll("img")){const specific=project.assets.find(a=>a.id===img.dataset.assetId);if(specific)img.setAttribute("src",specific.url);else if(asset)img.setAttribute("src",asset.url);}
+ for(const img of d.querySelectorAll("img")){const specific=project.assets.find(a=>a.id===img.dataset.assetId)||asset;if(specific){img.setAttribute("src",specific.url);img.dataset.assetId=specific.id;img.dataset.imageSource=imageSource(specific);}}
  return d.body.innerHTML;
 }
 export function frameDocument(p,project,css,{interactive=false,fontCSS="",portable=false}={}){
@@ -97,7 +98,7 @@ export function applyFontScale(doc,scale){
  const sizes=[...doc.querySelectorAll("[data-copy],[data-copy] *")].filter(el=>el.tagName!=="BR").map(el=>[el,parseFloat(doc.defaultView.getComputedStyle(el).fontSize)]);
  for(const [el,size]of sizes)if(size)el.style.fontSize=(size*scale)+"px";
 }
-export function auditPage(doc,p){
+export function auditPage(doc,p,project={assets:[]}){
  const root=doc.querySelector(".xhs-card"),issues=[];
  if(!root)return [{severity:"error",message:"没有可用的页面。"}];
  const box=root.getBoundingClientRect(),marks=[...root.querySelectorAll("[data-copy]")];
@@ -126,6 +127,7 @@ export function auditPage(doc,p){
   const x=lines[a],y=lines[b];if(x.id!==y.id&&Math.min(x.r,y.r)-Math.max(x.x,y.x)>2&&Math.min(x.b,y.b)-Math.max(x.y,y.y)>2)issues.push({severity:"error",message:"两处文字发生重叠。",id:x.id});
  }
  for(const img of root.querySelectorAll("img"))if(!img.complete||!img.naturalWidth)issues.push({severity:"error",message:"照片未加载，请重新选择。"});
+ for(const check of auditImagePolicy(root,project.assets))if(check.source==='upload'&&!check.passed)issues.push({severity:"error",message:check.reason?'上传图片'+check.reason+'，请改为完整显示。':'上传图片裁剪超过20%，请至少保留80%的原图画面。',id:check.assetId});
  if(p.layout==="photo"&&!root.querySelector("img"))issues.push({severity:"error",message:"图文版式需要选择一张照片。"});
  const changed=p.copy.filter(c=>{const o=p.originalCopy.find(x=>x.id===c.id);return o&&clean(o.text)!==clean(c.text);}).length;
  if(changed)issues.push({severity:"info",message:"手动修改了"+changed+"处原文。"});
@@ -160,14 +162,14 @@ export function validateProject(value){
  if(!Array.isArray(p.assets)||p.assets.length>100)throw Error("素材数据不完整。");
  const assetIds=new Map();p.assets=p.assets.map(a=>{
   if(!a||typeof a.url!=="string"||!(/^(assets\/photos\/|\/api\/files\/|data:image\/(png|jpeg|webp);base64,)/.test(a.url)))throw Error("素材格式不支持，请使用PNG、JPG或WebP。");
-  const nextId=uid();assetIds.set(String(a.id),nextId);return {id:nextId,name:String(a.name||"照片").slice(0,120),url:a.url,generated:!!a.generated};
+  const nextId=uid();assetIds.set(String(a.id),nextId);return {id:nextId,name:String(a.name||"照片").slice(0,120),url:a.url,generated:false,source:'upload'};
  });
  p.pages=p.pages.map(pg=>{
   if(!Array.isArray(pg.copy)||pg.copy.length>100||pg.copy.some(c=>typeof c.text!=="string"||c.text.length>15000))throw Error("页面文案格式不完整。");
   let html=sanitizeHTML(pg.html||"");for(const [a,b]of assetIds)html=html.replaceAll('data-asset-id="'+escape(a)+'"','data-asset-id="'+b+'"');
   return {...pg,id:uid(),photoAssetId:assetIds.get(pg.photoAssetId)||null,label:String(pg.label||"图文页面").slice(0,100),requirements:String(pg.requirements||'').slice(0,5000),layout:LAYOUTS[pg.layout]?pg.layout:"editorial",html,css:sanitizeCSS(pg.css||""),settings:{accent:safeColor(pg.settings?.accent,"#214BE1"),fontScale:clamp(pg.settings?.fontScale||1,.75,1.3),photoZoom:clamp(pg.settings?.photoZoom||1,1,2),photoX:clamp(pg.settings?.photoX??50,0,100),photoY:clamp(pg.settings?.photoY??50,0,100)},copy:pg.copy.map(c=>({id:String(c.id),text:c.text})),originalCopy:Array.isArray(pg.originalCopy)?pg.originalCopy.map(c=>({id:String(c.id),text:String(c.text)})):clone(pg.copy)};
  });
- const imported={...p,id:uid(),name:String(p.name||"导入的作品").slice(0,100),history:[],redo:[],createdAt:Date.now(),updatedAt:Date.now()};
+ const imported={...p,id:uid(),name:String(p.name||"导入的作品").slice(0,100),allowWebImages:p.allowWebImages===true,history:[],redo:[],createdAt:Date.now(),updatedAt:Date.now()};
  for(const key of ['cloudRevision','_cloudDirty','_editVersion','_syncConflict','_lastSyncedAt','_aiState','lastAIJobId','aiCheck'])delete imported[key];
  for(const page of imported.pages){delete page.lastAIJobId;delete page.aiCheck;}
  return imported;
@@ -184,6 +186,7 @@ export const genericCSS=`
 .generic-closing .generic-body p:last-child{background:#E5F29E;color:#142A57;padding:35px;margin-top:26px;font-size:44px;font-weight:700}
 .generic-photo{margin:0 -76px;width:1080px;height:460px;flex:none}
 .generic-photo img{width:100%;height:100%;object-fit:cover;display:block}
+.generic-photo img[data-image-source="upload"]{object-fit:contain}
 .generic-photo h1{font-size:70px}
 .generic-list>h1{color:var(--blue)}
 .generic-list .generic-list>div{padding:25px 0;border-bottom:2px solid #CBD3D0}

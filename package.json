@@ -1,6 +1,6 @@
 {
   "name": "tuxu-design-studio",
-  "version": "0.3.1",
+  "version": "0.4.0",
   "private": true,
   "engines": {
     "node": ">=22.13.0"
@@ -14,6 +14,7 @@
     "test:visitor": "node --test tests/visitor-session.test.mjs",
     "test:design-result": "node --test tests/design-result.test.mjs",
     "test:automatic": "node --test tests/automatic-workflow.test.mjs",
+    "test:images": "node --test tests/image-policy.test.mjs",
     "qa:visitor": "node scripts/qa-visitor-api.mjs",
     "lint": "eslint . --ignore-pattern dist --ignore-pattern .next",
     "db:generate": "drizzle-kit generate",

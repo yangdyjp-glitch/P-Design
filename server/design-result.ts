@@ -12,7 +12,7 @@ export function validateDesignResult(raw:any,job:{snapshot:string;skill_ids:stri
  const sourceCopy:any[]=snapshot.pages.flatMap((p:any)=>p.copy),copyById=new Map<string,any>(sourceCopy.map(c=>[c.id,c])),returnedCopyIds:string[]=[];
  if(automatic&&(raw.pages.length<1||raw.pages.length>20||copyById.size!==sourceCopy.length))reject('PAGE_COUNT','AI 分页数量或原文编号不正确');
  if(pageScoped&&(snapshot.pages.length!==1||raw.pages.length!==1))reject('PAGE_SCOPE','单图修改必须保留当前一张图，不能新增、删除或重新分页');
- const assetIds=new Set<string>([...(snapshot.assets||[]).map((a:any)=>a.id),...(job.generatedAssetIds||[])]);
+ const assetIds=new Set<string>([...(snapshot.assets||[]).map((a:any)=>a.id),...(job.generatedAssetIds||[])]),usedImages=new Set<string>();
  const pages=raw.pages.map((page:any,position:number)=>{
   const original=allowed.get(page?.id),index=automatic?position+1:snapshot.pages.findIndex((p:any)=>p.id===page?.id)+1;
   if(((!automatic||pageScoped)&&!original)||typeof page?.id!=='string'||!/^[a-zA-Z0-9_-]{1,100}$/.test(page.id)||typeof page.html!=='string'||page.html.length>150000||typeof page.css!=='string'||page.css.length>80000)reject('PAGE_SCOPE','AI 返回了范围外或格式不正确的页面');
@@ -44,10 +44,12 @@ export function validateDesignResult(raw:any,job:{snapshot:string;skill_ids:stri
    for(const image of page.html.matchAll(/<img\b[^>]*>/gi)){
     const src=image[0].match(/\bsrc\s*=\s*(["'])(.*?)\1/i)?.[2],asset=image[0].match(/\bdata-asset-id\s*=\s*(["'])(.*?)\1/i)?.[2];
     if(!asset||!assetIds.has(asset)||src!=='/api/files/'+asset)reject('ASSET_SCOPE',`第 ${index} 页的图片未正确关联本项目素材`);
+    usedImages.add(asset);
    }
   }
   return {id:page.id,html:page.html,css:page.css,photoAssetId,...(automatic?{copy:structuredClone(copy),label:String(copy[0]?.text||'画面 '+index).slice(0,24)}:{})};
  });
+ if(automatic&&usedImages.size>8)reject('ASSET_COUNT','一轮方案最多使用8张不同图片，请从上传及搜索素材中择优选用');
  if(automatic&&(returnedCopyIds.length!==sourceCopy.length||returnedCopyIds.some((id,i)=>id!==sourceCopy[i].id)))reject('COPY_ORDER','AI 分页遗漏、重复或调整了原文顺序');
  if(['write','reference'].includes(job.kind)&&pages.length)reject('ANALYSIS_SCOPE','分析或文案任务不能自动修改原版面');
  const selected=automatic?(snapshot.loadedSkills||['xiaohongshu-design','xhs-design-polish']):JSON.parse(job.skill_ids);

@@ -18,7 +18,7 @@ export function createCloud({S,project,current,modal,closeModal,toast,render,rem
   const source=a.url.startsWith('assets/photos/')?'/api/legacy-assets/'+a.url.split('/').pop():a.url;
   const response=await fetch(source);if(!response.ok)throw Error('素材加载失败：'+a.name);
   const blob=await response.blob(),asset=await api('assets?projectId='+encodeURIComponent(p.id)+'&id='+encodeURIComponent(a.id)+'&name='+encodeURIComponent(a.name),{method:'POST',body:blob,headers:{'Content-Type':blob.type}});
-  a.url=asset.url;a.generated=!!asset.generated;
+  Object.assign(a,asset);if(asset.source!=='web'){delete a.sourceUrl;delete a.imageUrl;}
  }
  async function saveNow(p){
   if(!S.session?.user||p.cloudRevision&&!p._cloudDirty)return;
@@ -58,7 +58,7 @@ export function createCloud({S,project,current,modal,closeModal,toast,render,rem
    if(p._cloudDirty)throw Error('内容有新修改，请等待保存后再次发送。');
    if(pageOnly&&!p.pages.some(target=>target.id===page.id&&String(target.requirements||'').trim()===notes))throw Error('本图要求已更新，请再次发送。');
    const prompt=pageOnly?notes:String(prefill||p.brief||'').trim()||'根据全部文案与本项目素材，自行判断最合适的小红书画面、分页与视觉语言，完成整套设计和自动检查。';
-   const {job}=await api('jobs',{method:'POST',body:JSON.stringify({projectId:p.id,revision:p.cloudRevision,kind:pageOnly?'revise':'design',workflow:'automatic',scope:pageOnly?'page':'project',prompt,pageIds,requestId:uid()})});
+   const {job}=await api('jobs',{method:'POST',body:JSON.stringify({projectId:p.id,revision:p.cloudRevision,kind:pageOnly?'revise':'design',workflow:'automatic',scope:pageOnly?'page':'project',prompt,pageIds,baseCSS:baseCSS(),requestId:uid()})});
    S.jobs.unshift(job);closeModal();setState(p,job,'running',pageOnly?'AI 正在修改本图并自动检查，其他图保持不变。':'AI 正在判断视觉方案、制作画面并自动检查。');startPolling();toast(pageOnly?'已发送，只修改当前图，完成检查后自动呈现。':'已交给 AI，完成检查后会自动呈现。');
   }catch(error){toast(error.message);}finally{submitting=false;updateBadge();}
  }
@@ -81,7 +81,7 @@ export function createCloud({S,project,current,modal,closeModal,toast,render,rem
    if(hasAuditErrors(reports)){
     if(!j.repairOf&&!j.result.repairAttempts){
      const checks=reports.flatMap(page=>page.issues.filter(issue=>issue.severity==='error').map(issue=>({pageId:page.id,message:issue.message}))).slice(0,20);
-     const {job}=await api('jobs',{method:'POST',body:JSON.stringify({projectId:p.id,revision:p.cloudRevision,kind:j.kind,workflow:'automatic',scope:j.scope||'project',prompt:'根据实际网页检查修正当前方案。',pageIds:j.scope==='page'?j.pageIds:p.pages.map(pg=>pg.id),requestId:uid(),repairOf:j.id,checks})});
+     const {job}=await api('jobs',{method:'POST',body:JSON.stringify({projectId:p.id,revision:p.cloudRevision,kind:j.kind,workflow:'automatic',scope:j.scope||'project',prompt:'根据实际网页检查修正当前方案。',pageIds:j.scope==='page'?j.pageIds:p.pages.map(pg=>pg.id),baseCSS:baseCSS(),requestId:uid(),repairOf:j.id,checks})});
      if(!S.jobs.some(item=>item.id===job.id))S.jobs.unshift(job);j.clientState='superseded';setState(p,job,'correcting','发现画面问题，AI 正在自动修正这一轮方案。');return;
     }
     j.clientState='check-failed';setState(p,j,'failed','本轮自动修正后仍有画面问题，文案已保留，可重新设计。');return;
@@ -117,7 +117,7 @@ export function createCloud({S,project,current,modal,closeModal,toast,render,rem
   el.innerHTML='<div class="between"><b>'+esc(j.scope==='page'?'单图修改':kinds[j.kind]||j.kind)+'</b><span class="job-status '+j.status+'">'+labels[j.status]+'</span></div>'+(active(j.status)?'<div class="ai-running"><span class="loading-ring"></span> '+(r?.repairing?'AI 正在自动修正检查发现的问题。':labels[j.status])+'</div>'+button('cancel-ai','停止本轮',null,'btn small'):j.error?'<p class="ai-error">'+esc(j.error)+'</p>':r?'<h3>'+esc(r.summary)+'</h3>'+(j.automatic?'<p class="preserve-note">'+esc(automaticMessage(j,S.projects.find(p=>p.id===j.projectId)))+'</p>':'')+'<div class="panel-actions">'+(r.pages?.length?button('preview-ai','查看方案','eye','btn')+(!j.automatic?button('apply-ai','应用这一版','check','btn primary'):''):'')+(r.manuscript?button('apply-ai-copy','用草稿创建项目',null,'btn primary'):'')+'</div><details class="ai-details"><summary>设计与检查说明</summary><div class="ai-report">'+esc(r.report)+'</div><div class="ai-used">实际使用：'+esc(skillNames)+'</div>'+(r.sources?.length?'<div class="ai-sources">'+r.sources.map(s=>'<a target="_blank" rel="noopener noreferrer" href="'+esc(s.url)+'">'+esc(s.title)+'</a>').join('')+'</div>':'')+'</details>'+(r.artifacts?.length?'<div class="ai-artifacts">'+r.artifacts.map(a=>'<a class="btn small" href="'+esc(a.url)+'" download>'+esc(a.name)+'</a>').join('')+'</div>':''):'');
   el.querySelector('[data-action="cancel-ai"]')?.addEventListener('click',async()=>{try{Object.assign(j,(await api('jobs/'+j.id+'/cancel',{method:'POST',body:'{}'})).job);paintResult(j);updateBadge();}catch(error){toast(error.message);}});
   el.querySelector('[data-action="preview-ai"]')?.addEventListener('click',()=>preview(j).catch(error=>toast(error.message)));
-  for(const kind of ['apply-ai','apply-ai-copy'])el.querySelector('[data-action="'+kind+'"]')?.addEventListener('click',()=>{try{applyLegacy(j,kind);}catch(error){toast(error.message);}});
+  for(const kind of ['apply-ai','apply-ai-copy'])el.querySelector('[data-action="'+kind+'"]')?.addEventListener('click',()=>applyLegacy(j,kind).catch(error=>toast(error.message)));
  }
  async function preview(j){
   const {frameDocument}=await import('./engine.js'),draft=proposal(j);if(j.scope==='page')draft.pages=draft.pages.filter(page=>j.pageIds.includes(page.id));modalJobId=null;
@@ -125,9 +125,9 @@ export function createCloud({S,project,current,modal,closeModal,toast,render,rem
   for(const pg of draft.pages){const frame=document.querySelector('[data-proposal="'+pg.id+'"]');if(frame)frame.srcdoc=frameDocument(pg,draft,baseCSS());}
   document.querySelector('[data-action="return-ai-result"]').onclick=()=>showResult(j);
  }
- function applyLegacy(j,kind){
+ async function applyLegacy(j,kind){
   if(kind==='apply-ai-copy'){const p={id:uid(),name:('AI 草稿 · '+j.prompt).slice(0,100),pages:parseManuscript(j.result.manuscript),assets:[],history:[],redo:[],createdAt:Date.now(),updatedAt:Date.now()};S.projects.unshift(p);S.activeId=p.id;S.pageId=p.pages[0].id;}
-  else{const p=project();if(!canApplyAutomatic(j,p))throw Error('文案已有新修改，请重新设计。');remember('应用 AI 排版');const draft=proposal(j);p.pages=draft.pages;p.assets=draft.assets;}
+  else{const p=project();if(!canApplyAutomatic(j,p))throw Error('文案已有新修改，请重新设计。');const draft=proposal(j),reports=await auditProposal(draft,j.result.pages.map(page=>page.id));if(hasAuditErrors(reports))throw Error('方案未通过画面或上传图片裁剪检查，请重新设计。');if(!canApplyAutomatic(j,p))throw Error('检查期间内容已有新修改，请重新设计。');remember('应用 AI 排版');p.pages=draft.pages;p.assets=draft.assets;}
   S.audit=null;project()._cloudDirty=true;project()._editVersion=(project()._editVersion||0)+1;persist();closeModal();modalJobId=null;render();
  }
  function showSkills(){const list=S.session?.capabilities.skills||[];modal('AI 可用的设计能力','<p class="small-note">AI 从 '+list.length+' 个完整技能中自行择用，无需手动配置。</p><div class="skills-grid">'+list.map(s=>'<div class="skill-tile"><b>'+esc(s.name)+'</b><p>'+esc(s.description)+'</p></div>').join('')+'</div>','',true);}

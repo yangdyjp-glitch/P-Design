@@ -27,7 +27,7 @@ export function automaticMessage(job,project){
  if(project?._aiState&&project._aiState.jobId===job?.id)return project._aiState.message;
  if(!job)return '文案与素材准备好后，交给 AI 完成设计和检查。';
  if(job.status==='queued'||job.status==='starting')return '正在准备设计，文案已保留。';
- if(job.status==='running'||job.status==='generating')return job.result?.repairing?'AI 正在自动修正检查发现的问题。':job.scope==='page'?'AI 正在修改本图并自动检查，其他图保持不变。':'AI 正在判断视觉方案、制作画面并自动检查。';
+ if(job.status==='running'||job.status==='generating')return job.result?.repairing?'AI 正在自动修正检查发现的问题。':job.searchingPhotos?'AI 正在联网寻找实景配图，并保存图片来源。':job.scope==='page'?'AI 正在修改本图并自动检查，其他图保持不变。':'AI 正在判断视觉方案、制作画面并自动检查。';
  if(job.status==='failed')return '本轮设计未完成，文案仍已保留，可稍后重试。';
  if(jobApplied(job,project))return job.scope==='page'?'本图已更新并通过自动检查，其他图保持不变。':'设计已呈现，AI 渲染检查与网页检查均已通过。';
  return '方案已保留；有新文案时可让 AI 重新设计。';

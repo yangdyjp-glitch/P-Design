@@ -15,6 +15,7 @@ export async function getProject(uid:string,id:string){const p=await runtime().D
 export function validateProject(p:any){
  if(!p||!idValid(p.id)||typeof p.name!=='string'||!p.name.trim()||p.name.length>100||!Array.isArray(p.pages)||p.pages.length<1||p.pages.length>20)fail(400,'项目内容不完整，最多支持20页。');
  if(!Array.isArray(p.assets)||p.assets.length>100)fail(400,'每个项目最多100张素材。');
+ if(p.allowWebImages!==undefined&&typeof p.allowWebImages!=='boolean')fail(400,'联网搜图选项不正确。');
  const ids=new Set();for(const pg of p.pages){
   if(!idValid(pg.id)||ids.has(pg.id)||!Array.isArray(pg.copy)||pg.copy.length>100||pg.copy.some((c:any)=>typeof c.id!=='string'||c.id.length>150||typeof c.text!=='string'||c.text.length>15000))fail(400,'页面文案格式不正确。');
   if(pg.requirements!==undefined&&(typeof pg.requirements!=='string'||pg.requirements.length>5000))fail(400,'单图补充要求最多5000字。');
