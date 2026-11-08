@@ -1,5 +1,6 @@
 import {env} from 'cloudflare:workers';
 import {getChatGPTUser} from '../app/chatgpt-auth';
+import {validateStylePresetId} from '../src/style-presets.js';
 export type Runtime={DB:D1Database;BUCKET:R2Bucket;OPENAI_API_KEY?:string;OPENAI_WEBHOOK_SECRET?:string;AGENT_MODEL?:string;IMAGE_MODEL?:string;SKILL_FILES_JSON?:string;ADMIN_EMAIL?:string;AI_ENABLED?:string;DEV_OPENAI_BASE_URL?:string;ACCESS_MODE?:string;VISITOR_SESSION_SECRET?:string;APP_ORIGIN?:string;STORAGE_PERSISTENT?:string};
 export const runtime=()=>env as unknown as Runtime;
 export class HttpError extends Error{constructor(public status:number,message:string){super(message);}}
@@ -16,13 +17,14 @@ export function validateProject(p:any){
  if(!p||!idValid(p.id)||typeof p.name!=='string'||!p.name.trim()||p.name.length>100||!Array.isArray(p.pages)||p.pages.length<1||p.pages.length>20)fail(400,'项目内容不完整，最多支持20页。');
  if(!Array.isArray(p.assets)||p.assets.length>100)fail(400,'每个项目最多100张素材。');
  if(p.allowWebImages!==undefined&&typeof p.allowWebImages!=='boolean')fail(400,'联网搜图选项不正确。');
+ let stylePresetId;try{stylePresetId=validateStylePresetId(p.stylePresetId);}catch(error){fail(400,(error as Error).message);}
  const ids=new Set();for(const pg of p.pages){
   if(!idValid(pg.id)||ids.has(pg.id)||!Array.isArray(pg.copy)||pg.copy.length>100||pg.copy.some((c:any)=>typeof c.id!=='string'||c.id.length>150||typeof c.text!=='string'||c.text.length>15000))fail(400,'页面文案格式不正确。');
   if(pg.requirements!==undefined&&(typeof pg.requirements!=='string'||pg.requirements.length>5000))fail(400,'单图补充要求最多5000字。');
   ids.add(pg.id);if((pg.html||'').length>150000||(pg.css||'').length>80000)fail(400,'单页样式过大。');
  }
  for(const a of p.assets)if(!idValid(a.id)||a.url!==`/api/files/${a.id}`)fail(400,'请先将图片保存到本项目素材库。');
- return {...p,history:(p.history||[]).slice(-10),redo:[]};
+ return {...p,stylePresetId,history:(p.history||[]).slice(-10),redo:[]};
 }
 export function cleanError(e:unknown){return e instanceof HttpError?e.message:'服务暂时未能完成，请稍后重试。';}
 function providerBase(){const e=runtime();if(e.DEV_OPENAI_BASE_URL){if(import.meta.env.DEV)return e.DEV_OPENAI_BASE_URL;try{const origin=new URL(e.APP_ORIGIN||''),relay=new URL(e.DEV_OPENAI_BASE_URL);if(['127.0.0.1','localhost','[::1]'].includes(origin.hostname)&&relay.protocol==='http:'&&['127.0.0.1','localhost','[::1]'].includes(relay.hostname)&&relay.pathname==='/'&&!relay.search&&!relay.hash&&!relay.username&&!relay.password)return relay.origin;}catch{}}return 'https://api.openai.com';}

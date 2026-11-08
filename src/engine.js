@@ -1,5 +1,6 @@
 import {styleIssue} from './style-safety.js';
 import {auditImagePolicy,imageSource} from './image-policy.js';
+import {resolveStylePreset} from './style-presets.js';
 export const uid=()=>crypto.randomUUID();
 export const clean=s=>String(s??"").replace(/\s+/gu,"");
 export const escape=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
@@ -169,7 +170,7 @@ export function validateProject(value){
   let html=sanitizeHTML(pg.html||"");for(const [a,b]of assetIds)html=html.replaceAll('data-asset-id="'+escape(a)+'"','data-asset-id="'+b+'"');
   return {...pg,id:uid(),photoAssetId:assetIds.get(pg.photoAssetId)||null,label:String(pg.label||"图文页面").slice(0,100),requirements:String(pg.requirements||'').slice(0,5000),layout:LAYOUTS[pg.layout]?pg.layout:"editorial",html,css:sanitizeCSS(pg.css||""),settings:{accent:safeColor(pg.settings?.accent,"#214BE1"),fontScale:clamp(pg.settings?.fontScale||1,.75,1.3),photoZoom:clamp(pg.settings?.photoZoom||1,1,2),photoX:clamp(pg.settings?.photoX??50,0,100),photoY:clamp(pg.settings?.photoY??50,0,100)},copy:pg.copy.map(c=>({id:String(c.id),text:c.text})),originalCopy:Array.isArray(pg.originalCopy)?pg.originalCopy.map(c=>({id:String(c.id),text:String(c.text)})):clone(pg.copy)};
  });
- const imported={...p,id:uid(),name:String(p.name||"导入的作品").slice(0,100),allowWebImages:p.allowWebImages===true,history:[],redo:[],createdAt:Date.now(),updatedAt:Date.now()};
+ const imported={...p,id:uid(),name:String(p.name||"导入的作品").slice(0,100),stylePresetId:resolveStylePreset(p.stylePresetId)?.id||null,allowWebImages:p.allowWebImages===true,history:[],redo:[],createdAt:Date.now(),updatedAt:Date.now()};
  for(const key of ['cloudRevision','_cloudDirty','_editVersion','_syncConflict','_lastSyncedAt','_aiState','lastAIJobId','aiCheck'])delete imported[key];
  for(const page of imported.pages){delete page.lastAIJobId;delete page.aiCheck;}
  return imported;

@@ -17,6 +17,8 @@ Railway 部署新增无需账号的访客 AI 模式，配置与验证见 [Railwa
 
 0.4 已合入 `main` 发布，新增 [上传图裁剪保护与联网配图](docs/photo-policy.md)：上传图片最多裁剪 20%，自动检查至少保留 80% 的原图面积；可不上传图片，选择让 AI 从网上找实景配图。应用搜索的照片另行标记、保留来源，不受上传图裁剪上限限制。实际生产就绪以部署和公网验证为准。
 
+0.4.1 新增 [三个固定风格预案入口](docs/style-presets.md)，放在新建图文的「整套初始方向」。当前先保留三个待设定位置，后续依次确认风格；未设定时继续由 AI 判断。预案配置集中保存，选择随项目保留，任务固定采用提交时的风格版本。
+
 原 [Sites 站点](https://tuxu-design-studio-20261106.phd-yang.chatgpt.site) 保留所有者私有范围；[Railway 站点](https://p-design.up.railway.app/) 已开放独立访客空间。2026-11-07 用户确认没有需要保留的云端项目，0.3 已合入 main 进行发布；生产就绪仍以实际部署及公网验证为准。本仓库保存源码和技能资源，不包含运行凭证或用户作品。原 Sites 部署记录见[部署记录](docs/deployment.md)。
 
 开发需要 Node>=22.13。首次运行 `npm ci`、`npm run build`，按[开发与部署说明](docs/setup.md)初始化本地数据库，再运行 `npm run dev`。本地地址为 http://127.0.0.1:5173 。类型检查运行 `npx tsc --noEmit`，构建运行 `npm run build`。开发凭证放在被忽略的 `.env.local`，生产凭证通过 Sites 的服务端秘密配置管理；网页代码无需填写密钥。当前本地真实AI还需要技能上传清单和开发转发服务 `scripts/dev-ai-proxy.mjs`，详见[交接文件](HANDOFF.md#4-新电脑本地真实-ai)。生产站点不经过本机。

@@ -164,6 +164,16 @@ test('all skills remain available while startup stays small and optional resourc
   await advanceJob(h.read());assert.equal(h.attachments.length,1);assert.equal(h.events.at(-1).success,false);
  }finally{h.db.close();}
 });
+test('the hosted job receives the saved style recipe without weakening image or page policies',async()=>{
+ const h=await harness();try{
+  const stylePreset={id:'preset-1',name:'测试预案',version:3,direction:'仅用于隔离检查的风格规则。'};
+  h.db.prepare("UPDATE jobs SET status='queued',session_id=NULL,environment_id=NULL,snapshot=?").run(JSON.stringify({...source,stylePreset,scope:'page',imagePolicy:{minUploadedVisible:.8}}));
+  await startJob(h.read());
+  const body=h.starts[0],input=JSON.parse(Buffer.from(body.environment.files.find(file=>file.path==='/workspace/input/project.json').data,'base64').toString());
+  assert.deepEqual(input.stylePreset,stylePreset);assert.equal(input.scope,'page');assert.equal(input.imagePolicy.minUploadedVisible,.8);
+  assert.match(body.agent.instructions,/mandatory image policy and authorized page scope take precedence/);
+ }finally{h.db.close();}
+});
 test('invalid AI output gets one correction; stale turns are ignored; actual success keeps prior font artifacts',async()=>{
  const h=await harness();try{
   await advanceJob(h.read());assert.equal(h.events.filter(e=>e.type==='agent.session.input.message').length,1);

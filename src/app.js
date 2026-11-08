@@ -2,6 +2,7 @@
 import {toBlob} from "html-to-image";
 import JSZip from "jszip";
 import {createCloud} from "./cloud.js";
+import {STYLE_PRESETS,resolveStylePreset,validateStylePresetId} from "./style-presets.js";
 import {uid,clean,escape as esc,clone,LAYOUTS,PALETTES,parseManuscript,pageMarkup,frameDocument,applyFontScale,auditPage,routeSkills,quickAdjustment,validateProject,clamp} from "./engine.js";
 const $=(s,r=document)=>r.querySelector(s),$$=(s,r=document)=>[...r.querySelectorAll(s)];
 const S={projects:[],activeId:null,pageId:null,tab:"copy",selectedCopy:null,baseCSS:"",db:null,zoom:1,editing:null,audit:null,busy:false};
@@ -66,7 +67,7 @@ function render(){
  S.projects.map(pr=>'<button class="project-item '+(pr.id===p.id?"active":"")+'" data-action="switch-project" data-id="'+esc(pr.id)+'"><i></i><span>'+esc(pr.name)+'</span></button>').join("")+'</div>'+
  '<div class="sidebar-bottom"><div class="storage-card"><div class="row">'+icon("leaf")+'<b style="font-size:11px">留住每一次好设计</b></div><p>'+(visitor?'无需登录即可使用 AI。换设备前下载备份，带走可编辑作品。':'登录后项目自动同步到云端。下载备份，也能带走可编辑作品。')+'</p>'+button("backup","备份当前项目","download","btn small full")+'</div><div class="sidebar-footer"><span>图序工作台 · AI 版</span><button data-action="settings" aria-label="工作台说明">'+icon("settings")+'</button></div></div></aside>'+
  '<div class="workspace"><header class="topbar"><div class="breadcrumbs"><span class="mobile-title">图序</span><span>工作空间</span><span>/</span><b>小红书图文</b></div><div class="top-actions">'+button("mobile-menu","菜单","grid","btn small mobile-menu-button")+'<span class="save-label"><i class="dot"></i><span id="save-status">'+(S.session?.user?(p._cloudDirty?"正在同步云端…":"已保存到云端"):"已保存到此浏览器")+'</span></span>'+button("account",visitor?"访客空间":S.session?.user?"我的账户":"登录云端","settings","btn flat small")+'</div></header>'+
- '<section class="project-header between"><div><div class="project-heading"><h1>'+esc(p.name)+'</h1><button class="icon-btn" aria-label="项目与版本" data-action="more">'+icon("down")+'</button><span class="pill">AI 自动设计</span></div><div class="project-description"><span id="page-total">'+p.pages.length+'</span> 个画面 · AI 自行判断分页与视觉 · 高清导出 2160 × 2880</div></div><div class="project-toolbar">'+
+ '<section class="project-header between"><div><div class="project-heading"><h1>'+esc(p.name)+'</h1><button class="icon-btn" aria-label="项目与版本" data-action="more">'+icon("down")+'</button><span class="pill">AI 自动设计</span></div><div class="project-description"><span id="page-total">'+p.pages.length+'</span> 个画面 · '+esc(resolveStylePreset(p.stylePresetId)?.name||'AI 自行判断分页与视觉')+' · 高清导出 2160 × 2880</div></div><div class="project-toolbar">'+
  button("overview","预览","eye","btn")+button("export","下载作品","download","btn")+button("ai-design","AI 设计整套","leaf","btn primary")+
  '</div></section><div class="stage-layout"><aside class="page-rail"><div class="rail-label"><span>画面</span><span>'+p.pages.length+'</span></div><div id="page-list">'+p.pages.map((pg,i)=>'<button class="page-item '+(pg.id===page.id?"active":"")+'" data-action="select-page" data-id="'+pg.id+'" title="'+esc(pg.label)+'"><span class="thumb"><iframe tabindex="-1" title="第'+(i+1)+'页缩略预览" data-thumb="'+pg.id+'"></iframe></span><span class="page-index">'+String(i+1).padStart(2,"0")+'</span></button>').join("")+'</div></aside>'+
  '<main class="canvas-workspace"><div class="canvas-bar"><div class="row"><span>画面 '+String(activePageIndex()+1).padStart(2,"0")+'</span><span style="color:#b7c0ac">/</span><span>'+esc(page.label.slice(0,18))+'</span></div><div class="row"><span>'+icon("lock")+' 原文保真排版</span></div></div><div class="canvas-area"><div class="canvas-holder"><iframe id="canvas-frame" title="当前页面可编辑预览"></iframe><div class="canvas-loading">正在呈现画面…</div></div></div><div class="view-hint">点击画面中的文字，可定位到右侧文案</div><div class="canvas-footer"><div class="zoom-control"><button data-action="zoom-out" aria-label="缩小">−</button><span id="zoom-label">适应</span><button data-action="zoom-in" aria-label="放大">＋</button><button data-action="fit" title="适应画布" aria-label="适应画布">'+icon("expand")+'</button></div>'+button("phone","手机预览","phone","btn small")+'</div></main>'+
@@ -118,10 +119,23 @@ function modal(title,body,footer="",wide=false){
 }
 function closeModal(){const d=$("dialog");if(d){d.close();d.remove();}}
 function webPhotoChoice(id,checked=false){return '<label class="web-photo-choice" for="'+id+'"><input id="'+id+'" type="checkbox" '+(checked?'checked':'')+'><span><b>让 AI 从网上找图</b><small>不上传也可使用，优先实景照片。网络配图可灵活裁切。</small></span></label>';}
+function stylePresetChoices(){
+ return '<fieldset class="style-presets"><legend>整套初始方向 <span class="muted">选填</span></legend><div class="preset-intro"><p>'+ (STYLE_PRESETS.some(preset=>resolveStylePreset(preset.id))?'选择预设风格，应用于整套图文。':'预留三套固定风格，设定后可一键选用。')+'</p><label class="preset-auto"><input type="radio" name="style-preset" value="" checked><span>AI 自行判断</span></label></div><div class="preset-grid">'+STYLE_PRESETS.map((preset,index)=>{
+  const content='<span class="preset-top"><span class="preset-number">'+String(index+1).padStart(2,'0')+'</span><span class="preset-status">'+(resolveStylePreset(preset.id)?'已预设':'待设定')+'</span></span><span class="preset-name">'+esc(preset.name)+'</span><span class="preset-summary">'+esc(preset.summary||'风格将逐一设定')+'</span>';
+  return resolveStylePreset(preset.id)?'<label class="preset-card preset-ready"><input type="radio" name="style-preset" value="'+preset.id+'"><span class="preset-content">'+content+'</span></label>':'<button type="button" class="preset-card preset-pending" data-action="preset-details" data-id="'+preset.id+'" aria-expanded="false" aria-controls="preset-detail">'+content+'</button>';
+ }).join('')+'</div><div class="preset-detail" id="preset-detail" role="region" aria-live="polite" hidden></div><p class="preset-help">三个预案分别保存固定风格，设定完成后即可选用。</p></fieldset>';
+}
+function showPresetDetails(control){
+ const preset=STYLE_PRESETS.find(preset=>preset.id===control.dataset.id),panel=$('#preset-detail');if(!preset||!panel)return;
+ const open=control.getAttribute('aria-expanded')!=='true';
+ $$('.preset-pending').forEach(button=>button.setAttribute('aria-expanded','false'));
+ panel.hidden=!open;
+ if(open){control.setAttribute('aria-expanded','true');panel.innerHTML='<b>'+esc(preset.name)+' · 待设定</b><p>配色、字体、构图和图片处理规则将分别保存到此预案。具体风格将在后续逐一调整。</p><p>当前仍由 AI 自行判断视觉方向。</p>';}
+}
 function newProjectDialog(){
  modal("把文案交给 AI",'<form id="new-project-form"><div class="form-field"><label for="new-copy">原始文案</label><textarea class="import-text" id="new-copy" maxlength="60000" placeholder="粘贴完整文案。AI 会判断如何分页、构图和安排照片，文字、数字与顺序会保留。" required></textarea></div>'+
  '<div class="new-image-options"><div class="new-asset-input"><label class="btn" for="new-photos">'+icon("image")+'添加图片（选填）</label><input id="new-photos" type="file" accept="image/png,image/jpeg,image/webp" multiple hidden><span id="new-photo-count" class="small-note">最多 8 张，AI 自行判断用途与摆放</span></div><p class="photo-upload-rule">'+icon("lock")+'上传图片最多裁剪 20%，至少保留 80% 的原图画面。</p>'+webPhotoChoice('new-web-images')+'</div>'+
- '<div class="form-field"><label for="new-brief">整套初始方向 <span class="muted">选填</span></label><textarea id="new-brief" rows="2" placeholder="有希望保留的品牌要求或表达重点，可以写在这里。"></textarea></div><div class="project-summary">'+icon("lock")+' 保留原文 · AI 设计 · 自动检查</div><p class="small-note">AI 会自行择用设计技能；必要时生成示意素材。每轮最多自动修正一次，用量计入每日任务额度。</p></form>',button("close","取消",null,"btn")+'<button class="btn primary" type="submit" form="new-project-form">'+icon("leaf")+'开始 AI 设计</button>');
+ stylePresetChoices()+'<div class="form-field"><label for="new-brief">本次补充 <span class="muted">选填</span></label><textarea id="new-brief" rows="2" maxlength="6000" placeholder="有希望保留的品牌要求或表达重点，可以写在这里。"></textarea><p class="small-note">仅用于本次整套图文，单张调整仍在右侧填写。</p></div><div class="project-summary">'+icon("lock")+' 保留原文 · AI 设计 · 自动检查</div><p class="small-note">AI 会自行择用设计技能；必要时生成示意素材。每轮最多自动修正一次，用量计入每日任务额度。</p></form>',button("close","取消",null,"btn")+'<button class="btn primary" type="submit" form="new-project-form">'+icon("leaf")+'开始 AI 设计</button>');
 }
 function projectSettings(){
  modal("项目设置",'<div class="form-field"><label for="project-name">项目名称</label><input id="project-name" maxlength="100" value="'+esc(project().name)+'"></div><div class="between"><span class="small-note">创建于 '+formatDate(project().createdAt)+'</span>'+button("delete-project","删除项目","trash","btn flat small delete-link",S.projects.length===1?"disabled":"")+'</div>',button("close","取消",null,"btn")+button("save-project-name","保存名称","check","btn primary"));
@@ -140,7 +154,7 @@ function showHistory(){
  modal("版本记录",'<div class="project-summary">'+icon("history")+'保留最近25次操作，可撤销或恢复。<span style="margin-left:auto">'+hist.length+' 条</span></div>'+
  (hist.length?hist.slice().reverse().map(h=>'<div class="version-item"><div>'+esc(h.label)+'<small>'+formatDate(h.at)+'</small></div>'+button("restore-history","恢复",null,"btn small",'data-id="'+h.id+'"')+'</div>').join(""):'<div class="empty">还没有修改记录。<br>修改文案、构图或照片后，记录会出现在这里。</div>'));
 }
-function showSettings(){modal("关于图序工作台",'<div class="settings-item"><b>你负责内容，AI 负责画面</b><p>准备文案与图片后，AI 自行决定分页、视觉方向、照片安排和设计技能，并执行渲染与网页检查。检查通过后自动呈现。</p></div><div class="settings-item"><b>保留你的修改</b><p>右侧文案始终可以编辑。如果生成期间更新了文案，旧方案会保留，新内容不会被旧结果覆盖。</p></div><div class="settings-item"><b>带走可编辑作品</b><p>可下载高清图片、可编辑 HTML 和项目备份。使用其他电脑前，请先备份项目。</p></div><p class="small-note">版本 0.4.0 · 实景搜图 · 上传图裁剪保护</p>');}
+function showSettings(){modal("关于图序工作台",'<div class="settings-item"><b>你负责内容，AI 负责画面</b><p>准备文案与图片后，AI 自行决定分页、视觉方向、照片安排和设计技能，并执行渲染与网页检查。检查通过后自动呈现。</p></div><div class="settings-item"><b>保留你的修改</b><p>右侧文案始终可以编辑。如果生成期间更新了文案，旧方案会保留，新内容不会被旧结果覆盖。</p></div><div class="settings-item"><b>带走可编辑作品</b><p>可下载高清图片、可编辑 HTML 和项目备份。使用其他电脑前，请先备份项目。</p></div><p class="small-note">版本 0.4.1 · 三个风格预案入口</p>');}
 function showExport(){
  modal("导出你的作品",'<div class="project-summary"><b>'+project().pages.length+'</b><div>个画面已准备就绪<br><span class="tiny muted">2160 × 2880 · 高清 PNG</span></div></div><div class="settings-item"><b>导出整套高清图</b><p>每页生成一张PNG，并打包成ZIP。导出前会自动检查缺字、越界与图片加载。</p></div><div class="panel-actions">'+button("export-all","整套PNG · ZIP","download","btn primary")+button("export-one","仅导出当前页",null,"btn")+'</div><div class="inspector-divider"></div><div class="settings-item"><b>保留可编辑作品</b><p>项目备份可再次导入图序；HTML工程包含正式文字、布局、照片和字体许可。</p></div><div class="panel-actions">'+button("backup","项目备份 · JSON","save","btn")+button("export-source","可编辑HTML · ZIP","folder","btn")+'</div>');
 }
@@ -158,6 +172,7 @@ function mobileMenu(){modal("你的工作空间",'<div class="mobile-actions">'+
 function mobileCopy(){modal("编辑当前页文案",current().copy.map((c,i)=>'<label class="copy-field"><span class="field-heading">'+(i===0?"标题":"内容 "+i)+'</span><textarea data-copy-field="'+esc(c.id)+'" rows="4">'+esc(c.text)+'</textarea></label>').join(""),button("close","完成编辑","check","btn primary"));}
 const actions={
  "mobile-menu":mobileMenu,"mobile-copy":mobileCopy,"ai-design":()=>Cloud.startDesign(),"ai-page":()=>Cloud.startPageDesign(),"ai-tasks":()=>Cloud.showTasks(),skills:()=>Cloud.showSkills(),account:()=>Cloud.showAccount(),new:newProjectDialog,workspace:()=>{closeModal();},assets:showAssets,more:showMore,history:showHistory,settings:showSettings,
+ "preset-details":showPresetDetails,
  close:()=>{if(!S.busy)closeModal();},export:showExport,overview:()=>showOverview(),phone:()=>showOverview(true),
  "project-settings":projectSettings,"save-project-name":()=>{const n=$("#project-name").value.trim();if(!n)return toast("请输入项目名称。");project().name=n;closeModal();scheduleSave();render();},
  "select-page":b=>{S.pageId=b.dataset.id;S.selectedCopy=null;S.editing=null;S.zoom=1;render();},
@@ -323,9 +338,9 @@ document.addEventListener("submit",async e=>{
  if(e.target.id==="new-project-form"){
   e.preventDefault();const submit=e.submitter;if(submit)submit.disabled=true;
   try{
-   const text=$("#new-copy").value,brief=$("#new-brief").value.slice(0,6000),allowWebImages=$("#new-web-images").checked,pages=parseManuscript(text,{preserveText:true});
+   const text=$("#new-copy").value,brief=$("#new-brief").value.slice(0,6000),stylePresetId=validateStylePresetId($('[name="style-preset"]:checked')?.value),allowWebImages=$("#new-web-images").checked,pages=parseManuscript(text,{preserveText:true});
    const assets=await readImageFiles($("#new-photos").files);
-   const p={id:uid(),name:(pages[0].copy[0]?.text||"新的图文").slice(0,80),brief,allowWebImages,pages,assets,history:[],redo:[],createdAt:Date.now(),updatedAt:Date.now()};
+   const p={id:uid(),name:(pages[0].copy[0]?.text||"新的图文").slice(0,80),brief,stylePresetId,allowWebImages,pages,assets,history:[],redo:[],createdAt:Date.now(),updatedAt:Date.now()};
    S.projects.unshift(p);S.activeId=p.id;S.pageId=p.pages[0].id;S.tab="copy";S.zoom=1;S.audit=null;closeModal();render();scheduleSave();await Cloud.startDesign();
   }catch(err){toast(err.message);if(submit?.isConnected)submit.disabled=false;}
  }
@@ -386,7 +401,7 @@ async function boot(){
   if(!S.projects.length&&S.session.accessMode==='visitor'){S.projects=await legacyProjects('tuxu-studio-guest');for(const p of S.projects){delete p.cloudRevision;delete p._syncConflict;p._cloudDirty=true;}}
   if(!S.projects.length){const p={id:uid(),name:"从文案开始",pages:parseManuscript("让好内容，被看见\n把你的完整文案放在右侧，也可以上传本次图片。\n画面、分页和设计检查，交给 AI 自行完成。",{preserveText:true}),assets:[],history:[],redo:[],createdAt:Date.now(),updatedAt:Date.now()};S.projects=[p];}
   if(!project())S.activeId=S.projects[0].id;S.pageId=project().pages[0].id;render();Cloud.updateBadge();await persist({skipCloud:!project()._cloudDirty&&!!project().cloudRevision});Cloud.startPolling();
-  window.TuXu={getState:()=>clone({projects:S.projects,activeId:S.activeId,pageId:S.pageId,user:S.session.user,jobs:S.jobs}),auditCurrent:()=>auditPage($("#canvas-frame").contentDocument,current(),project()),version:"0.4.0"};
+  window.TuXu={getState:()=>clone({projects:S.projects,activeId:S.activeId,pageId:S.pageId,user:S.session.user,jobs:S.jobs}),auditCurrent:()=>auditPage($("#canvas-frame").contentDocument,current(),project()),version:"0.4.1"};
  }catch(e){$("#app").innerHTML='<div class="boot"><h1>工作台暂时未能打开</h1><p>'+esc(e.message)+'</p><button class="btn primary" onclick="location.reload()">重新打开</button></div>';}
 }
 boot();

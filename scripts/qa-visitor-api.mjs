@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict';
 import fs from 'node:fs/promises';
+import {STYLE_PRESETS,resolveStylePreset} from '../src/style-presets.js';
 
 const base = process.env.QA_BASE_URL || 'http://127.0.0.1:5177';
 const browserOrigin=process.env.QA_BROWSER_ORIGIN||base;
@@ -45,6 +46,12 @@ try {
   assert(!other.value.projects.some(p => p.id === projectId));
   assert.equal((await api('projects/' + projectId, { method: 'DELETE' }, b.cookie)).response.status, 404);
   mark('访客项目保存、隔离与越权删除拦截');
+  assert.equal(own.value.projects.find(p=>p.id===projectId).stylePresetId,null);
+  for(const stylePresetId of [...STYLE_PRESETS.filter(preset=>!resolveStylePreset(preset.id)).map(preset=>preset.id),'unknown',{direction:'任意规则'}]){
+    const invalid=await api('projects/'+projectId,{method:'PUT',body:JSON.stringify({project:{...project,stylePresetId},revision:1})},a.cookie);
+    assert.equal(invalid.response.status,400);
+  }
+  mark('未选预案兼容原项目，待设定及伪造预案均不能误用');
   assert.equal((await api('projects/' + projectId, { method: 'PUT', headers: { Origin: 'https://untrusted.test' }, body: JSON.stringify({ project, revision: 1 }) }, a.cookie)).response.status, 403);
   const conflict=await api('projects/' + projectId, { method: 'PUT', body: JSON.stringify({ project, revision: 0 }) }, a.cookie);
   assert.equal(conflict.response.status, 409, conflict.value instanceof ArrayBuffer ? new TextDecoder().decode(conflict.value).slice(0,800) : JSON.stringify(conflict.value));
