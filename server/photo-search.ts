@@ -30,7 +30,7 @@ export function photoCandidates(response:any){
  }
  return found.slice(0,12);
 }
-export function webPhotosAllowed(job:{kind:string;snapshot:string}){const snapshot=JSON.parse(job.snapshot);return snapshot.allowWebImages===true&&!snapshot.repairOf&&['design','revise','cover','template'].includes(job.kind);}
+export function webPhotosAllowed(job:{kind:string;snapshot:string}){const snapshot=JSON.parse(job.snapshot);return !['upload','none'].includes(snapshot.imageMode)&&snapshot.allowWebImages===true&&!snapshot.repairOf&&['design','revise','cover','template'].includes(job.kind);}
 const save=async(job:any,state:any)=>{job.search_state=JSON.stringify(state);await runtime().DB.prepare('UPDATE jobs SET search_state=?,updated_at=? WHERE id=?').bind(job.search_state,Date.now(),job.id).run();};
 async function toolResult(job:any,state:any,photos:any[],error?:string,persist=true){
  if(photos.length)await api('/agents/environments/'+job.environment_id+'/files',{method:'POST',idempotencyKey:job.id+'-web-photo-metadata',body:{type:'inline',data:Buffer.from(JSON.stringify({assets:photos.map(photo=>({...photo,localPath:photo.path}))})).toString('base64'),path:'/workspace/input/web-photos.json'}});

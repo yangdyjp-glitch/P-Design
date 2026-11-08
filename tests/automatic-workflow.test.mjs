@@ -24,6 +24,16 @@ test('automatic workflow makes every skill available and preserves legacy task r
  assert.equal(routeSkills('design').length,5);
  assert.deepEqual(routeSkills('write'),['xiaohongshu-design','xhs-writer']);
 });
+test('server rejects image-source violations and empty photographic sets before application',()=>{
+ const assets=[{id:'upload',source:'upload'},{id:'web',source:'web'},{id:'generated',source:'generated',generated:true}];
+ const withImage=id=>({...validResult,pages:[{...validResult.pages[0],html:markup(blocks).replace('</section>','<img data-asset-id="'+id+'" src="/api/files/'+id+'"></section>')} ]});
+ for(const imageMode of ['upload','web','none']){
+  const current={...job,snapshot:JSON.stringify({...source,imageMode,assets})};
+  if(imageMode==='none')assert.equal(validateDesignResult(validResult,current).pages.length,1);
+  else {assert.equal(validateDesignResult(withImage(imageMode),current).pages.length,1);assert.throws(()=>validateDesignResult(validResult,current),error=>error.code==='IMAGE_MODE');}
+  for(const id of ['upload','web','generated'].filter(id=>id!==imageMode))assert.throws(()=>validateDesignResult(withImage(id),current),error=>error.code==='IMAGE_MODE');
+ }
+});
 test('AI can repaginate while copy IDs, exact text and sequence remain locked',()=>{
  const raw={...validResult,pages:[{id:'new-cover',html:markup(blocks.slice(0,1)),css:''},{id:'new-body',html:markup(blocks.slice(1)),css:''}]};
  const accepted=validateDesignResult(raw,job);
@@ -115,6 +125,11 @@ const coreMock={name:'isolated-provider',setup(build){
 }};
 const {advanceJob,startJob}=await bundle('server/agent.ts',[coreMock]);
 const {publicPhotoURL,photoCandidates,webPhotosAllowed}=await bundle('server/photo-search.ts',[coreMock]);
+test('source presets disable generation and do not allow upload or text-only jobs to search photos',()=>{
+ for(const imageMode of ['upload','web','none'])assert.equal(imageAllowed({...job,snapshot:JSON.stringify({...source,imageMode})}),false);
+ for(const imageMode of ['upload','none'])assert.equal(webPhotosAllowed({...job,snapshot:JSON.stringify({...source,imageMode,allowWebImages:true})}),false);
+ assert.equal(webPhotosAllowed({...job,snapshot:JSON.stringify({...source,imageMode:'web',allowWebImages:true})}),true);
+});
 async function harness(){
  const db=new DatabaseSync(':memory:');for(const name of (await fs.readdir('drizzle')).filter(name=>name.endsWith('.sql')).sort())db.exec(await fs.readFile('drizzle/'+name,'utf8'));
  db.prepare("INSERT INTO jobs(id,user_id,project_id,request_id,kind,prompt,skill_ids,snapshot,base_revision,status,session_id,environment_id,provider_files,lease_until,created_at,updated_at) VALUES(?,?,?,?,?,?,?,?,?,'running','session-test','env-test','[]',0,?,?)").run('job-test','visitor_test','own-project','test-request','design','自动设计',job.skill_ids,job.snapshot,1,Date.now(),Date.now());
@@ -200,6 +215,14 @@ test('uploaded-photo crop records require at least 80% retained area; actual web
  const web={...record(.3),pages:[{id:'reading-cover',imageChecks:[{...record(.3).pages[0].imageChecks[0],source:'web'}]}]};
  assert.equal(renderAudit(web,1,pages,[{id:'photo',source:'web'}]).status,'passed');
  assert.throws(()=>renderAudit(web,1,pages,[{id:'photo',source:'upload'}]));
+});
+test('a required searched photograph must be visible in an actual returned page',()=>{
+ const pages=[{id:'reading-cover',html:'<img data-asset-id="web" src="/api/files/web">'}],assets=[{id:'web',source:'web'}];
+ const record=fraction=>({...manifest,pages:[{id:'reading-cover',imageChecks:[{assetId:'web',source:'web',visibleFraction:fraction,loaded:true,passed:true}]}]});
+ const policy={imageMode:'web',requirePhoto:true};
+ assert.throws(()=>renderAudit(record(0),1,pages,assets,policy));
+ assert.equal(renderAudit(record(.25),1,pages,assets,policy).status,'passed');
+ assert.throws(()=>renderAudit(record(1),1,[{id:'reading-cover',html:'<p>no image</p>'}],assets,policy));
 });
 test('new searched photos cannot expand a design beyond the eight-image limit used by follow-up revisions',()=>{
  const assets=Array.from({length:8},(_,index)=>({id:'photo-'+index})),images=Array.from({length:9},(_,index)=>'<img data-asset-id="photo-'+index+'" src="/api/files/photo-'+index+'">');

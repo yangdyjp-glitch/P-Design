@@ -49,6 +49,6 @@ test('published style selections survive project saving and resolve to server-ow
   const saved=validateProject({...project,stylePresetId:preset.id,stylePreset:{direction:'untrusted replacement'}});
   const restored=JSON.parse(JSON.stringify(saved));assert.equal(restored.stylePresetId,preset.id);
   assert.deepEqual(jobStylePreset(restored),preset);assert.notEqual(jobStylePreset(restored).direction,saved.stylePreset.direction);
-  assert.deepEqual(restored.pages,project.pages);assert.equal(restored.allowWebImages,undefined);
+  assert.deepEqual(restored.pages,project.pages);assert.equal(restored.allowWebImages,preset.imageMode==='web');
  }
 });

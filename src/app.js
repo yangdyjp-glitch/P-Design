@@ -3,6 +3,7 @@ import {toBlob} from "html-to-image";
 import JSZip from "jszip";
 import {createCloud} from "./cloud.js";
 import {STYLE_PRESETS,resolveStylePreset,validateStylePresetId} from "./style-presets.js";
+import {projectImageMode,webImagesForMode} from "./preset-images.js";
 import {uid,clean,escape as esc,clone,LAYOUTS,PALETTES,parseManuscript,pageMarkup,frameDocument,applyFontScale,auditPage,routeSkills,quickAdjustment,validateProject,clamp} from "./engine.js";
 const $=(s,r=document)=>r.querySelector(s),$$=(s,r=document)=>[...r.querySelectorAll(s)];
 const S={projects:[],activeId:null,pageId:null,tab:"copy",selectedCopy:null,baseCSS:"",db:null,zoom:1,editing:null,audit:null,busy:false};
@@ -123,7 +124,7 @@ function stylePresetChoices(){
  return '<fieldset class="style-presets"><legend>整套初始方向 <span class="muted">选填</span></legend><div class="preset-intro"><p>'+ (STYLE_PRESETS.some(preset=>resolveStylePreset(preset.id))?'选择预设风格，应用于整套图文。':'预留三套固定风格，设定后可一键选用。')+'</p><label class="preset-auto"><input type="radio" name="style-preset" value="" checked><span>AI 自行判断</span></label></div><div class="preset-grid">'+STYLE_PRESETS.map((preset,index)=>{
   const content='<span class="preset-top"><span class="preset-number">'+String(index+1).padStart(2,'0')+'</span><span class="preset-status">'+(resolveStylePreset(preset.id)?'已预设':'待设定')+'</span></span><span class="preset-name">'+esc(preset.name).split(' · ').join('<br>')+'</span><span class="preset-summary">'+esc(preset.summary||'风格将逐一设定')+'</span>';
   return resolveStylePreset(preset.id)?'<label class="preset-card preset-ready"><input type="radio" name="style-preset" value="'+preset.id+'"><span class="preset-content">'+content+'</span></label>':'<button type="button" class="preset-card preset-pending" data-action="preset-details" data-id="'+preset.id+'" aria-expanded="false" aria-controls="preset-detail">'+content+'</button>';
- }).join('')+'</div><div class="preset-detail" id="preset-detail" role="region" aria-live="polite" hidden></div><p class="preset-help">选中的预案用于整套图文，AI 自行完成排版和检查。待设定预案将逐一完善。</p></fieldset>';
+ }).join('')+'</div><div class="preset-detail" id="preset-detail" role="region" aria-live="polite" hidden></div><p class="preset-help">按图片来源选择预案，AI 自行完成构图、排版与检查。</p></fieldset>';
 }
 function showPresetDetails(control){
  const preset=STYLE_PRESETS.find(preset=>preset.id===control.dataset.id),panel=$('#preset-detail');if(!preset||!panel)return;
@@ -138,18 +139,24 @@ function showSelectedPreset(){
  $$('.preset-pending').forEach(button=>button.setAttribute('aria-expanded','false'));
  panel.hidden=!preset;
  if(preset)panel.innerHTML='<b>'+esc(preset.name)+'</b><p>'+esc(preset.description||preset.summary)+'</p>';
+ const mode=preset?.imageMode||'auto',upload=$('.new-asset-input'),crop=$('.new-image-options .photo-upload-rule'),web=$('.new-image-options .web-photo-choice'),help=$('#new-image-help'),webInput=$('#new-web-images');
+ if(upload)upload.hidden=!['auto','upload'].includes(mode);if(crop)crop.hidden=!['auto','upload'].includes(mode);if(web)web.hidden=mode!=='auto';
+ if(webInput){if(mode!=='auto'){if(webInput.dataset.manualChoice===undefined)webInput.dataset.manualChoice=String(webInput.checked);webInput.checked=mode==='web';}else if(webInput.dataset.manualChoice!==undefined){webInput.checked=webInput.dataset.manualChoice==='true';delete webInput.dataset.manualChoice;}}
+ if(help){help.hidden=mode==='auto';help.textContent=mode==='upload'?'本预案仅使用上传图片，请至少添加一张。':mode==='web'?'AI 将联网搜索实景照片并保留来源，无需上传图片。':'纯文字排版，只用文字、色块和线条组织内容。';}
+ const uploadLabel=$('label[for="new-photos"]');if(uploadLabel)uploadLabel.innerHTML=icon('image')+(mode==='upload'?'上传图片（必填）':'添加图片（选填）');
+ const taskHelp=$('#new-task-help');if(taskHelp)taskHelp.textContent=mode==='auto'?'AI 会自行择用设计技能；必要时生成示意素材。每轮最多自动修正一次，用量计入每日任务额度。':'AI 会按所选预案安排画面并自动检查。每轮最多自动修正一次，用量计入每日任务额度。';
 }
 function newProjectDialog(){
  modal("把文案交给 AI",'<form id="new-project-form"><div class="form-field"><label for="new-copy">原始文案</label><textarea class="import-text" id="new-copy" maxlength="60000" placeholder="粘贴完整文案。AI 会判断如何分页、构图和安排照片，文字、数字与顺序会保留。" required></textarea></div>'+
- '<div class="new-image-options"><div class="new-asset-input"><label class="btn" for="new-photos">'+icon("image")+'添加图片（选填）</label><input id="new-photos" type="file" accept="image/png,image/jpeg,image/webp" multiple hidden><span id="new-photo-count" class="small-note">最多 8 张，AI 自行判断用途与摆放</span></div><p class="photo-upload-rule">'+icon("lock")+'上传图片最多裁剪 20%，至少保留 80% 的原图画面。</p>'+webPhotoChoice('new-web-images')+'</div>'+
- stylePresetChoices()+'<div class="form-field"><label for="new-brief">本次补充 <span class="muted">选填</span></label><textarea id="new-brief" rows="2" maxlength="6000" placeholder="有希望保留的品牌要求或表达重点，可以写在这里。"></textarea><p class="small-note">仅用于本次整套图文，单张调整仍在右侧填写。</p></div><div class="project-summary">'+icon("lock")+' 保留原文 · AI 设计 · 自动检查</div><p class="small-note">AI 会自行择用设计技能；必要时生成示意素材。每轮最多自动修正一次，用量计入每日任务额度。</p></form>',button("close","取消",null,"btn")+'<button class="btn primary" type="submit" form="new-project-form">'+icon("leaf")+'开始 AI 设计</button>');
+ '<div class="new-image-options"><div class="new-asset-input"><label class="btn" for="new-photos">'+icon("image")+'添加图片（选填）</label><input id="new-photos" type="file" accept="image/png,image/jpeg,image/webp" multiple hidden><span id="new-photo-count" class="small-note">最多 8 张，AI 自行判断用途与摆放</span></div><p class="photo-upload-rule">'+icon("lock")+'上传图片最多裁剪 20%，至少保留 80% 的原图画面。</p>'+webPhotoChoice('new-web-images')+'<p id="new-image-help" class="small-note" aria-live="polite" hidden></p></div>'+
+ stylePresetChoices()+'<div class="form-field"><label for="new-brief">本次补充 <span class="muted">选填</span></label><textarea id="new-brief" rows="2" maxlength="6000" placeholder="有希望保留的品牌要求或表达重点，可以写在这里。"></textarea><p class="small-note">仅用于本次整套图文，单张调整仍在右侧填写。</p></div><div class="project-summary">'+icon("lock")+' 保留原文 · AI 设计 · 自动检查</div><p class="small-note" id="new-task-help">AI 会自行择用设计技能；必要时生成示意素材。每轮最多自动修正一次，用量计入每日任务额度。</p></form>',button("close","取消",null,"btn")+'<button class="btn primary" type="submit" form="new-project-form">'+icon("leaf")+'开始 AI 设计</button>');
 }
 function projectSettings(){
  modal("项目设置",'<div class="form-field"><label for="project-name">项目名称</label><input id="project-name" maxlength="100" value="'+esc(project().name)+'"></div><div class="between"><span class="small-note">创建于 '+formatDate(project().createdAt)+'</span>'+button("delete-project","删除项目","trash","btn flat small delete-link",S.projects.length===1?"disabled":"")+'</div>',button("close","取消",null,"btn")+button("save-project-name","保存名称","check","btn primary"));
 }
 function showAssets(){
- const p=project();
- modal("项目素材",'<div class="file-drop" data-action="upload">'+icon("upload")+'<br>添加照片或图片<br><span class="tiny muted">JPG、PNG、WebP · 每张不超过 12 MB</span></div><p class="photo-upload-rule">'+icon("lock")+'上传图片最多裁剪 20%，至少保留 80% 的原图画面。</p>'+webPhotoChoice('project-web-images',p.allowWebImages===true)+'<div class="gallery-large" style="margin-top:20px">'+p.assets.map(a=>'<figure><img src="'+esc(a.url)+'" alt="'+esc(a.name)+'"><figcaption>'+esc(a.name)+(a.source==='web'?' · 网络配图':a.generated?' · AI 生成示意素材':' · 上传图片')+(a.source==='web'&&/^https:\/\//.test(a.sourceUrl||'')?' · <a href="'+esc(a.sourceUrl)+'" target="_blank" rel="noopener noreferrer">查看来源</a>':'')+'</figcaption></figure>').join("")+'</div><p class="small-note">上传图与网络配图分别标记。AI 自行判断用途与摆放，并自动检查上传图的裁剪比例。</p>');
+ const p=project(),mode=projectImageMode(p),uploads=['auto','upload'].includes(mode);
+ modal("项目素材",(uploads?'<div class="file-drop" data-action="upload">'+icon("upload")+'<br>添加照片或图片<br><span class="tiny muted">JPG、PNG、WebP · 每张不超过 12 MB</span></div><p class="photo-upload-rule">'+icon("lock")+'上传图片最多裁剪 20%，至少保留 80% 的原图画面。</p>':'<p class="small-note">'+(mode==='web'?'本项目使用联网配图，AI 会搜索实景照片并保留来源。':'本项目使用纯文字排版，无需图片。')+'</p>')+(mode==='auto'?webPhotoChoice('project-web-images',p.allowWebImages===true):'')+(mode!=='none'?'<div class="gallery-large" style="margin-top:20px">'+p.assets.map(a=>'<figure><img src="'+esc(a.url)+'" alt="'+esc(a.name)+'"><figcaption>'+esc(a.name)+(a.source==='web'?' · 网络配图':a.generated?' · AI 生成示意素材':' · 上传图片')+(a.source==='web'&&/^https:\/\//.test(a.sourceUrl||'')?' · <a href="'+esc(a.sourceUrl)+'" target="_blank" rel="noopener noreferrer">查看来源</a>':'')+'</figcaption></figure>').join("")+'</div>':'')+'<p class="small-note">AI 按本项目预案判断图片用途与摆放，并自动检查来源及裁剪比例。</p>');
 }
 function showMore(){modal("项目与版本",'<div class="mobile-actions">'+button("project-settings","修改项目名称",null,"btn full")+button("history","查看版本记录","history","btn full")+button("undo","撤销上一次修改","undo","btn full",!project().history?.length?"disabled":"")+button("backup","备份当前项目","save","btn full")+button("skills","AI 的设计能力","leaf","btn full")+'</div>');}
 function showBrand(){
@@ -161,7 +168,7 @@ function showHistory(){
  modal("版本记录",'<div class="project-summary">'+icon("history")+'保留最近25次操作，可撤销或恢复。<span style="margin-left:auto">'+hist.length+' 条</span></div>'+
  (hist.length?hist.slice().reverse().map(h=>'<div class="version-item"><div>'+esc(h.label)+'<small>'+formatDate(h.at)+'</small></div>'+button("restore-history","恢复",null,"btn small",'data-id="'+h.id+'"')+'</div>').join(""):'<div class="empty">还没有修改记录。<br>修改文案、构图或照片后，记录会出现在这里。</div>'));
 }
-function showSettings(){modal("关于图序工作台",'<div class="settings-item"><b>你负责内容，AI 负责画面</b><p>准备文案与图片后，AI 自行决定分页、视觉方向、照片安排和设计技能，并执行渲染与网页检查。检查通过后自动呈现。</p></div><div class="settings-item"><b>保留你的修改</b><p>右侧文案始终可以编辑。如果生成期间更新了文案，旧方案会保留，新内容不会被旧结果覆盖。</p></div><div class="settings-item"><b>带走可编辑作品</b><p>可下载高清图片、可编辑 HTML 和项目备份。使用其他电脑前，请先备份项目。</p></div><p class="small-note">版本 0.4.2 · 预案一：实景编辑</p>');}
+function showSettings(){modal("关于图序工作台",'<div class="settings-item"><b>你负责内容，AI 负责画面</b><p>准备文案与图片后，AI 自行决定分页、视觉方向、照片安排和设计技能，并执行渲染与网页检查。检查通过后自动呈现。</p></div><div class="settings-item"><b>保留你的修改</b><p>右侧文案始终可以编辑。如果生成期间更新了文案，旧方案会保留，新内容不会被旧结果覆盖。</p></div><div class="settings-item"><b>带走可编辑作品</b><p>可下载高清图片、可编辑 HTML 和项目备份。使用其他电脑前，请先备份项目。</p></div><p class="small-note">版本 0.4.2 · 三种配图预案</p>');}
 function showExport(){
  modal("导出你的作品",'<div class="project-summary"><b>'+project().pages.length+'</b><div>个画面已准备就绪<br><span class="tiny muted">2160 × 2880 · 高清 PNG</span></div></div><div class="settings-item"><b>导出整套高清图</b><p>每页生成一张PNG，并打包成ZIP。导出前会自动检查缺字、越界与图片加载。</p></div><div class="panel-actions">'+button("export-all","整套PNG · ZIP","download","btn primary")+button("export-one","仅导出当前页",null,"btn")+'</div><div class="inspector-divider"></div><div class="settings-item"><b>保留可编辑作品</b><p>项目备份可再次导入图序；HTML工程包含正式文字、布局、照片和字体许可。</p></div><div class="panel-actions">'+button("backup","项目备份 · JSON","save","btn")+button("export-source","可编辑HTML · ZIP","folder","btn")+'</div>');
 }
@@ -191,7 +198,7 @@ const actions={
  color:b=>edit("修改强调色",()=>current().settings.accent=b.dataset.color,{full:false}),
  "brand-color":b=>{edit("整套强调色",()=>{for(const p of project().pages)p.settings.accent=b.dataset.color;});closeModal();toast("已更新整套作品的强调色。");},
  "all-color":()=>{edit("同步整套强调色",()=>{const color=current().settings.accent;for(const p of project().pages)p.settings.accent=color;});toast("已应用到整套，页面构图保持不变。");},
- upload:()=>$("#file-images").click(),
+ upload:()=>['auto','upload'].includes(projectImageMode(project()))?$("#file-images").click():toast('当前预案不使用上传图片。'),
  "choose-photo":b=>edit("替换当前页照片",()=>{current().photoAssetId=b.dataset.id;if(!current().html.includes("<img")&&current().layout!=="photo")current().layout="photo";current().settings.photoZoom=1;}),
  "add-page":()=>{if(project().pages.length>=20)return toast("一套作品最多20页。");edit("添加页面",()=>{const p=parseManuscript("新页面标题\n在这里输入本页正文。")[0];p.layout="editorial";project().pages.splice(activePageIndex()+1,0,p);S.pageId=p.id;S.tab="copy";});},
  "duplicate-page":()=>{if(project().pages.length>=20)return toast("一套作品最多20页。");edit("复制页面",()=>{const p=clone(current());p.id=uid();const replacements=new Map(p.copy.map(c=>[c.id,uid()]));for(const c of p.copy)c.id=replacements.get(c.id);for(const c of p.originalCopy)c.id=replacements.get(c.id)||c.id;for(const [old,n]of replacements)p.html=p.html.replaceAll(old,n);project().pages.splice(activePageIndex()+1,0,p);S.pageId=p.id;});},
@@ -345,8 +352,9 @@ document.addEventListener("submit",async e=>{
  if(e.target.id==="new-project-form"){
   e.preventDefault();const submit=e.submitter;if(submit)submit.disabled=true;
   try{
-   const text=$("#new-copy").value,brief=$("#new-brief").value.slice(0,6000),stylePresetId=validateStylePresetId($('[name="style-preset"]:checked')?.value),allowWebImages=$("#new-web-images").checked,pages=parseManuscript(text,{preserveText:true});
-   const assets=await readImageFiles($("#new-photos").files);
+   const text=$("#new-copy").value,brief=$("#new-brief").value.slice(0,6000),stylePresetId=validateStylePresetId($('[name="style-preset"]:checked')?.value),mode=projectImageMode({stylePresetId}),allowWebImages=webImagesForMode(mode,$("#new-web-images").checked),pages=parseManuscript(text,{preserveText:true});
+   if(mode==='upload'&&!$("#new-photos").files.length)throw Error('请先上传至少一张图片，再使用预案一。');
+   const assets=['auto','upload'].includes(mode)?await readImageFiles($("#new-photos").files):[];
    const p={id:uid(),name:(pages[0].copy[0]?.text||"新的图文").slice(0,80),brief,stylePresetId,allowWebImages,pages,assets,history:[],redo:[],createdAt:Date.now(),updatedAt:Date.now()};
    S.projects.unshift(p);S.activeId=p.id;S.pageId=p.pages[0].id;S.tab="copy";S.zoom=1;S.audit=null;closeModal();render();scheduleSave();await Cloud.startDesign();
   }catch(err){toast(err.message);if(submit?.isConnected)submit.disabled=false;}

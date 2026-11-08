@@ -1,6 +1,7 @@
 import {env} from 'cloudflare:workers';
 import {getChatGPTUser} from '../app/chatgpt-auth';
 import {validateStylePresetId} from '../src/style-presets.js';
+import {projectImageMode,webImagesForMode} from '../src/preset-images.js';
 import {currentDatabase} from '../db/context';
 import type {Database} from '../db/postgres';
 export type Runtime={DB:Database;BUCKET:R2Bucket;OPENAI_API_KEY?:string;OPENAI_WEBHOOK_SECRET?:string;AGENT_MODEL?:string;IMAGE_MODEL?:string;SKILL_FILES_JSON?:string;ADMIN_EMAIL?:string;AI_ENABLED?:string;DEV_OPENAI_BASE_URL?:string;ACCESS_MODE?:string;VISITOR_SESSION_SECRET?:string;APP_ORIGIN?:string;STORAGE_PERSISTENT?:string;APP_COMMIT?:string};
@@ -26,7 +27,7 @@ export function validateProject(p:any){
   ids.add(pg.id);if((pg.html||'').length>150000||(pg.css||'').length>80000)fail(400,'单页样式过大。');
  }
  for(const a of p.assets)if(!idValid(a.id)||a.url!==`/api/files/${a.id}`)fail(400,'请先将图片保存到本项目素材库。');
- return {...p,stylePresetId,history:(p.history||[]).slice(-10),redo:[]};
+ return {...p,stylePresetId,allowWebImages:webImagesForMode(projectImageMode({stylePresetId}),p.allowWebImages),history:(p.history||[]).slice(-10),redo:[]};
 }
 export function cleanError(e:unknown){return e instanceof HttpError?e.message:'服务暂时未能完成，请稍后重试。';}
 function providerBase(){const e=runtime();if(e.DEV_OPENAI_BASE_URL){if(import.meta.env.DEV)return e.DEV_OPENAI_BASE_URL;try{const origin=new URL(e.APP_ORIGIN||''),relay=new URL(e.DEV_OPENAI_BASE_URL);if(['127.0.0.1','localhost','[::1]'].includes(origin.hostname)&&relay.protocol==='http:'&&['127.0.0.1','localhost','[::1]'].includes(relay.hostname)&&relay.pathname==='/'&&!relay.search&&!relay.hash&&!relay.username&&!relay.password)return relay.origin;}catch{}}return 'https://api.openai.com';}

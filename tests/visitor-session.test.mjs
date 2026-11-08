@@ -46,7 +46,10 @@ test('valid cookies retain the visitor while replacing all supplied identity fie
 test('tampered, duplicate, expired, and differently signed cookies cannot select a workspace', async () => {
   const a = await visitorContext(req('/api/session'), env);
   const c = cookie(a);
-  for (const invalid of [c.slice(0, -1) + (c.endsWith('x') ? 'y' : 'x'), c + '; ' + c]) {
+  // Alter a meaningful signature bit; the last base64url symbol has unused padding bits.
+  const signatureStart=c.lastIndexOf('.')+1;
+  const tampered=c.slice(0,signatureStart)+(c[signatureStart]==='A'?'B':'A')+c.slice(signatureStart+1);
+  for (const invalid of [tampered, c + '; ' + c]) {
     assert.equal((await visitorContext(req('/api/projects', { headers: { Cookie: invalid } }), env)).status, 401);
   }
   assert.equal((await visitorContext(req('/api/projects', { headers: { Cookie: c } }), { ...env, VISITOR_SESSION_SECRET: 'a-different-server-secret-with-enough-entropy' })).status, 401);
