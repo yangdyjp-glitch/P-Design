@@ -16,7 +16,7 @@
     "test:automatic": "node --test tests/automatic-workflow.test.mjs",
     "test:images": "node --test tests/image-policy.test.mjs",
     "test:presets": "node --test tests/style-presets.test.mjs tests/preset-images.test.mjs",
-    "test:database": "node --test tests/postgres.test.mjs",
+    "test:database": "node --test tests/postgres.test.mjs tests/postgres-runtime.test.mjs",
     "qa:visitor": "node scripts/qa-visitor-api.mjs",
     "lint": "eslint . --ignore-pattern dist --ignore-pattern .next",
     "db:generate": "drizzle-kit generate",

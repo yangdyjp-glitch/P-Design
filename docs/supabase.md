@@ -16,9 +16,11 @@
 
 Session pooler 的用户名是 `postgres.<project-ref>`，主机名必须从 Connect 复制，不能根据区域猜测。本运行时使用会话状态和迁移事务，不使用 6543 端口的 Transaction pooler。
 
-如沿用 `db.<project-ref>.supabase.co:5432` 直连，Railway 服务需启用 Outbound IPv6，或 Supabase 项目已提供 IPv4 直连。保留已有 AI 和访客配置。
+如沿用 `db.<project-ref>.supabase.co:5432` 直连，Railway 服务需启用 Outbound IPv6，或 Supabase 项目已提供 IPv4 直连。IPv6 在服务的 Settings → Networking → Enable Outbound IPv6 开启，然后应用暂存更改并重新部署；默认关闭时会报 `ENETUNREACH`。保留已有 AI 和访客配置。
 
 `sslmode=require` 保证加密；`sslmode=verify-full` 还会验证服务端证书与主机名，私有 CA 需通过 `DATABASE_CA_CERT` 提供。未指定模式时默认验证证书。程序拒绝禁用 SSL 的连接。
+
+Railway 启动器会在同一容器的 `127.0.0.1` 自动建立临时 PostgreSQL 监听端口，由 Node.js 按上述配置连接远端并完成 TLS，然后转发网页运行时的数据库协议。这避免 workerd 的 TLS 实现忽略自定义 CA 和验证选项。该端口不对公网监听，不另加 Railway 变量或端口映射；远端拒绝 TLS 或证书验证失败时，不转发数据库认证信息。原 Sites 的 D1 路径不经过此端口。
 
 ## 启动与旧数据
 
@@ -58,6 +60,7 @@ Session pooler 的用户名是 `postgres.<project-ref>`，主机名必须从 Con
 ## 已验证与限制
 
 - PostgreSQL 测试使用真实 PostgreSQL WASM 引擎与同一 `pg` 驱动，覆盖迁移重入、事务回滚、旧库只读导入与冲突拒绝、项目读写/版本冲突、访客隔离、图片记录、任务配额和 JSON 查询。
+- 传输检查使用自签名的本地 TLS PostgreSQL 端点，验证 CA、拒绝非 TLS/不受信任端点，以及实际 workerd 请求通过 Node TLS 连接查询。构建后的完整 Railway 启动流程另通过 13 项 PostgreSQL API 检查；这些本地结果仍需与真实 Supabase 验收分开。
 - 本机不保存生产数据库密码；测试不连接或修改真实 Supabase，也不调用付费 AI。线上接通必须通过上述部署核验，不能以本机测试代替。
 - Worker 每个 API 请求独立连接数据库，回调背景工作结束后再关闭连接；会话池由 Supabase 管理。图片仍依赖单服务 Volume，继续保持现有单实例部署。
 

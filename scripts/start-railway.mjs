@@ -3,6 +3,7 @@ import path from 'node:path';
 import crypto from 'node:crypto';
 import { spawn } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
+import { startPostgresTunnel } from './postgres-tunnel.mjs';
 import './sites-env.mjs';
 
 const root = fileURLToPath(new URL('../', import.meta.url));
@@ -68,9 +69,15 @@ if(['127.0.0.1','localhost','[::1]'].includes(origin.hostname)&&process.env.DEV_
 // Only names are written to disk. Wrangler reads these from the child process
 // environment as secret_text bindings, so credentials remain masked in logs.
 config.secrets = { required: ['VISITOR_SESSION_SECRET', 'SKILL_FILES_JSON', ...(['OPENAI_API_KEY', 'OPENAI_WEBHOOK_SECRET', 'DATABASE_URL', 'DATABASE_CA_CERT'].filter(name => !!workerEnv[name]))] };
-if (workerEnv.DATABASE_URL) config.d1_databases = [];
+let postgresTunnel;
+if (workerEnv.DATABASE_URL) {
+  postgresTunnel = await startPostgresTunnel(workerEnv.DATABASE_URL, workerEnv.DATABASE_CA_CERT);
+  config.vars.TUXU_POSTGRES_LOCAL_PORT = String(postgresTunnel.port);
+  config.d1_databases = [];
+}
 for (const db of config.d1_databases || []) db.migrations_dir = path.join(root, 'drizzle');
-await fs.writeFile(configPath, JSON.stringify(config));
+try { await fs.writeFile(configPath, JSON.stringify(config)); }
+catch (error) { await postgresTunnel?.close(); throw error; }
 const stateDir = path.join(dataDir, 'state');
 const wrangler = 'node_modules/wrangler/bin/wrangler.js';
 if (!workerEnv.DATABASE_URL) await run(wrangler, ['d1', 'migrations', 'apply', 'DB', '--local', '--config', configPath, '--persist-to', stateDir]);
@@ -79,6 +86,6 @@ console.log('TuXu visitor workspace: ' + origin.origin + '; AI credential ' + (w
 if (!persistent) console.warn('No persistent volume is configured. Visitor projects and results must be exported before a redeployment.');
 
 const child = spawn(process.execPath, [wrangler, 'dev', '--config', configPath, '--local', '--persist-to', stateDir, '--ip', bindIP, '--port', String(port), '--inspector-port', '0', '--log-level', logLevel], { cwd: root, env: workerEnv, stdio: ['ignore', 'inherit', 'inherit'] });
-for (const signal of ['SIGINT', 'SIGTERM']) process.once(signal, () => child.kill(signal));
-child.once('error', () => { console.error('Website process could not start.'); process.exitCode = 1; });
-child.once('exit', (code, signal) => { process.exitCode = code ?? (signal ? 1 : 0); });
+for (const signal of ['SIGINT', 'SIGTERM']) process.once(signal, () => { child.kill(signal); void postgresTunnel?.close(); });
+child.once('error', () => { console.error('Website process could not start.'); process.exitCode = 1; void postgresTunnel?.close(); });
+child.once('exit', (code, signal) => { process.exitCode = code ?? (signal ? 1 : 0); void postgresTunnel?.close(); });

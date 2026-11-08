@@ -12,7 +12,7 @@ Railway 随后已配置密钥，公网文案生成及实际文件下载验证通
 
 0.4.2 按用户明确要求将 [三个预案](docs/style-presets.md) 分成上传配图、联网实景配图、纯文字无图。图片入口自动联动，来源规则同时用于任务输入、工具权限、结果校验、网页应用及导出。预案一保留暖白/深墨/苔绿与实景编辑的视觉方向，版本为 3；预案二、三来源规则版本为 1。默认自动设计仍可用。本轮在独立工作副本 `feat/preset-one-editorial-20261108` 修改，并合并已进入 main 的 PostgreSQL 适配，保留该存储升级。实际验证产物位于忽略的 `qa/railway/preset-one/`。
 
-Supabase 接入代码位于 `feat/supabase-storage-20261108`。Railway 配置 `DATABASE_URL` 时使用 PostgreSQL，启动创建 `tuxu` schema，并只将卷内旧 D1 数据导入空目标；图片、结果和访客签名秘密继续保存在卷中。原 Sites 保留 D1。详见 [Supabase 接续说明](docs/supabase.md)。本机迁移/事务/API 测试已通过；真实 Supabase 接通与部署状态必须另查 `/api/health` 的 `databaseProvider`、`databaseConnected` 与 `storagePersistent`，不能把源码完成视为已上线。
+Supabase 接入代码起于 `feat/supabase-storage-20261108`，已合入 main。Railway 配置 `DATABASE_URL` 时使用 PostgreSQL，启动创建 `tuxu` schema，并只将卷内旧 D1 数据导入空目标；图片、结果和访客签名秘密继续保存在卷中。Railway 的 workerd 请求通过容器内回环端口连接，由 Node 按配置完成远端 TLS；原 Sites 保留 D1。详见 [Supabase 接续说明](docs/supabase.md)。当前 64 项测试及本地完整 PostgreSQL 启动流程的 13 项 API 检查通过；真实 Supabase 接通与部署状态必须另查 `/api/health` 的 `databaseProvider`、`databaseConnected` 与 `storagePersistent`，不能把源码完成视为已上线。
 
 0.4.1 增加三个固定风格预案入口，位于新建图文的「整套初始方向」，当时均待设定。后续逐一修改 `src/style-presets.js` 对应条目。选择随项目保存，服务端解析可信规则并将版本固定在任务快照，自动修正沿用同一版本。原文、素材、裁剪和单图范围规则优先。开发来源为 `feat/style-preset-entries-20261108`，发布目标仍为 Railway 的 main；实际部署核验记录位于忽略的 `qa/railway/style-presets/`。
 

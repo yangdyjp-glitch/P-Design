@@ -32,6 +32,41 @@
   ],
   "files": [
     {
+      "path": "scripts/postgres-tunnel.mjs",
+      "bytes": 2933,
+      "sha256": "8024d31c13196118c619722d9512b18866d2d431aa4a86e4dc6893a53cc65d9e"
+    },
+    {
+      "path": "tests/fixtures/postgres-tls/README.md",
+      "bytes": 268,
+      "sha256": "ae8e6e853c72978e0d02bbe55e1bf0aa7c19193d4a6fe9163e8b9b6cd86b24b1"
+    },
+    {
+      "path": "tests/fixtures/postgres-tls/localhost.key",
+      "bytes": 1704,
+      "sha256": "91e4dae20bead5997199c97644ba9cf76a1fda736592b3511e11f133c21ef64a"
+    },
+    {
+      "path": "tests/fixtures/postgres-tls/localhost.crt",
+      "bytes": 1155,
+      "sha256": "dd280f32b5a6b83ab04fe8c23bbb642c141ca54f980793d0356bc4dfd9224f0c"
+    },
+    {
+      "path": "tests/fixtures/postgres-server.mjs",
+      "bytes": 2890,
+      "sha256": "7021b9845b99c502cd5bd2749da464f72fe7ad03d96361dbb1e07197b01e060a"
+    },
+    {
+      "path": "tests/fixtures/postgres-worker.ts",
+      "bytes": 533,
+      "sha256": "577f118339f1a88d45ec9fc3cd29e5d5e57f12769e2775242d992662a4ac9022"
+    },
+    {
+      "path": "tests/postgres-runtime.test.mjs",
+      "bytes": 3279,
+      "sha256": "14cf60fe4c44e1c7366531171f16e43b02878dd01bf57a11cfb4a02ded6142ef"
+    },
+    {
       "path": "src/preset-images.js",
       "bytes": 2323,
       "sha256": "6f5cac3f88dcbf145c6dfb5a4491d8dc83c9b2047f5a9ad1bed719d00922334b"
@@ -73,8 +108,8 @@
     },
     {
       "path": "docs/supabase.md",
-      "bytes": 5395,
-      "sha256": "e94b607eca028ffecd6c5a4402632fd7ad7414be075f20a629ad883f87800b28"
+      "bytes": 6321,
+      "sha256": "eac40a6ed1e6fc9126ab5c9e8642e55590281278ff3b0953cde9fa40d46692e1"
     },
     {
       "path": "postgres/0000_initial.sql",
@@ -88,8 +123,8 @@
     },
     {
       "path": "server/database.ts",
-      "bytes": 1288,
-      "sha256": "2354141ca478465fe42d1e1eaf8a2bd5a002df0d05a7247851e024e3b1be4f57"
+      "bytes": 1902,
+      "sha256": "553ef1bc8162f7c4e4bb116f1f47838b44ce92bf90dfbb785eedff39051a88f5"
     },
     {
       "path": "tests/postgres.test.mjs",
@@ -248,8 +283,8 @@
     },
     {
       "path": "cloudflare-env.d.ts",
-      "bytes": 157,
-      "sha256": "593ed0b212435d49dc3d34c4a0c116eaec6838b18193ec2540be73449a7b8751"
+      "bytes": 196,
+      "sha256": "9286d1255139bc4b18b90d7cca06e9eced75fd35c08773ffd2a611d33ab2837f"
     },
     {
       "path": "components/connector-error.tsx",
@@ -3658,8 +3693,8 @@
     },
     {
       "path": "HANDOFF.md",
-      "bytes": 23979,
-      "sha256": "6271b92a857ca6aad1153b7faf9e088731731abd41633ac859ee2cbc70f5022d"
+      "bytes": 24141,
+      "sha256": "97d99534067ef122b50aba82d4ef59d87dda9fc2ce2703b4df817a7d9d8bba53"
     },
     {
       "path": "hooks/use-mobile.ts",
@@ -3713,8 +3748,8 @@
     },
     {
       "path": "package.json",
-      "bytes": 2808,
-      "sha256": "1b8208cd3943d39a8f718d0d60ae336c0fb532b224a2fc92a2a90425210bd90e"
+      "bytes": 2840,
+      "sha256": "ae10ff253b09acc1b99e8b09ac7b35527a6825a5885e1aff4cdf8113bd0678f9"
     },
     {
       "path": "postcss.config.mjs",
@@ -3778,8 +3813,8 @@
     },
     {
       "path": "QA.md",
-      "bytes": 21314,
-      "sha256": "3c5ce3e75c282f98a1c15cd66cd58f79454a514c4fef6e815f49e6d27bfc9aab"
+      "bytes": 22401,
+      "sha256": "b562a95102b3f4ce4f7d94d105fdd5cdaccae9f12f9611ef2a60457f72a38257"
     },
     {
       "path": "README.md",
@@ -3933,8 +3968,8 @@
     },
     {
       "path": "scripts/start-railway.mjs",
-      "bytes": 6356,
-      "sha256": "de15ee334bf5646f384f55d65bf6f7b997cfe640a005fc5efc9c1c2f8ec77ac1"
+      "bytes": 6776,
+      "sha256": "9082db0850dcd514a5998ccceaa71973943b0cb011a8ef5617bb4e928caa8948"
     },
     {
       "path": "scripts/start.mjs",
@@ -4058,8 +4093,8 @@
     },
     {
       "path": "worker/index.ts",
-      "bytes": 2774,
-      "sha256": "c04bb82e19b14bd72e2ed702488074654935f686971687b5c7b7a464d96a919e"
+      "bytes": 2828,
+      "sha256": "bda353f657a65261e82ab3e58ada786960ee3f03aa281dc9278140c221b6da1b"
     },
     {
       "path": "server/design-result.ts",

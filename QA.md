@@ -117,6 +117,12 @@ scripts/qa-cloud.mjs 实际通过13项：匿名云端读取拒绝；登录及14�
 
 - 新增 6 项数据库检查，与既有 45 项共 51 项通过。数据库检查使用真实 PostgreSQL WASM 引擎和 `pg` 驱动，覆盖 TLS/URL 校验、参数与字面值区分、并发请求连接隔离、迁移重入及校验和、事务回滚、RLS 开启、只读导入旧库、拒绝覆盖已有目标，以及业务 API 的项目读写、版本冲突、访客隔离、图片记录、任务幂等/限额及 JSON 查询。
 - 类型检查与生产构建通过。构建后的本地 D1 兼容模式实际启动，9 项访客 API 检查通过；测试项目与图片已清理，未配置真实 AI、未推进付费任务。
-- 用户确认已经备份并挂载 `/data` 卷，生产健康接口已返回 `storagePersistent=true`；用户确认 `DATABASE_URL` 使用 Session pooler 5432。
+- 用户确认已经备份并挂载 `/data` 卷，生产健康接口已返回 `storagePersistent=true`。后续核对主机名，实际 `DATABASE_URL` 使用 Supabase 直连 5432；`ENETUNREACH` 后按 Railway 出站 IPv6 设置重新部署，启动进程成功，但网页数据库接口仍返回 503 / `REQUEST_FAILED`。
 - 上述本机测试不等于真实 Supabase 连接验证。生产 PostgreSQL 连接、迁移和跨部署数据留存仍需发布后单独检查，不能将代码或 Git 提交视为接入完成。
+
+### Railway PostgreSQL TLS 修复
+
+- 本地自签名 PostgreSQL TLS 端点复现 workerd 连接断开；同一配置的 Node 启动检查可连接。Railway 改由容器内部回环监听端口转发 PostgreSQL 协议，远端 TLS 在 Node 按 `DATABASE_URL` / `DATABASE_CA_CERT` 执行，认证继续由数据库完成。
+- 新增 3 项传输检查，当前全部 64 项测试、类型检查与生产构建通过。覆盖实际 PostgreSQL 查询、自定义 CA 验证、不受信任/非 TLS 端点收到认证数据前拒绝，以及实际 workerd 请求查询。
+- 构建后的完整 `start:railway` 启动流程连接本地 TLS PostgreSQL 引擎，13 项 API 检查全部通过，含访客隔离、项目版本、图片上传下载、任务幂等/配额/取消及三个预案保存。测试对象已清理，未推进付费 AI。证据在忽略的 `qa/railway/supabase/`；本段不代替修复部署后的公网核验。
 
