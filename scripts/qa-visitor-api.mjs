@@ -98,6 +98,16 @@ try {
   const stored=(await api('projects',{},a.cookie)).value.projects.find(p=>p.id===projectId);
   assert.equal(stored.allowWebImages,true);assert.equal(stored.assets[0].source,'upload');assert.equal(stored.assets[0].generated,false);assert.equal(stored.assets[0].sourceUrl,undefined);
   mark('联网搜图选项可独立保存，上传图片不能伪装成网络来源绕过裁剪限制');
+  const readyPreset=STYLE_PRESETS.find(preset=>resolveStylePreset(preset.id));
+  if(readyPreset){
+    const selected={...stored,stylePresetId:readyPreset.id};delete selected.cloudRevision;
+    const selectedSave=await api('projects/'+projectId,{method:'PUT',body:JSON.stringify({project:selected,revision:stored.cloudRevision})},a.cookie);
+    assert.equal(selectedSave.response.status,200);
+    const selectedRead=(await api('projects',{},a.cookie)).value.projects.find(p=>p.id===projectId);
+    assert.equal(selectedRead.stylePresetId,readyPreset.id);assert.equal(selectedRead.allowWebImages,true);
+    assert.deepEqual(selectedRead.pages,stored.pages);
+    mark('已设定预案可选择并随项目保存，文案和搜图开关保持原值');
+  }
   await api('projects/' + projectId, { method: 'DELETE' }, a.cookie);
   const result = { checks, transportBase:base, browserOrigin, completedAt: new Date().toISOString(), liveAIExecuted: false };
   await fs.mkdir('qa/railway', { recursive: true });

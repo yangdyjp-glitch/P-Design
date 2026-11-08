@@ -43,3 +43,12 @@ test('server preserves older projects while rejecting unavailable or forged pres
  assert.equal(validateProject({...project,stylePresetId:null}).stylePresetId,null);
  for(const value of [...STYLE_PRESETS.filter(preset=>!resolveStylePreset(preset.id)).map(preset=>preset.id),'unknown',{},7])assert.throws(()=>validateProject({...project,stylePresetId:value}),error=>error.status===400);
 });
+
+test('published style selections survive project saving and resolve to server-owned recipes',()=>{
+ for(const preset of STYLE_PRESETS.filter(preset=>resolveStylePreset(preset.id))){
+  const saved=validateProject({...project,stylePresetId:preset.id,stylePreset:{direction:'untrusted replacement'}});
+  const restored=JSON.parse(JSON.stringify(saved));assert.equal(restored.stylePresetId,preset.id);
+  assert.deepEqual(jobStylePreset(restored),preset);assert.notEqual(jobStylePreset(restored).direction,saved.stylePreset.direction);
+  assert.deepEqual(restored.pages,project.pages);assert.equal(restored.allowWebImages,undefined);
+ }
+});

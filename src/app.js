@@ -121,16 +121,23 @@ function closeModal(){const d=$("dialog");if(d){d.close();d.remove();}}
 function webPhotoChoice(id,checked=false){return '<label class="web-photo-choice" for="'+id+'"><input id="'+id+'" type="checkbox" '+(checked?'checked':'')+'><span><b>让 AI 从网上找图</b><small>不上传也可使用，优先实景照片。网络配图可灵活裁切。</small></span></label>';}
 function stylePresetChoices(){
  return '<fieldset class="style-presets"><legend>整套初始方向 <span class="muted">选填</span></legend><div class="preset-intro"><p>'+ (STYLE_PRESETS.some(preset=>resolveStylePreset(preset.id))?'选择预设风格，应用于整套图文。':'预留三套固定风格，设定后可一键选用。')+'</p><label class="preset-auto"><input type="radio" name="style-preset" value="" checked><span>AI 自行判断</span></label></div><div class="preset-grid">'+STYLE_PRESETS.map((preset,index)=>{
-  const content='<span class="preset-top"><span class="preset-number">'+String(index+1).padStart(2,'0')+'</span><span class="preset-status">'+(resolveStylePreset(preset.id)?'已预设':'待设定')+'</span></span><span class="preset-name">'+esc(preset.name)+'</span><span class="preset-summary">'+esc(preset.summary||'风格将逐一设定')+'</span>';
+  const content='<span class="preset-top"><span class="preset-number">'+String(index+1).padStart(2,'0')+'</span><span class="preset-status">'+(resolveStylePreset(preset.id)?'已预设':'待设定')+'</span></span><span class="preset-name">'+esc(preset.name).split(' · ').join('<br>')+'</span><span class="preset-summary">'+esc(preset.summary||'风格将逐一设定')+'</span>';
   return resolveStylePreset(preset.id)?'<label class="preset-card preset-ready"><input type="radio" name="style-preset" value="'+preset.id+'"><span class="preset-content">'+content+'</span></label>':'<button type="button" class="preset-card preset-pending" data-action="preset-details" data-id="'+preset.id+'" aria-expanded="false" aria-controls="preset-detail">'+content+'</button>';
- }).join('')+'</div><div class="preset-detail" id="preset-detail" role="region" aria-live="polite" hidden></div><p class="preset-help">三个预案分别保存固定风格，设定完成后即可选用。</p></fieldset>';
+ }).join('')+'</div><div class="preset-detail" id="preset-detail" role="region" aria-live="polite" hidden></div><p class="preset-help">选中的预案用于整套图文，AI 自行完成排版和检查。待设定预案将逐一完善。</p></fieldset>';
 }
 function showPresetDetails(control){
  const preset=STYLE_PRESETS.find(preset=>preset.id===control.dataset.id),panel=$('#preset-detail');if(!preset||!panel)return;
  const open=control.getAttribute('aria-expanded')!=='true';
  $$('.preset-pending').forEach(button=>button.setAttribute('aria-expanded','false'));
  panel.hidden=!open;
- if(open){control.setAttribute('aria-expanded','true');panel.innerHTML='<b>'+esc(preset.name)+' · 待设定</b><p>配色、字体、构图和图片处理规则将分别保存到此预案。具体风格将在后续逐一调整。</p><p>当前仍由 AI 自行判断视觉方向。</p>';}
+ if(open){control.setAttribute('aria-expanded','true');panel.innerHTML='<b>'+esc(preset.name)+' · 待设定</b><p>配色、字体、构图和图片处理规则将分别保存到此预案。具体风格将在后续逐一调整。</p><p>此预案暂未启用，当前设计选择保持不变。</p>';}
+}
+function showSelectedPreset(){
+ const panel=$('#preset-detail');if(!panel)return;
+ const preset=resolveStylePreset($('[name="style-preset"]:checked')?.value);
+ $$('.preset-pending').forEach(button=>button.setAttribute('aria-expanded','false'));
+ panel.hidden=!preset;
+ if(preset)panel.innerHTML='<b>'+esc(preset.name)+'</b><p>'+esc(preset.description||preset.summary)+'</p>';
 }
 function newProjectDialog(){
  modal("把文案交给 AI",'<form id="new-project-form"><div class="form-field"><label for="new-copy">原始文案</label><textarea class="import-text" id="new-copy" maxlength="60000" placeholder="粘贴完整文案。AI 会判断如何分页、构图和安排照片，文字、数字与顺序会保留。" required></textarea></div>'+
@@ -154,7 +161,7 @@ function showHistory(){
  modal("版本记录",'<div class="project-summary">'+icon("history")+'保留最近25次操作，可撤销或恢复。<span style="margin-left:auto">'+hist.length+' 条</span></div>'+
  (hist.length?hist.slice().reverse().map(h=>'<div class="version-item"><div>'+esc(h.label)+'<small>'+formatDate(h.at)+'</small></div>'+button("restore-history","恢复",null,"btn small",'data-id="'+h.id+'"')+'</div>').join(""):'<div class="empty">还没有修改记录。<br>修改文案、构图或照片后，记录会出现在这里。</div>'));
 }
-function showSettings(){modal("关于图序工作台",'<div class="settings-item"><b>你负责内容，AI 负责画面</b><p>准备文案与图片后，AI 自行决定分页、视觉方向、照片安排和设计技能，并执行渲染与网页检查。检查通过后自动呈现。</p></div><div class="settings-item"><b>保留你的修改</b><p>右侧文案始终可以编辑。如果生成期间更新了文案，旧方案会保留，新内容不会被旧结果覆盖。</p></div><div class="settings-item"><b>带走可编辑作品</b><p>可下载高清图片、可编辑 HTML 和项目备份。使用其他电脑前，请先备份项目。</p></div><p class="small-note">版本 0.4.1 · 三个风格预案入口</p>');}
+function showSettings(){modal("关于图序工作台",'<div class="settings-item"><b>你负责内容，AI 负责画面</b><p>准备文案与图片后，AI 自行决定分页、视觉方向、照片安排和设计技能，并执行渲染与网页检查。检查通过后自动呈现。</p></div><div class="settings-item"><b>保留你的修改</b><p>右侧文案始终可以编辑。如果生成期间更新了文案，旧方案会保留，新内容不会被旧结果覆盖。</p></div><div class="settings-item"><b>带走可编辑作品</b><p>可下载高清图片、可编辑 HTML 和项目备份。使用其他电脑前，请先备份项目。</p></div><p class="small-note">版本 0.4.2 · 预案一：实景编辑</p>');}
 function showExport(){
  modal("导出你的作品",'<div class="project-summary"><b>'+project().pages.length+'</b><div>个画面已准备就绪<br><span class="tiny muted">2160 × 2880 · 高清 PNG</span></div></div><div class="settings-item"><b>导出整套高清图</b><p>每页生成一张PNG，并打包成ZIP。导出前会自动检查缺字、越界与图片加载。</p></div><div class="panel-actions">'+button("export-all","整套PNG · ZIP","download","btn primary")+button("export-one","仅导出当前页",null,"btn")+'</div><div class="inspector-divider"></div><div class="settings-item"><b>保留可编辑作品</b><p>项目备份可再次导入图序；HTML工程包含正式文字、布局、照片和字体许可。</p></div><div class="panel-actions">'+button("backup","项目备份 · JSON","save","btn")+button("export-source","可编辑HTML · ZIP","folder","btn")+'</div>');
 }
@@ -363,7 +370,7 @@ document.addEventListener("input",e=>{
  }
 });
 document.addEventListener("focusout",e=>{if(e.target.matches("[data-copy-field],[data-setting]"))S.editing=null;});
-document.addEventListener("change",e=>{if(e.target.id==="new-photos"){const label=$("#new-photo-count");if(label)label.textContent=e.target.files.length?"已选 "+e.target.files.length+" 张图片":"最多 8 张，AI 自行判断用途与摆放";}else if(e.target.id==='project-web-images'){project().allowWebImages=e.target.checked;scheduleSave();toast(e.target.checked?'已允许 AI 联网寻找实景配图，下次设计时生效。':'已关闭联网搜图，下次设计仅使用现有素材。');}});
+document.addEventListener("change",e=>{if(e.target.name==='style-preset'){showSelectedPreset();}else if(e.target.id==="new-photos"){const label=$("#new-photo-count");if(label)label.textContent=e.target.files.length?"已选 "+e.target.files.length+" 张图片":"最多 8 张，AI 自行判断用途与摆放";}else if(e.target.id==='project-web-images'){project().allowWebImages=e.target.checked;scheduleSave();toast(e.target.checked?'已允许 AI 联网寻找实景配图，下次设计时生效。':'已关闭联网搜图，下次设计仅使用现有素材。');}});
 $("#file-images").addEventListener("change",async e=>{
  try{
   const files=[...e.target.files];if(!files.length)return;if(files.length+project().assets.length>100)throw Error("项目素材已满，请另建项目。");
@@ -401,7 +408,7 @@ async function boot(){
   if(!S.projects.length&&S.session.accessMode==='visitor'){S.projects=await legacyProjects('tuxu-studio-guest');for(const p of S.projects){delete p.cloudRevision;delete p._syncConflict;p._cloudDirty=true;}}
   if(!S.projects.length){const p={id:uid(),name:"从文案开始",pages:parseManuscript("让好内容，被看见\n把你的完整文案放在右侧，也可以上传本次图片。\n画面、分页和设计检查，交给 AI 自行完成。",{preserveText:true}),assets:[],history:[],redo:[],createdAt:Date.now(),updatedAt:Date.now()};S.projects=[p];}
   if(!project())S.activeId=S.projects[0].id;S.pageId=project().pages[0].id;render();Cloud.updateBadge();await persist({skipCloud:!project()._cloudDirty&&!!project().cloudRevision});Cloud.startPolling();
-  window.TuXu={getState:()=>clone({projects:S.projects,activeId:S.activeId,pageId:S.pageId,user:S.session.user,jobs:S.jobs}),auditCurrent:()=>auditPage($("#canvas-frame").contentDocument,current(),project()),version:"0.4.1"};
+  window.TuXu={getState:()=>clone({projects:S.projects,activeId:S.activeId,pageId:S.pageId,user:S.session.user,jobs:S.jobs}),auditCurrent:()=>auditPage($("#canvas-frame").contentDocument,current(),project()),version:"0.4.2"};
  }catch(e){$("#app").innerHTML='<div class="boot"><h1>工作台暂时未能打开</h1><p>'+esc(e.message)+'</p><button class="btn primary" onclick="location.reload()">重新打开</button></div>';}
 }
 boot();
