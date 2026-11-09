@@ -38,8 +38,8 @@
     },
     {
       "path": "tests/page-revision.test.mjs",
-      "bytes": 5748,
-      "sha256": "534c45dc074e1f3def298440eca81d06b9edc31ff4c753e699615f8d77ecee0a"
+      "bytes": 6327,
+      "sha256": "62f9193299b748bb4f2261e3d90715441522258a5a6af5c2e41161e0aa2cfa1e"
     },
     {
       "path": "docs/project-deletion.md",
@@ -308,8 +308,8 @@
     },
     {
       "path": "docs/page-notes.md",
-      "bytes": 4723,
-      "sha256": "2e26f9ad30e3230731d39567a3791faeb86f846f0867adfa5edcf6e44c9703cc"
+      "bytes": 4920,
+      "sha256": "ded1456853d6b0f98d39f2fda4fffbe686b55081c7dea16b4f103f444c4edadf"
     },
     {
       "path": "docs/automatic-workflow.md",
@@ -323,8 +323,8 @@
     },
     {
       "path": "src/ai-workflow.js",
-      "bytes": 3628,
-      "sha256": "b05ec725eaa17adafbe04c5a62c0d551bc2b35ef6be437244f38ea0b5d23ba65"
+      "bytes": 3706,
+      "sha256": "45596af68151591f381b29208042b11f9c6593ffedca5ec33de82917872f8aed"
     },
     {
       "path": "tests/automatic-workflow.test.mjs",
@@ -3908,8 +3908,8 @@
     },
     {
       "path": "public/editor.js",
-      "bytes": 268926,
-      "sha256": "eb30000abeab0f840c45d0d2402e3cf1727f662740049901577b2a51451e301b"
+      "bytes": 269029,
+      "sha256": "5e0fc1deb2d176983a42b2c77929c0643924cc9b1212a7faddf35503fee029bc"
     },
     {
       "path": "public/editor.js.LEGAL.txt",
@@ -3928,8 +3928,8 @@
     },
     {
       "path": "QA.md",
-      "bytes": 40857,
-      "sha256": "da6704e5b4d44f88ea2dcd27579d70d9ec772dd28fd5eca711a937f3ce48c278"
+      "bytes": 41659,
+      "sha256": "71d300f1119db91e300de75bb29fc005b7d1386b0776bdc1b7939a5610ac1d12"
     },
     {
       "path": "README.md",

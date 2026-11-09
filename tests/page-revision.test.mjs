@@ -50,3 +50,10 @@ test('legacy jobs remain readable and whole-set work never impersonates a sent s
  assert.equal(lastPageRevision([whole,other,child,original],'project-a','page-b'),null);
  assert.equal(revisionMeasurementIssue(undefined,undefined,undefined),null);
 });
+test('a failed or cancelled provider job cannot retain its earlier processing message',()=>{
+ const project={pages:[page],_aiState:{jobId:'one',state:'running',message:'AI 正在修改本图并自动检查'}};
+ assert.match(automaticMessage({id:'one',status:'failed'},project),/未完成.*重试/);
+ assert.match(automaticMessage({id:'one',status:'cancelled'},project),/已停止/);
+ assert.equal(automaticMessage({id:'one',status:'running'},project),project._aiState.message);
+ assert.equal(automaticMessage({id:'one',status:'completed'},project),project._aiState.message);
+});
