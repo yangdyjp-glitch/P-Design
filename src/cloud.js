@@ -81,7 +81,7 @@ export function createCloud({S,project,current,modal,closeModal,toast,render,rem
   if(!canApplyAutomatic(j,p)){j.clientState='held';setState(p,j,'held','文案或素材已有新修改，原方案已保留。点击 AI 重新设计即可。');return;}
   j.clientState='checking';S.checkingAI=true;setState(p,j,'checking','AI 已完成渲染自检，正在自动核对网页中的实际画面。');
   try{
-   const draft=proposal(j),reports=await auditProposal(draft,j.scope==='page'?j.pageIds:undefined,progress=>{j.clientProgress=progress;updateBadge();if(modalJobId===j.id)paintResult(j);});
+   const draft=proposal(j),reports=await auditProposal(draft,j.scope==='page'?j.pageIds:undefined,progress=>{j.clientProgress=progress;updateBadge();if(modalJobId===j.id)paintResult(j);},j.scope==='page'?[]:j.requiredUploadIds||[]);
    if(!canApplyAutomatic(j,p)){j.clientState='held';setState(p,j,'held','检查期间文案已有新修改，已保留你的最新内容。');return;}
    if(S.busy){delete j.clientState;return;}
    if(hasAuditErrors(reports)){

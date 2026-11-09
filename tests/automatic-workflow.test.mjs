@@ -107,6 +107,12 @@ test('a referenced older photograph is retained instead of being displaced by re
  assert.equal(selected.length,8);assert(selected.some(a=>a.id==='photo-0'));assert(selected.some(a=>a.id==='photo-1'));assert(selected.some(a=>a.id==='photo-11'));
  assert.throws(()=>automaticAssets(assets,assets.slice(0,9).map(asset=>({photoAssetId:asset.id}))));
 });
+test('whole-set upload jobs never silently select a subset of the submitted uploads',()=>{
+ const assets=Array.from({length:8},(_,i)=>({id:'photo-'+i,source:'upload'})),policy={imageMode:'upload',scope:'project'};
+ assert.deepEqual(automaticAssets(assets,[],policy),assets);
+ assert.throws(()=>automaticAssets([...assets,{id:'ninth',source:'upload'}],[],policy),/最多使用8张/);
+ assert.equal(automaticAssets([...assets,{id:'ninth',source:'upload'}],[],{...policy,scope:'page'}).length,8);
+});
 test('single-image completion remains recognized after another page has been updated',()=>{
  const task={id:'change-a',scope:'page',pageIds:['page-a']},project={lastAIJobId:'change-b',pages:[{id:'page-a',lastAIJobId:'change-a'},{id:'page-b',lastAIJobId:'change-b'}]};
  assert.equal(jobApplied(task,project),true);assert.match(automaticMessage({...task,status:'completed'},project),/本图已更新/);
@@ -189,6 +195,38 @@ test('the hosted job receives the saved style recipe without weakening image or 
   assert.match(body.agent.instructions,/mandatory image policy and authorized page scope take precedence/);
  }finally{h.db.close();}
 });
+test('both uploaded image files reach the hosted job, including on-demand resources',async()=>{
+ const h=await harness();try{
+  const assets=[{id:'one',name:'环境照.jpg',source:'upload'},{id:'two',name:'交流照.jpg',source:'upload'}];
+  // A large existing runtime makes the second image lazy; it must still be available in the catalog.
+  const files=JSON.parse(globalThis.automaticHarness.env.SKILL_FILES_JSON);files._runtime.bytes=30*1024*1024;globalThis.automaticHarness.env.SKILL_FILES_JSON=JSON.stringify(files);
+  for(const [index,asset]of assets.entries()){h.db.prepare('INSERT INTO assets(id,user_id,project_id,object_key,name,mime,size,generated,created_at) VALUES(?,?,?,?,?,?,?,?,?)').run(asset.id,'visitor_test','own-project','upload-'+asset.id,asset.name,'image/jpeg',8*1024*1024,0,Date.now());h.storedFiles.push({key:'upload-'+asset.id,bytes:new Uint8Array([index+1])});}
+  let uploaded=0;globalThis.automaticHarness.upload=async()=>'provider-photo-'+(++uploaded);
+  h.db.prepare("UPDATE jobs SET status='queued',session_id=NULL,environment_id=NULL,snapshot=?").run(JSON.stringify({...source,scope:'project',imageMode:'upload',assets,imagePolicy:{requiredUploadIds:['one','two']}}));
+  await startJob(h.read());assert.equal(uploaded,2);assert.equal(h.starts.length,1);
+  const body=h.starts[0],input=JSON.parse(Buffer.from(body.environment.files.find(file=>file.path==='/workspace/input/project.json').data,'base64').toString());
+  assert.deepEqual(input.imagePolicy.requiredUploadIds,['one','two']);assert.equal(input.assets.length,2);assert(input.assets.every(asset=>asset.localPath&&asset.resourceId));assert.equal(input.assets[1].loaded,false);
+  assert(body.agent.tools.find(tool=>tool.name==='load_design_resource').parameters.properties.resourceId.enum.includes('image/two'));
+  h.state.calls=[{type:'function_call',name:'load_design_resource',turn_id:'turn-1',call_id:'load-image',arguments:JSON.stringify({resourceId:'image/two'})}];await advanceJob(h.read());assert(h.attachments.some(file=>file.path==='/workspace/input/two.jpg'));
+ }finally{h.db.close();}
+});
+test('a missing upload fails before launching AI instead of silently omitting that picture',async()=>{
+ const h=await harness();try{
+  h.db.prepare('INSERT INTO assets(id,user_id,project_id,object_key,name,mime,size,generated,created_at) VALUES(?,?,?,?,?,?,?,?,?)').run('missing','visitor_test','own-project','missing-object','图片.jpg','image/jpeg',8,0,Date.now());
+  h.db.prepare("UPDATE jobs SET status='queued',session_id=NULL,environment_id=NULL,snapshot=?").run(JSON.stringify({...source,assets:[{id:'missing',source:'upload'}]}));
+  await startJob(h.read());assert.equal(h.starts.length,0);assert.equal(h.read().status,'failed');assert.match(h.read().error,/图片文件不存在/);
+ }finally{h.db.close();}
+});
+test('omitting one of two required uploads triggers one correction and only a complete result can finish',async()=>{
+ const h=await harness();try{
+  const assets=[{id:'one',name:'环境照.jpg',source:'upload'},{id:'two',name:'交流照.jpg',source:'upload'}],image=id=>'<img data-asset-id="'+id+'" src="/api/files/'+id+'">';
+  h.db.prepare('UPDATE jobs SET snapshot=?').run(JSON.stringify({...source,scope:'project',imageMode:'upload',assets,imagePolicy:{requiredUploadIds:['one','two']}}));
+  const result=ids=>({...validResult,pages:[{...validResult.pages[0],html:markup(blocks).replace('</section>',ids.map(image).join('')+'</section>')}]});
+  h.files['result-1']=JSON.stringify(result(['one']));await advanceJob(h.read());assert.equal(h.read().status,'running');assert.match(h.events.at(-1).input[0].content[0].text,/交流照/);
+  h.state.turn='turn-2';h.state.invalid=false;h.files['result-2']=JSON.stringify(result(['one','two']));h.files['audit-2']=JSON.stringify({...manifest,pages:[{id:'reading-cover',imageChecks:assets.map(a=>({assetId:a.id,source:'upload',visibleFraction:1,loaded:true,passed:true}))}]});
+  await advanceJob(h.read());assert.equal(h.read().status,'completed');assert.equal(JSON.parse(h.read().result).repairAttempts,1);assert.equal(h.events.filter(event=>event.type==='agent.session.input.message').length,1);
+ }finally{h.db.close();}
+});
 test('invalid AI output gets one correction; stale turns are ignored; actual success keeps prior font artifacts',async()=>{
  const h=await harness();try{
   await advanceJob(h.read());assert.equal(h.events.filter(e=>e.type==='agent.session.input.message').length,1);
@@ -223,6 +261,14 @@ test('a required searched photograph must be visible in an actual returned page'
  assert.throws(()=>renderAudit(record(0),1,pages,assets,policy));
  assert.equal(renderAudit(record(.25),1,pages,assets,policy).status,'passed');
  assert.throws(()=>renderAudit(record(1),1,[{id:'reading-cover',html:'<p>no image</p>'}],assets,policy));
+});
+test('coverage must also be witnessed by actual loaded and visible upload render records',()=>{
+ const assets=[{id:'one',name:'环境照.jpg',source:'upload'},{id:'two',name:'交流照.jpg',source:'upload'}],pages=assets.map(a=>({id:'page-'+a.id,html:'<img data-asset-id="'+a.id+'" src="/api/files/'+a.id+'">'}));
+ const records={...manifest,pages:assets.map(a=>({id:'page-'+a.id,imageChecks:[{assetId:a.id,source:'upload',visibleFraction:1,loaded:true,passed:true}]}))},policy={imageMode:'upload',requiredUploadIds:['one','two']};
+ assert.equal(renderAudit(records,2,pages,assets,policy).status,'passed');
+ assert.throws(()=>renderAudit({...records,pages:records.pages.slice(0,1)},1,pages.slice(0,1),assets,policy),/交流照/);
+ const hidden=structuredClone(records);hidden.pages[1].imageChecks[0].visibleFraction=0;assert.throws(()=>renderAudit(hidden,2,pages,assets,policy));
+ const unloaded=structuredClone(records);unloaded.pages[1].imageChecks[0].loaded=false;assert.throws(()=>renderAudit(unloaded,2,pages,assets,policy));
 });
 test('new searched photos cannot expand a design beyond the eight-image limit used by follow-up revisions',()=>{
  const assets=Array.from({length:8},(_,index)=>({id:'photo-'+index})),images=Array.from({length:9},(_,index)=>'<img data-asset-id="photo-'+index+'" src="/api/files/photo-'+index+'">');

@@ -1,6 +1,6 @@
 import {assertLockedCopy,readCopyBlocks} from './copy-integrity';
 import {styleIssue} from '../src/style-safety.js';
-import {imageModeIssue,requiresPhoto} from '../src/preset-images.js';
+import {imageModeIssue,requiresPhoto,requiredUploadIds} from '../src/preset-images.js';
 
 export class DesignValidationError extends Error {
  constructor(public code:string,message:string){super(message);this.name='DesignValidationError';}
@@ -51,7 +51,7 @@ export function validateDesignResult(raw:any,job:{snapshot:string;skill_ids:stri
   return {id:page.id,html:page.html,css:page.css,photoAssetId,...(automatic?{copy:structuredClone(copy),label:String(copy[0]?.text||'画面 '+index).slice(0,24)}:{})};
  });
  if(automatic&&usedImages.size>8)reject('ASSET_COUNT','一轮方案最多使用8张不同图片，请从上传及搜索素材中择优选用');
- const modeIssue=imageModeIssue(snapshot.imageMode,pages,[...(snapshot.assets||[]),...(job.generatedAssets||[])],{requirePhoto:automatic&&requiresPhoto(snapshot)});if(modeIssue)reject('IMAGE_MODE',modeIssue);
+ const modeIssue=imageModeIssue(snapshot.imageMode,pages,[...(snapshot.assets||[]),...(job.generatedAssets||[])],{requirePhoto:automatic&&requiresPhoto(snapshot),requiredUploadIds:automatic?requiredUploadIds(snapshot):[]});if(modeIssue)reject('IMAGE_MODE',modeIssue);
  if(automatic&&(returnedCopyIds.length!==sourceCopy.length||returnedCopyIds.some((id,i)=>id!==sourceCopy[i].id)))reject('COPY_ORDER','AI 分页遗漏、重复或调整了原文顺序');
  if(['write','reference'].includes(job.kind)&&pages.length)reject('ANALYSIS_SCOPE','分析或文案任务不能自动修改原版面');
  const selected=automatic?(snapshot.loadedSkills||['xiaohongshu-design','xhs-design-polish']):JSON.parse(job.skill_ids);

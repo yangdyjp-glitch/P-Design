@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import {test} from 'node:test';
-import {projectImageMode,jobImageMode,webImagesForMode,assetsForMode,imageModeIssue,requiresPhoto,hasAllowedPhoto} from '../src/preset-images.js';
+import {projectImageMode,jobImageMode,webImagesForMode,assetsForMode,imageModeIssue,requiresPhoto,hasAllowedPhoto,requiredUploadIds} from '../src/preset-images.js';
 const assets=[{id:'upload',source:'upload'},{id:'web',source:'web'},{id:'generated',source:'generated',generated:true},{id:'legacy'}];
 const page=id=>({html:'<section class="xhs-card">'+(id?'<img data-asset-id="'+id+'" src="/api/files/'+id+'">':'')+'</section>'});
 test('three presets control image source while automatic mode preserves explicit opt-in',()=>{
@@ -36,4 +36,17 @@ test('a single-page revision may be image-free only while another page retains a
  assert.equal(requiresPhoto({imageMode:'none',scope:'page'}),false);
  assert.equal(hasAllowedPhoto([page('web')],assets,'web'),true);assert.equal(hasAllowedPhoto([page('upload')],assets,'web'),false);
  assert.equal(hasAllowedPhoto([{html:'',layout:'original',photoAssetId:'web'}],assets,'web'),false);
+});
+
+test('whole-set upload coverage counts every distinct rendered upload, not repeated images or metadata',()=>{
+ const pictures=[{id:'one',name:'环境照.jpg',source:'upload'},{id:'two',name:'交流照.jpg',source:'upload'}],policy={requiredUploadIds:['one','two']};
+ assert.equal(imageModeIssue('upload',[page('one'),page('two'),page()],pictures,policy),null);
+ for(const pages of [[page('one')],[page('one'),page('one')],[{...page('one'),photoAssetId:'two'}]])assert.match(imageModeIssue('upload',pages,pictures,policy),/1\/2 张.*交流照/);
+ assert.equal(imageModeIssue('upload',[page('one')],pictures),null);
+});
+test('required-upload lists remain frozen for corrections and do not widen page, web or legacy jobs',()=>{
+ const snapshot={imageMode:'upload',scope:'project',imagePolicy:{requiredUploadIds:['one','two','one']}};
+ assert.deepEqual(requiredUploadIds(snapshot),['one','two']);
+ for(const entry of [{...snapshot,scope:'page'},{...snapshot,imageMode:'web'},{imageMode:'upload',scope:'project'},{}])assert.deepEqual(requiredUploadIds(entry),[]);
+ const correction=structuredClone(snapshot);assert.deepEqual(requiredUploadIds(correction),['one','two']);
 });

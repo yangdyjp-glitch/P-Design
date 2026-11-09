@@ -6,6 +6,8 @@
 
 0.5.1 增加 [任务阶段与画面进度](docs/job-progress.md)：显示正在调整的目标画面及准备、配图、设计、检查、保存等实际阶段；网页检查按真实结果逐页显示计数。
 
+0.5.2 修复 [预案一漏用上传图片](docs/upload-coverage.md)：整套设计使用全部上传图，AI 自行分配页面；生成、服务端和网页应用前核对逐张覆盖，漏图进入既有自动修正。单图修改保持原范围。
+
 Railway 部署默认需要账户登录，配置与验证见 [Railway 接入说明](docs/railway.md)。推荐启动命令为 `npm run start:railway`，此前带 sites-env 预加载的长命令也已兼容；需要配置 Railway 服务端 AI 密钥。原 Sites 站点仍沿用原认证与存储。
 
 Railway 可通过服务端 `DATABASE_URL` 接入 Supabase PostgreSQL，自动建表并将卷里的旧数据导入空的业务 schema；图片继续保存在现有卷。设置及验收见 [Supabase 接入说明](docs/supabase.md)。此能力需部署本次代码并核对健康接口，不能仅凭添加变量认定已生效。

@@ -4,6 +4,11 @@ export function imageSource(asset) {
   return asset?.source === 'web' ? 'web' : asset?.source === 'upload' ? 'upload' : asset?.generated || asset?.source === 'generated' ? 'generated' : 'upload';
 }
 
+export function uploadCoverageIssue(requiredIds = [], usedIds = [], assets = []) {
+  const required = [...new Set(requiredIds)], used = new Set(usedIds), missing = required.filter(id => !used.has(id));
+  return missing.length ? '上传图片未全部使用（' + (required.length - missing.length) + '/' + required.length + ' 张）：' + missing.map(id => String(assets.find(asset => asset.id === id)?.name || id).slice(0, 80)).join('、') : null;
+}
+
 // Fraction of the original image retained after object-fit and rectangular clipping.
 export function imageVisibility({naturalWidth, naturalHeight, box, fit = 'fill', position = ['50%', '50%'], clips = [], roundedLoss = 0, scaleX = 1, scaleY = 1}) {
   if (![naturalWidth, naturalHeight, box?.width, box?.height].every(n => Number.isFinite(n) && n > 0)) return 0;

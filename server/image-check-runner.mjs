@@ -2,6 +2,7 @@
 import fs from 'node:fs/promises';
 import {chromium} from 'playwright';
 const input=JSON.parse(await fs.readFile('/workspace/input/project.json','utf8'));
+const {uploadCoverageIssue}=await import('/workspace/runtime/image-policy.mjs');
 const result=JSON.parse(await fs.readFile('/workspace/outputs/result.json','utf8'));
 const assets=[...input.assets];
 for(const file of ['web-photos.json','generated-photo.json'])try{const extra=JSON.parse(await fs.readFile('/workspace/input/'+file,'utf8'));for(const asset of extra.assets)if(!assets.some(item=>item.id===asset.id))assets.push(asset);}catch(error){if(error.code!=='ENOENT')throw error;}
@@ -26,6 +27,9 @@ try{
  }
 }finally{await browser.close();}
 const errors=records.flatMap(page=>page.imageChecks.filter(check=>!check.passed).map(check=>({pageId:page.id,assetId:check.assetId,message:check.source==='upload'?'Uploaded image must retain at least 80% of the original area; remove unsupported masks/rotation and reduce crop.':'Image failed to load',visibleFraction:check.visibleFraction})));
+const requiredIds=input.imageMode==='upload'&&input.scope!=='page'?input.imagePolicy?.requiredUploadIds||[]:[];
+const visibleIds=records.flatMap(page=>page.imageChecks.filter(check=>check.source==='upload'&&check.passed).map(check=>check.assetId));
+const coverageIssue=uploadCoverageIssue(requiredIds,visibleIds,assets);if(coverageIssue)errors.push({pageId:result.pages[0]?.id,message:coverageIssue});
 const audit={status:errors.length?'failed':'passed',pages:records,issues:errors,checkedAt:new Date().toISOString()};
 await fs.writeFile('/workspace/outputs/image-policy-audit.json',JSON.stringify(audit,null,2));
 const manifest=JSON.parse(await fs.readFile('/workspace/outputs/render-manifest.json','utf8'));

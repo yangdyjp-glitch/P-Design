@@ -4,7 +4,8 @@ import JSZip from "jszip";
 import {createCloud} from "./cloud.js";
 import {createAccounts} from "./accounts.js";
 import {STYLE_PRESETS,resolveStylePreset,validateStylePresetId} from "./style-presets.js";
-import {projectImageMode,webImagesForMode} from "./preset-images.js";
+import {projectImageMode,webImagesForMode,assetsForMode} from "./preset-images.js";
+import {auditImagePolicy,uploadCoverageIssue} from "./image-policy.js";
 import {uid,clean,escape as esc,clone,LAYOUTS,PALETTES,parseManuscript,pageMarkup,frameDocument,applyFontScale,auditPage,routeSkills,quickAdjustment,validateProject,clamp} from "./engine.js";
 const $=(s,r=document)=>r.querySelector(s),$$=(s,r=document)=>[...r.querySelectorAll(s)];
 const S={projects:[],activeId:null,pageId:null,tab:"copy",selectedCopy:null,baseCSS:"",db:null,zoom:1,editing:null,audit:null,busy:false};
@@ -146,7 +147,7 @@ function showSelectedPreset(){
  const mode=preset?.imageMode||'auto',upload=$('.new-asset-input'),crop=$('.new-image-options .photo-upload-rule'),web=$('.new-image-options .web-photo-choice'),help=$('#new-image-help'),webInput=$('#new-web-images');
  if(upload)upload.hidden=!['auto','upload'].includes(mode);if(crop)crop.hidden=!['auto','upload'].includes(mode);if(web)web.hidden=mode!=='auto';
  if(webInput){if(mode!=='auto'){if(webInput.dataset.manualChoice===undefined)webInput.dataset.manualChoice=String(webInput.checked);webInput.checked=mode==='web';}else if(webInput.dataset.manualChoice!==undefined){webInput.checked=webInput.dataset.manualChoice==='true';delete webInput.dataset.manualChoice;}}
- if(help){help.hidden=mode==='auto';help.textContent=mode==='upload'?'本预案仅使用上传图片，请至少添加一张。':mode==='web'?'AI 将联网搜索实景照片并保留来源，无需上传图片。':'纯文字排版，只用文字、色块和线条组织内容。';}
+ if(help){help.hidden=mode==='auto';help.textContent=mode==='upload'?'上传 1–8 张，整套设计会全部使用，AI 自行安排到合适的页面。':mode==='web'?'AI 将联网搜索实景照片并保留来源，无需上传图片。':'纯文字排版，只用文字、色块和线条组织内容。';}
  const uploadLabel=$('label[for="new-photos"]');if(uploadLabel)uploadLabel.innerHTML=icon('image')+(mode==='upload'?'上传图片（必填）':'添加图片（选填）');
  const taskHelp=$('#new-task-help');if(taskHelp)taskHelp.textContent=mode==='auto'?'AI 会自行择用设计技能；必要时生成示意素材。每轮最多自动修正一次，用量计入每日任务额度。':'AI 会按所选预案安排画面并自动检查。每轮最多自动修正一次，用量计入每日任务额度。';
 }
@@ -160,7 +161,7 @@ function projectSettings(){
 }
 function showAssets(){
  const p=project(),mode=projectImageMode(p),uploads=['auto','upload'].includes(mode);
- modal("项目素材",(uploads?'<div class="file-drop" data-action="upload">'+icon("upload")+'<br>添加照片或图片<br><span class="tiny muted">JPG、PNG、WebP · 每张不超过 12 MB</span></div><p class="photo-upload-rule">'+icon("lock")+'上传图片最多裁剪 20%，至少保留 80% 的原图画面。</p>':'<p class="small-note">'+(mode==='web'?'本项目使用联网配图，AI 会搜索实景照片并保留来源。':'本项目使用纯文字排版，无需图片。')+'</p>')+(mode==='auto'?webPhotoChoice('project-web-images',p.allowWebImages===true):'')+(mode!=='none'?'<div class="gallery-large" style="margin-top:20px">'+p.assets.map(a=>'<figure><img src="'+esc(a.url)+'" alt="'+esc(a.name)+'"><figcaption>'+esc(a.name)+(a.source==='web'?' · 网络配图':a.generated?' · AI 生成示意素材':' · 上传图片')+(a.source==='web'&&/^https:\/\//.test(a.sourceUrl||'')?' · <a href="'+esc(a.sourceUrl)+'" target="_blank" rel="noopener noreferrer">查看来源</a>':'')+'</figcaption></figure>').join("")+'</div>':'')+'<p class="small-note">AI 按本项目预案判断图片用途与摆放，并自动检查来源及裁剪比例。</p>');
+ modal("项目素材",(uploads?'<div class="file-drop" data-action="upload">'+icon("upload")+'<br>添加照片或图片<br><span class="tiny muted">JPG、PNG、WebP · 每张不超过 12 MB</span></div><p class="photo-upload-rule">'+icon("lock")+'上传图片最多裁剪 20%，至少保留 80% 的原图画面。</p>':'<p class="small-note">'+(mode==='web'?'本项目使用联网配图，AI 会搜索实景照片并保留来源。':'本项目使用纯文字排版，无需图片。')+'</p>')+(mode==='auto'?webPhotoChoice('project-web-images',p.allowWebImages===true):'')+(mode!=='none'?'<div class="gallery-large" style="margin-top:20px">'+p.assets.map(a=>'<figure><img src="'+esc(a.url)+'" alt="'+esc(a.name)+'"><figcaption>'+esc(a.name)+(a.source==='web'?' · 网络配图':a.generated?' · AI 生成示意素材':' · 上传图片')+(a.source==='web'&&/^https:\/\//.test(a.sourceUrl||'')?' · <a href="'+esc(a.sourceUrl)+'" target="_blank" rel="noopener noreferrer">查看来源</a>':'')+'</figcaption></figure>').join("")+'</div>':'')+'<p class="small-note">'+(mode==='upload'?'整套设计会使用全部上传图片，由 AI 分配到合适页面，并检查是否漏图；单图修改仅处理当前页。':'AI 按本项目预案判断图片用途与摆放，并自动检查来源及裁剪比例。')+'</p>');
 }
 function showMore(){modal("项目与版本",'<div class="mobile-actions">'+button("project-settings","修改项目名称",null,"btn full")+button("history","查看版本记录","history","btn full")+button("undo","撤销上一次修改","undo","btn full",!project().history?.length?"disabled":"")+button("backup","备份当前项目","save","btn full")+button("skills","AI 的设计能力","leaf","btn full")+'</div>');}
 function showBrand(){
@@ -172,7 +173,7 @@ function showHistory(){
  modal("版本记录",'<div class="project-summary">'+icon("history")+'保留最近25次操作，可撤销或恢复。<span style="margin-left:auto">'+hist.length+' 条</span></div>'+
  (hist.length?hist.slice().reverse().map(h=>'<div class="version-item"><div>'+esc(h.label)+'<small>'+formatDate(h.at)+'</small></div>'+button("restore-history","恢复",null,"btn small",'data-id="'+h.id+'"')+'</div>').join(""):'<div class="empty">还没有修改记录。<br>修改文案、构图或照片后，记录会出现在这里。</div>'));
 }
-function showSettings(){modal("关于图序工作台",'<div class="settings-item"><b>你负责内容，AI 负责画面</b><p>准备文案与图片后，AI 自行决定分页、视觉方向、照片安排和设计技能，并执行渲染与网页检查。检查通过后自动呈现。</p></div><div class="settings-item"><b>每个账户，独立创作</b><p>文案、素材、项目和设计记录按账户隔离。管理员可以创建账户，使用者在自己的工作空间里继续编辑。</p></div><div class="settings-item"><b>带走可编辑作品</b><p>可下载高清图片、可编辑 HTML 和项目备份。</p></div><p class="small-note">版本 0.5.1 · 独立账户工作空间</p>');}
+function showSettings(){modal("关于图序工作台",'<div class="settings-item"><b>你负责内容，AI 负责画面</b><p>准备文案与图片后，AI 自行决定分页、视觉方向、照片安排和设计技能，并执行渲染与网页检查。检查通过后自动呈现。</p></div><div class="settings-item"><b>每个账户，独立创作</b><p>文案、素材、项目和设计记录按账户隔离。管理员可以创建账户，使用者在自己的工作空间里继续编辑。</p></div><div class="settings-item"><b>带走可编辑作品</b><p>可下载高清图片、可编辑 HTML 和项目备份。</p></div><p class="small-note">版本 0.5.2 · 独立账户工作空间</p>');}
 function showExport(){
  modal("导出你的作品",'<div class="project-summary"><b>'+project().pages.length+'</b><div>个画面已准备就绪<br><span class="tiny muted">2160 × 2880 · 高清 PNG</span></div></div><div class="settings-item"><b>导出整套高清图</b><p>每页生成一张PNG，并打包成ZIP。导出前会自动检查缺字、越界与图片加载。</p></div><div class="panel-actions">'+button("export-all","整套PNG · ZIP","download","btn primary")+button("export-one","仅导出当前页",null,"btn")+'</div><div class="inspector-divider"></div><div class="settings-item"><b>保留可编辑作品</b><p>项目备份可再次导入图序；HTML工程包含正式文字、布局、照片和字体许可。</p></div><div class="panel-actions">'+button("backup","项目备份 · JSON","save","btn")+button("export-source","可编辑HTML · ZIP","folder","btn")+'</div>');
 }
@@ -230,9 +231,10 @@ async function renderFrame(pg,targetProject=project()){
   return {frame:fr,doc,root:doc.querySelector(".xhs-card"),remove:()=>fr.remove()};
  }catch(e){fr.remove();throw e;}
 }
-async function auditProposal(draft,pageIds,onProgress){
- const report=[],pages=draft.pages.filter(page=>!pageIds||pageIds.includes(page.id));
- for(const [index,page]of pages.entries()){onProgress?.({current:index+1,total:pages.length,pageId:page.id});const rendered=await renderFrame(page,draft);try{report.push({id:page.id,label:page.label,issues:auditPage(rendered.doc,page,draft)});}finally{rendered.remove();}}
+async function auditProposal(draft,pageIds,onProgress,requiredIds=[]){
+ const report=[],pages=draft.pages.filter(page=>!pageIds||pageIds.includes(page.id)),visibleUploads=new Set();
+ for(const [index,page]of pages.entries()){onProgress?.({current:index+1,total:pages.length,pageId:page.id});const rendered=await renderFrame(page,draft);try{report.push({id:page.id,label:page.label,issues:auditPage(rendered.doc,page,draft)});if(requiredIds.length)for(const check of auditImagePolicy(rendered.root,draft.assets))if(check.source==='upload'&&check.passed)visibleUploads.add(check.assetId);}finally{rendered.remove();}}
+ const coverageIssue=uploadCoverageIssue(requiredIds,visibleUploads,draft.assets);if(coverageIssue&&report.length)report[0].issues.push({severity:'error',message:coverageIssue});
  return report;
 }
 async function checkAll(){
@@ -386,7 +388,7 @@ document.addEventListener("focusout",e=>{if(e.target.matches("[data-copy-field],
 document.addEventListener("change",e=>{if(e.target.name==='style-preset'){showSelectedPreset();}else if(e.target.id==="new-photos"){const label=$("#new-photo-count");if(label)label.textContent=e.target.files.length?"已选 "+e.target.files.length+" 张图片":"最多 8 张，AI 自行判断用途与摆放";}else if(e.target.id==='project-web-images'){project().allowWebImages=e.target.checked;scheduleSave();toast(e.target.checked?'已允许 AI 联网寻找实景配图，下次设计时生效。':'已关闭联网搜图，下次设计仅使用现有素材。');}});
 $("#file-images").addEventListener("change",async e=>{
  try{
-  const files=[...e.target.files];if(!files.length)return;if(files.length+project().assets.length>100)throw Error("项目素材已满，请另建项目。");
+  const files=[...e.target.files];if(!files.length)return;if(files.length+project().assets.length>100)throw Error("项目素材已满，请另建项目。");if(projectImageMode(project())==='upload'&&files.length+assetsForMode(project().assets,'upload').length>8)throw Error('预案一每个项目最多上传 8 张图片，整套设计会全部使用。');
   const entries=await readImageFiles(files);project().assets.push(...entries);scheduleSave();if($("dialog"))showAssets();toast("已添加"+entries.length+"张图片，下次设计时由AI自行安排。");
  }catch(err){toast(err.message);}finally{e.target.value="";}
 });
@@ -429,7 +431,7 @@ async function boot(){
   if(!S.projects.length&&S.session.accessMode==='visitor'){S.projects=await legacyProjects('tuxu-studio-guest');for(const p of S.projects){delete p.cloudRevision;delete p._syncConflict;p._cloudDirty=true;}}
   if(!S.projects.length){const p={id:uid(),name:"从文案开始",pages:parseManuscript("让好内容，被看见\n把你的完整文案放在右侧，也可以上传本次图片。\n画面、分页和设计检查，交给 AI 自行完成。",{preserveText:true}),assets:[],history:[],redo:[],createdAt:Date.now(),updatedAt:Date.now()};S.projects=[p];}
   if(!project())S.activeId=S.projects[0].id;S.pageId=project().pages[0].id;render();Cloud.updateBadge();await persist({skipCloud:!project()._cloudDirty&&!!project().cloudRevision});Cloud.startPolling();
-  window.TuXu={getState:()=>clone({projects:S.projects,activeId:S.activeId,pageId:S.pageId,user:S.session.user,jobs:S.jobs}),auditCurrent:()=>auditPage($("#canvas-frame").contentDocument,current(),project()),version:"0.5.1"};
+  window.TuXu={getState:()=>clone({projects:S.projects,activeId:S.activeId,pageId:S.pageId,user:S.session.user,jobs:S.jobs}),auditCurrent:()=>auditPage($("#canvas-frame").contentDocument,current(),project()),version:"0.5.2"};
  }catch(e){$("#app").innerHTML='<div class="boot"><h1>工作台暂时未能打开</h1><p>'+esc(e.message)+'</p><button class="btn primary" onclick="location.reload()">重新打开</button></div>';}
 }
 boot();
