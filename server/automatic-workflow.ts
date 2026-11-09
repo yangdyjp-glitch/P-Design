@@ -29,7 +29,7 @@ export function imageAllowed(job:{snapshot:string;kind:string}){
  return (!snapshot.imageMode||snapshot.imageMode==='auto')&&(job.kind==='image'||automaticJob(job)&&!snapshot.repairOf);
 }
 export function repairAllowed(job:{snapshot:string;kind:string;result?:string|null}){
- if(!automaticJob(job)||JSON.parse(job.snapshot).repairOf)return false;
+ if(!(automaticJob(job)||JSON.parse(job.snapshot).visualDesignPolicy?.version===1)||JSON.parse(job.snapshot).repairOf)return false;
  const state=job.result?JSON.parse(job.result):{};
  return !(Number(state.repairAttempts)>0);
 }

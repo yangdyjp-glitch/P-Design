@@ -4,6 +4,9 @@ import fs from 'node:fs/promises';
 import {DatabaseSync} from 'node:sqlite';
 import {build} from 'esbuild';
 import path from 'node:path';
+import {createHash} from 'node:crypto';
+import {VISUAL_SKILLS,VISUAL_CHECKS,visualDesignPolicy,validateVisualPlan,validateVisualReview} from '../src/visual-design.js';
+import {planFor,reviewFor,responseFor,phonePNG} from './fixtures/visual-design.mjs';
 import {canApplyAutomatic,hasAuditErrors,automaticMessage,designProposal,jobApplied} from '../src/ai-workflow.js';
 import {parseManuscript} from '../src/engine.js';
 
@@ -21,7 +24,7 @@ const manifest={status:'passed',pages:[{id:'reading-cover'}],issues:[],warnings:
 
 test('automatic workflow makes every skill available and preserves legacy task routing',()=>{
  assert.equal(routeSkills('design',undefined,true).length,14);
- assert.equal(routeSkills('design').length,5);
+ assert.equal(routeSkills('design').length,6);
  assert.deepEqual(routeSkills('write'),['xiaohongshu-design','xhs-writer']);
 });
 test('server rejects image-source violations and empty photographic sets before application',()=>{
@@ -129,7 +132,7 @@ const coreMock={name:'isolated-provider',setup(build){
  export const imageMime=b=>b[0]===137?'image/png':null;
  export const uploadProviderFile=async()=>{if(!globalThis.automaticHarness.upload)throw Error('unexpected upload');return globalThis.automaticHarness.upload();};`}));
 }};
-const {advanceJob,startJob}=await bundle('server/agent.ts',[coreMock]);
+const {advanceJob,startJob,cancelJob}=await bundle('server/agent.ts',[coreMock]);
 const {publicPhotoURL,photoCandidates,webPhotosAllowed}=await bundle('server/photo-search.ts',[coreMock]);
 test('source presets disable generation and do not allow upload or text-only jobs to search photos',()=>{
  for(const imageMode of ['upload','web','none'])assert.equal(imageAllowed({...job,snapshot:JSON.stringify({...source,imageMode})}),false);
@@ -139,7 +142,7 @@ test('source presets disable generation and do not allow upload or text-only job
 async function harness(){
  const db=new DatabaseSync(':memory:');for(const name of (await fs.readdir('drizzle')).filter(name=>name.endsWith('.sql')).sort())db.exec(await fs.readFile('drizzle/'+name,'utf8'));
  db.prepare("INSERT INTO jobs(id,user_id,project_id,request_id,kind,prompt,skill_ids,snapshot,base_revision,status,session_id,environment_id,provider_files,lease_until,created_at,updated_at) VALUES(?,?,?,?,?,?,?,?,?,'running','session-test','env-test','[]',0,?,?)").run('job-test','visitor_test','own-project','test-request','design','自动设计',job.skill_ids,job.snapshot,1,Date.now(),Date.now());
- const events=[],storedFiles=[],deleted=[],attachments=[],starts=[],responses=[],state={turn:'turn-1',invalid:true,calls:[],searchResponse:{status:'completed',output:[]}};
+ const events=[],storedFiles=[],deleted=[],attachments=[],starts=[],responses=[],reviews=[],state={turn:'turn-1',invalid:true,calls:[],searchResponse:{status:'completed',output:[]},visualResponse:{status:'in_progress'},extraArtifacts:[]};
  const files={
   'result-1':JSON.stringify({...validResult,pages:[{...validResult.pages[0],css:'.xhs-card{background:url(external.png)}'}]}),
   'result-2':JSON.stringify(validResult),'audit-1':JSON.stringify(manifest),'audit-2':JSON.stringify(manifest),'font-1':'test-font','png-2':'test-png',
@@ -147,6 +150,8 @@ async function harness(){
  const DB={prepare(sql){return {bind(...args){return {async run(){const result=db.prepare(sql).run(...args);return {meta:{changes:result.changes}};},async first(){return db.prepare(sql).get(...args)||null;},async all(){return {results:db.prepare(sql).all(...args)};}};}};}};
  const api=async(path,options={})=>{
   if(options.method==='DELETE'){deleted.push(path);return {};}
+  if(path==='/responses'&&options.body.text?.format?.name==='independent_visual_review'){reviews.push(options.body);return {id:'response-visual-'+reviews.length};}
+  if(path.startsWith('/responses/response-visual-'))return state.visualResponse;
   if(path==='/responses'){responses.push(options.body);return {id:'response-photo-search'};}
   if(path==='/responses/response-photo-search')return state.searchResponse;
   if(path==='/agents/sessions'){starts.push(options.body);return {id:'session-test',environment:{id:'env-test'}};}
@@ -156,19 +161,19 @@ async function harness(){
   if(path.includes('/turns?'))return {data:[{id:state.turn,status:'completed'}]};
   if(path.includes('/artifacts?'))return {data:state.turn==='turn-1'?[
    {id:'result-1',path:'/workspace/outputs/result.json',turn_id:'turn-1',size_bytes:100},
-   {id:'font-1',path:'/workspace/outputs/font.woff2',turn_id:'turn-1',size_bytes:9},
+   {id:'font-1',path:'/workspace/outputs/font.woff2',turn_id:'turn-1',size_bytes:9},...state.extraArtifacts,
   ]:[
-   {id:state.invalid?'result-1':'result-2',path:'/workspace/outputs/result.json',turn_id:'turn-2',size_bytes:100},
-   {id:'audit-2',path:'/workspace/outputs/render-manifest.json',turn_id:'turn-2',size_bytes:100},
-   {id:'png-2',path:'/workspace/outputs/cover.png',turn_id:'turn-2',size_bytes:8},
-   {id:'font-1',path:'/workspace/outputs/font.woff2',turn_id:'turn-1',size_bytes:9},
+   {id:state.invalid?'result-1':'result-2',path:'/workspace/outputs/result.json',turn_id:state.turn,size_bytes:100},
+   {id:'audit-2',path:'/workspace/outputs/render-manifest.json',turn_id:state.turn,size_bytes:100},
+   {id:'png-2',path:'/workspace/outputs/cover.png',turn_id:state.turn,size_bytes:8},
+   {id:'font-1',path:'/workspace/outputs/font.woff2',turn_id:'turn-1',size_bytes:9},...state.extraArtifacts,
   ],has_more:false};
   const id=path.match(/\/artifacts\/([^/]+)\/content$/)?.[1];if(id)return new Response(files[id]);
   throw Error('Unexpected provider request: '+path);
  };
  const skillFiles=Object.fromEntries([...skills.map(s=>[s.id,{fileId:'file-test-'+s.id,bytes:['xiaohongshu-design','xhs-design-polish'].includes(s.id)?20000:30*1024*1024}]),['_runtime',{fileId:'file-test-runtime',bytes:16*1024*1024}]]);
- globalThis.automaticHarness={env:{DB,SKILL_FILES_JSON:JSON.stringify(skillFiles),BUCKET:{async put(key,bytes){storedFiles.push({key,bytes});},async get(key){const file=storedFiles.find(file=>file.key===key);return file?{arrayBuffer:async()=>file.bytes}:null;}}},api,upload:async()=>'provider-photo-file'};
- return {db,events,storedFiles,deleted,attachments,starts,responses,state,files,read:()=>db.prepare('SELECT * FROM jobs WHERE id=?').get('job-test')};
+ globalThis.automaticHarness={env:{DB,SKILL_FILES_JSON:JSON.stringify(skillFiles),BUCKET:{async put(key,bytes){storedFiles.push({key,bytes});},async delete(key){const index=storedFiles.findIndex(file=>file.key===key);if(index>=0)storedFiles.splice(index,1);},async get(key){const file=storedFiles.find(file=>file.key===key);return file?{arrayBuffer:async()=>file.bytes}:null;}}},api,upload:async()=>'provider-photo-file'};
+ return {db,events,storedFiles,deleted,attachments,starts,responses,reviews,state,files,read:()=>db.prepare('SELECT * FROM jobs WHERE id=?').get('job-test')};
 }
 test('all skills remain available while startup stays small and optional resources load only on demand',async()=>{
  const h=await harness();try{
@@ -375,4 +380,84 @@ test('an invalid additional photo request cannot overwrite prior search state or
   h.state.calls=[{type:'function_call',name:'search_project_photos',call_id:'invalid-second',turn_id:'turn-1',arguments:JSON.stringify({query:'公园',count:5})}];
   await advanceJob(h.read());assert.equal(h.responses.length,0);assert.equal(JSON.parse(h.read().search_state).responseId,'previous-search');assert.equal(h.events.at(-1).success,false);
  }finally{h.db.close();}
+});
+
+async function visualFixture(h,{scope='project',turn='turn-2'}={}){
+ const id=scope==='page'?'source-page':'reading-cover',snapshot={...source,scope,loadedSkills:VISUAL_SKILLS,visualDesignPolicy:visualDesignPolicy(scope==='page'?'revise':'design'),renderRuntime:{version:2}},raw={...validResult,usedSkills:VISUAL_SKILLS,pages:[{...validResult.pages[0],id}]};
+ h.db.prepare('UPDATE jobs SET snapshot=?').run(JSON.stringify(snapshot));h.state.turn=turn;h.state.invalid=false;
+ h.state.calls=[{type:'function_call',name:'submit_visual_plan',turn_id:turn,call_id:'plan-'+turn,arguments:JSON.stringify(planFor(id))}];await advanceJob(h.read());assert.equal(h.events.at(-1).success,true);h.state.calls=[];
+ const sourceSHA256=createHash('sha256').update(JSON.stringify({html:raw.pages[0].html,css:raw.pages[0].css,settings:{}})).digest('hex');
+ h.files['result-2']=JSON.stringify(raw);h.files['audit-2']=JSON.stringify({...manifest,pages:[{id,files:{phone:'phone.png'},visualSourceSHA256:sourceSHA256}]});h.files['phone']=phonePNG();h.state.extraArtifacts=[{id:'phone',path:'/workspace/outputs/phone.png',turn_id:turn,size_bytes:h.files.phone.length}];return {id,raw,snapshot};
+}
+test('new design and single-page startup always preload all four core skills while the remaining catalog stays on demand',async()=>{
+ for(const scope of ['project','page']){const h=await harness();try{
+  const manifest=JSON.parse(globalThis.automaticHarness.env.SKILL_FILES_JSON);for(const id of VISUAL_SKILLS)manifest[id].bytes=20000;globalThis.automaticHarness.env.SKILL_FILES_JSON=JSON.stringify(manifest);
+  h.db.prepare("UPDATE jobs SET status='queued',session_id=NULL,environment_id=NULL,snapshot=?").run(JSON.stringify({...source,scope,visualDesignPolicy:visualDesignPolicy('design')}));await startJob(h.read());assert.equal(h.starts.length,1);
+  const input=JSON.parse(Buffer.from(h.starts[0].environment.files.find(f=>f.path==='/workspace/input/project.json').data,'base64'));assert.deepEqual([...input.loadedSkills].sort(),[...VISUAL_SKILLS].sort());assert(h.starts[0].agent.tools.some(t=>t.name==='submit_visual_plan'));assert.equal(h.starts[0].environment.files.filter(f=>f.type==='file_id').length,5);
+ }finally{h.db.close();}}
+});
+test('missing composition registration cannot be replaced by claiming four skills or a fabricated reviewer pass',async()=>{
+ const h=await harness();try{
+  h.db.prepare('UPDATE jobs SET snapshot=?').run(JSON.stringify({...source,loadedSkills:VISUAL_SKILLS,visualDesignPolicy:visualDesignPolicy('design')}));h.files['result-1']=JSON.stringify({...validResult,usedSkills:VISUAL_SKILLS,visualReview:{status:'passed',independent:true}});await advanceJob(h.read());assert.equal(h.read().status,'running');assert.equal(h.reviews.length,0);assert(JSON.parse(h.read().result).repairing);assert.match(h.events.at(-1).input[0].content[0].text,/构图调度/);
+ }finally{h.db.close();}
+});
+test('the reviewer receives actual images and constraints in a separate call, without designer self-approval or tools',async()=>{
+ const h=await harness();try{
+  const {id,raw}=await visualFixture(h);h.files['result-2']=JSON.stringify({...raw,report:'DESIGNER_SELF_APPROVAL_TOKEN',visualReview:{status:'passed'}});await advanceJob(h.read());assert.equal(h.read().status,'running');assert.equal(h.storedFiles.length,0);assert.equal(h.reviews.length,1);const request=h.reviews[0];assert(request.background);assert.equal(request.tools,undefined);assert.equal(request.text.format.type,'json_schema');assert(request.input[0].content.some(c=>c.type==='input_image'&&c.image_url.startsWith('data:image/png;base64,')));assert(!JSON.stringify(request.input).includes('DESIGNER_SELF_APPROVAL_TOKEN'));
+  await advanceJob(h.read());assert.equal(h.reviews.length,1);assert.equal(h.read().status,'running');h.state.visualResponse=responseFor(reviewFor([id]));await advanceJob(h.read());const result=JSON.parse(h.read().result);assert.equal(h.read().status,'completed');assert.equal(result.visualReview.status,'passed');assert.equal(result.visualReview.independent,true);assert.equal(result.visualReview.jobId,'job-test');assert.equal(result.visualDesign.skills.length,4);assert.equal(result.visualReview.images.length,1);assert.equal(result.visualReview.images[0].sha256.length,64);assert(h.deleted.includes('/responses/response-visual-1'));assert(h.deleted.includes('/agents/sessions/session-test'));
+ }finally{h.db.close();}
+});
+test('scoped review schema limits page identifiers without restricting prose or suppressing page-level rejection',async()=>{
+ for(const scope of ['project','page']){const h=await harness();try{
+  const {id}=await visualFixture(h,{scope});await advanceJob(h.read());const schema=h.reviews[0].text.format.schema;
+  assert.deepEqual(schema.properties.pages.items.properties.pageId.enum,[id]);assert.equal(schema.properties.summary.enum,undefined);
+  const finding=schema.properties.pages.items.properties.checks.items.properties;assert.equal(finding.observation.enum,undefined);assert.equal(finding.fix.enum,undefined);assert(finding.judgment.enum.includes('revise'));assert.deepEqual(schema.properties.series.properties.judgment.enum,['pass','advisory']);
+ }finally{h.db.close();}}
+});
+test('independent review retains a source page requirement when automatic pagination assigns a new output ID',async()=>{
+ const h=await harness();try{
+  const {id}=await visualFixture(h),snapshot=JSON.parse(h.read().snapshot);snapshot.pages[0].requirements='标题放在一行';h.db.prepare('UPDATE jobs SET snapshot=?').run(JSON.stringify(snapshot));await advanceJob(h.read());const context=JSON.parse(h.reviews[0].input[0].content[0].text);assert.equal(context.pages[0].id,id);assert.notEqual(id,snapshot.pages[0].id);assert.deepEqual(context.pages[0].requirements,[{sourcePageId:snapshot.pages[0].id,text:'标题放在一行'}]);
+ }finally{h.db.close();}
+});
+for(const recovers of [true,false])test(recovers?'a transient artifact read preserves the approved design and resumes without repeating AI review':'repeated transport reads stop after two retained attempts without a redesign loop',async()=>{
+ const h=await harness(),original=globalThis.automaticHarness.api;try{
+  const {id}=await visualFixture(h);await advanceJob(h.read());h.state.visualResponse=responseFor(reviewFor([id]));let attempts=0;
+  globalThis.automaticHarness.api=async(path,options)=>{if(path.endsWith('/artifacts/png-2/content')&&(!recovers||attempts===0)){attempts++;throw Object.assign(new Error('temporary read timeout'),{retryableRead:true});}return original(path,options);};
+  await advanceJob(h.read());assert.equal(h.read().status,'running');assert.equal(h.reviews.length,1);assert.equal(JSON.parse(h.read().snapshot)._visualReview.phase,'passed');assert.equal(JSON.parse(h.read().snapshot).transientReadFailures,1);assert(!h.deleted.includes('/agents/sessions/session-test'));assert.equal(h.storedFiles.length,0);
+  await advanceJob(h.read());if(!recovers){assert.equal(h.read().status,'running');await advanceJob(h.read());assert.equal(h.read().status,'failed');assert.equal(attempts,3);assert(h.deleted.includes('/agents/sessions/session-test'));}else assert.equal(h.read().status,'completed');assert.equal(h.reviews.length,1);assert.equal(h.events.filter(e=>e.type==='agent.session.input.message').length,0);
+ }finally{globalThis.automaticHarness.api=original;h.db.close();}
+});
+for(const finalPass of [true,false])test(finalPass?'a visual rejection gets one scoped redesign and a fresh image review before completion':'a second visual rejection stops safely without another paid review or correction loop',async()=>{
+ const h=await harness();try{
+  const {id}=await visualFixture(h,{scope:'page'});await advanceJob(h.read());h.state.visualResponse=responseFor(reviewFor([id],true));await advanceJob(h.read());assert.equal(h.read().status,'running');assert(JSON.parse(h.read().result).repairing);assert.equal(h.events.filter(e=>e.type==='agent.session.input.message').length,1);assert.match(h.events.at(-1).input[0].content[0].text,/独立看图/);
+  // Preserve the original scoped snapshot while registering the corrected turn.
+  const snapshot=JSON.parse(h.read().snapshot);h.state.turn='turn-3';h.state.calls=[{type:'function_call',name:'submit_visual_plan',turn_id:'turn-3',call_id:'plan-corrected',arguments:JSON.stringify(planFor(id))}];await advanceJob(h.read());h.state.calls=[];h.state.extraArtifacts[0].turn_id='turn-3';h.files.phone=phonePNG(240);h.state.visualResponse={status:'in_progress'};await advanceJob(h.read());assert.equal(h.reviews.length,2);h.state.visualResponse=responseFor(reviewFor([id],!finalPass));await advanceJob(h.read());assert.equal(h.read().status,finalPass?'completed':'failed');assert.equal(h.events.filter(e=>e.type==='agent.session.input.message').length,1);assert.equal(h.reviews.length,2);assert.equal(JSON.parse(h.read().snapshot).scope,snapshot.scope);if(finalPass){const result=JSON.parse(h.read().result);assert.equal(result.repairAttempts,1);assert.deepEqual(result.visualReviewHistory.map(review=>review.status),['revise','passed']);}else assert.equal(h.storedFiles.length,0);
+ }finally{h.db.close();}
+});
+test('missing or stale actual render evidence and changed approved image bytes never reach application',async()=>{
+ const h=await harness();try{
+  const {id}=await visualFixture(h);await advanceJob(h.read());h.state.visualResponse=responseFor(reviewFor([id]));h.files.phone=phonePNG(200);await advanceJob(h.read());assert.equal(h.read().status,'running');assert(JSON.parse(h.read().result).repairing);assert.equal(h.storedFiles.length,0);assert.equal(h.reviews.length,1);assert.match(h.events.at(-1).input[0].content[0].text,/成图发生改变/);
+ }finally{h.db.close();}
+});
+test('an unchanged predecessor phone image remains available during both correction review and final delivery',async()=>{
+ const h=await harness();try{
+  const {id}=await visualFixture(h);await advanceJob(h.read());h.state.visualResponse=responseFor(reviewFor([id],true));await advanceJob(h.read());h.state.turn='turn-3';h.state.calls=[{type:'function_call',name:'submit_visual_plan',turn_id:'turn-3',call_id:'plan-retained',arguments:JSON.stringify(planFor(id))}];await advanceJob(h.read());h.state.calls=[];
+  // An immutable hosted artifact is not republished when its bytes are unchanged.
+  assert.equal(h.state.extraArtifacts[0].turn_id,'turn-2');h.state.visualResponse={status:'in_progress'};await advanceJob(h.read());assert.equal(h.reviews.length,2);assert.equal(JSON.parse(h.read().result).previousTurn,'turn-2');h.state.visualResponse=responseFor(reviewFor([id]));await advanceJob(h.read());assert.equal(h.read().status,'completed');const result=JSON.parse(h.read().result);assert.equal(result.visualReview.turnId,'turn-3');assert.equal(result.visualReview.images[0].artifactTurnId,'turn-2');assert(result.artifacts.some(artifact=>artifact.name==='phone.png'));
+ }finally{h.db.close();}
+});
+test('a reviewer failure cannot fall back to designer approval',async()=>{
+ const h=await harness();try{await visualFixture(h);await advanceJob(h.read());h.state.visualResponse={status:'failed'};await advanceJob(h.read());assert.equal(h.read().status,'failed');assert.match(h.read().error,/独立视觉复核/);assert.equal(h.storedFiles.length,0);assert(h.deleted.includes('/responses/response-visual-1'));}finally{h.db.close();}
+});
+test('cancelling while an independent review is created cleans its response and preserves cancellation',async()=>{
+ const h=await harness(),previous=globalThis.automaticHarness.api;try{await visualFixture(h);globalThis.automaticHarness.api=async(path,options)=>{const value=await previous(path,options);if(path==='/responses'&&options.method==='POST')h.db.exec("UPDATE jobs SET status='cancelled'");return value;};await advanceJob(h.read());assert.equal(h.read().status,'cancelled');assert(h.deleted.includes('/responses/response-visual-1'));assert.equal(h.storedFiles.length,0);}finally{h.db.close();}
+});
+test('cancellation is durable before provider cleanup so a concurrent new review can observe the stop',async()=>{
+ const h=await harness(),previous=globalThis.automaticHarness.api;try{await visualFixture(h);let observed=false;globalThis.automaticHarness.api=async(path,options)=>{if(path.endsWith('/events')&&options.body.events.some(event=>event.type==='agent.session.input.cancel')){observed=true;assert.equal(h.read().status,'cancelled');}return previous(path,options);};await cancelJob(h.read());assert(observed);assert.equal(h.read().status,'cancelled');assert(h.deleted.includes('/agents/sessions/session-test'));}finally{globalThis.automaticHarness.api=previous;h.db.close();}
+});
+test('a session deletion failure cannot skip private inputs, and unsuccessful file deletions retain their handles',async()=>{
+ const h=await harness(),previous=globalThis.automaticHarness.api,attempted=[];try{h.db.prepare('UPDATE jobs SET provider_files=?').run(JSON.stringify(['private-a','private-b']));globalThis.automaticHarness.api=async(path,options)=>{if(options.method==='DELETE'){attempted.push(path);if(path==='/agents/sessions/session-test'||path==='/files/private-b')throw Error('cleanup transport failure');}return previous(path,options);};await cancelJob(h.read());assert.equal(h.read().status,'cancelled');assert(attempted.includes('/files/private-a'));assert(attempted.includes('/files/private-b'));assert.deepEqual(JSON.parse(h.read().provider_files),['private-b']);}finally{globalThis.automaticHarness.api=previous;h.db.close();}
+});
+test('SQLite callback lookup finds a pending independent review without confusing it with image generation',async()=>{
+ const h=await harness();try{const snapshot={...source,_visualReview:{responseId:'visual-response',phase:'pending'}};h.db.prepare('UPDATE jobs SET snapshot=?').run(JSON.stringify(snapshot));const lookup=h.db.prepare("SELECT id FROM jobs WHERE json_extract(image_state,'$.responseId')=? OR json_extract(snapshot,'$._visualReview.responseId')=?");assert.equal(lookup.get('visual-response','visual-response').id,'job-test');assert.equal(lookup.get('outside','outside'),undefined);}finally{h.db.close();}
 });

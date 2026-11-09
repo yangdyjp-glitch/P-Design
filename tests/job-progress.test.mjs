@@ -26,6 +26,10 @@ test('only actual browser check counts are displayed, including a repaginated re
  assert.equal(jobProgress({...checking,clientState:'saving'},project).action,'保存画面');
  assert(!JSON.stringify(jobProgress({...job,scope:'project'},project)).includes('%'));
 });
+test('visual composition and independent review show their actual separate stages for both scopes',()=>{
+ assert.equal(jobProgress({...job,repairOf:'previous',visualStage:'delivering'},project).label,'第 2 张 · 收集成图');
+ assert.equal(jobProgress({...job,visualStage:'composing'},project).label,'第 2 张 · 规划视觉构图');assert.equal(jobProgress({...job,visualStage:'reviewing'},project).label,'第 2 张 · 独立视觉复核');assert.equal(jobProgress({...job,repairOf:'previous',visualStage:'reviewing'},project).label,'第 2 张 · 独立视觉复核');assert.equal(jobProgress({...job,scope:'project',visualStage:'reviewing'},project).label,'整套 · 独立视觉复核');assert.equal(jobProgress({...job,status:'failed',visualStage:'reviewing'},project),null);
+});
 test('the button and live description track a task on a different page or project',()=>{
  const previous=globalThis.document,buttonLabel={textContent:''},description={textContent:''},badge={textContent:''},attributes={};
  const send={querySelector:()=>buttonLabel,setAttribute:(key,value)=>attributes[key]=value,removeAttribute:key=>delete attributes[key]};

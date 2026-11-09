@@ -29,12 +29,18 @@ export function jobProgress(job,project){
   stage='generating';action='生成示意配图';detail='正在制作本次设计使用的示意配图。';
  }else if(job.searchingPhotos){
   stage='searching';action='搜索实景配图';detail='正在联网寻找实景照片，并保存图片来源。';
+ }else if(job.visualStage==='reviewing'){
+  stage='reviewing';action='独立视觉复核';detail='AI 正在独立查看实际成图，复核构图、图文比例、文字层级和留白。';
+ }else if(job.visualStage==='delivering'){
+  stage='delivering';action='收集成图';detail='独立视觉复核已通过，正在收集成图与可编辑文件。';
  }else if(job.result?.repairing||job.repairOf){
   stage='correcting';action='自动修正版面';detail='正在根据检查发现的问题修正版面。';
+ }else if(job.visualStage==='composing'){
+  stage='composing';action='规划视觉构图';detail='正在结合核心视觉技能，比较本次内容适合的构图与阅读顺序。';
  }else{
   stage='designing';action=job.kind==='write'?'整理文案':job.kind==='reference'?'分析参考图':job.kind==='image'?'制作视觉素材':pageOnly?'调整版式':'设计整套画面';
   detail=job.kind==='write'?'正在根据素材整理文案。':job.kind==='reference'?'正在分析本次参考图片。':job.kind==='image'?'正在制作本次视觉素材。':pageOnly?'正在调整本图的文字层级、图文位置和版式。':job.paginationMode==='fixed'?'正在保留原分页，安排图文位置和整套版式。':'正在安排文案分页、图文位置和整套版式。';
  }
- const shortAction=({'saving-input':'保存',submitting:'提交',queued:'排队',starting:'准备',designing:'设计',searching:'搜图',generating:'配图',correcting:'修正',checking:'检查',saving:'保存'})[stage];
+ const shortAction=({'saving-input':'保存',submitting:'提交',queued:'排队',starting:'准备',designing:'设计',composing:'构图',reviewing:'复核',delivering:'成图',searching:'搜图',generating:'配图',correcting:'修正',checking:'检查',saving:'保存'})[stage];
  return {stage,action,shortAction,scope,label:scope+' · '+action,message:scope+'：'+detail,pageId,projectId:job.projectId};
 }

@@ -3,13 +3,14 @@ import {styleIssue} from '../src/style-safety.js';
 import {imageModeIssue,requiresPhoto,requiredUploadIds} from '../src/preset-images.js';
 import {paginationIssue} from '../src/pagination-policy.js';
 import {revisionReviewIssue} from '../src/page-revision.js';
+import {VISUAL_SKILLS} from '../src/visual-design.js';
 
 export class DesignValidationError extends Error {
  constructor(public code:string,message:string){super(message);this.name='DesignValidationError';}
 }
 function reject(code:string,message:string):never{throw new DesignValidationError(code,message+'。本次结果未应用。');}
 
-export function validateDesignResult(raw:any,job:{snapshot:string;skill_ids:string;kind:string;generatedAssetIds?:string[];generatedAssets?:any[]}){
+export function validateDesignResult(raw:any,job:{snapshot:string;skill_ids:string;kind:string;turn_id?:string|null;generatedAssetIds?:string[];generatedAssets?:any[]}){
  if(!raw||typeof raw.summary!=='string'||typeof raw.report!=='string'||!Array.isArray(raw.pages))reject('RESULT_FORMAT','AI 结果格式不完整');
  const snapshot=JSON.parse(job.snapshot),automatic=snapshot.workflow==='automatic'&&['design','revise'].includes(job.kind),pageScoped=automatic&&snapshot.scope==='page',allowed=new Map<string,any>(snapshot.pages.map((p:any)=>[p.id,p])),seen=new Set<string>();
  const sourceCopy:any[]=snapshot.pages.flatMap((p:any)=>p.copy),copyById=new Map<string,any>(sourceCopy.map(c=>[c.id,c])),returnedCopyIds:string[]=[];
@@ -64,6 +65,11 @@ export function validateDesignResult(raw:any,job:{snapshot:string;skill_ids:stri
   revisionReview={pageId:raw.revisionReview.pageId,request:raw.revisionReview.request,outcome:raw.revisionReview.outcome,checks:raw.revisionReview.checks.map(({requirement,status,change,evidence}:any)=>({requirement,status,change,evidence}))};
   const before=snapshot.pages[0],after=pages[0];
   if(revisionReview.outcome==='updated'&&before.html===after.html&&(before.css||'')===after.css&&(before.photoAssetId||null)===after.photoAssetId)reject('PAGE_UNCHANGED','本图没有实际改动，不能仅凭检查通过就报告修改完成');
+ }
+ if(snapshot.visualDesignPolicy?.version===1){
+  const dispatch=snapshot.visualDispatch;
+  if(!dispatch||dispatch.turnId!==job.turn_id||!Array.isArray(dispatch.plan?.pages)||dispatch.plan.pages.length!==pages.length||dispatch.plan.pages.some((planned:any,index:number)=>planned.id!==pages[index].id||JSON.stringify(planned.copyIds)!==JSON.stringify((pages[index].copy||allowed.get(planned.id)?.copy||[]).map((copy:any)=>copy.id))))reject('VISUAL_PLAN','本次成图尚未完成对应的构图调度登记');
+  if(!Array.isArray(raw.usedSkills)||VISUAL_SKILLS.some(id=>!snapshot.loadedSkills?.includes(id)||!raw.usedSkills.includes(id)))reject('VISUAL_SKILLS','视觉设计、海报构图和中文精修必须在本轮参与');
  }
  const selected=automatic?(snapshot.loadedSkills||['xiaohongshu-design','xhs-design-polish']):JSON.parse(job.skill_ids);
  return {theme:snapshot.stylePreset?.theme?structuredClone(snapshot.stylePreset.theme):null,summary:raw.summary.slice(0,3000),report:raw.report.slice(0,30000),...(revisionReview?{revisionReview}:{}),usedSkills:Array.isArray(raw.usedSkills)?[...new Set(raw.usedSkills.filter((s:any)=>selected.includes(s)))]:[],pages,replacePages:automatic&&!pageScoped,manuscript:job.kind==='write'?String(raw.manuscript||'').slice(0,60000):'',sources:Array.isArray(raw.sources)?raw.sources.filter((s:any)=>s&&typeof s.title==='string'&&/^https:\/\//.test(s.url)).slice(0,20):[],artifacts:[] as any[]};
