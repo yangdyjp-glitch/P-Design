@@ -2,6 +2,7 @@ import {styleIssue} from './style-safety.js';
 import {auditImagePolicy,imageSource} from './image-policy.js';
 import {resolveStylePreset} from './style-presets.js';
 import {projectImageMode,imageModeIssue,webImagesForMode} from './preset-images.js';
+import {manuscriptParts,validatePaginationMode,projectPaginationMode} from './pagination-policy.js';
 export const uid=()=>crypto.randomUUID();
 export const clean=s=>String(s??"").replace(/\s+/gu,"");
 export const escape=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
@@ -11,9 +12,8 @@ export const PALETTES=[{name:"海盐蓝",color:"#214BE1"},{name:"森林绿",colo
 export function parseManuscript(text,{preserveText=false}={}){
  text=String(text).replace(/\r\n?/g,"\n").trim();
  if(!text)throw Error("请先输入需要制作的文案。");
- let chunks=text.split(/\n\s*---+\s*\n/g);
- if(chunks.length===1)chunks=text.split(/(?:^|\n)\s*(?:[（(【\[]\s*)?\d+\s*[pP页]\s*(?:[）)】\]]\s*)?[：:]?\s*(?:\n|(?=[^\n]))/).filter(s=>s.trim());
- if(!chunks.length)chunks=[text];
+ const {chunks}=manuscriptParts(text);
+ if(!chunks.length)throw Error('请在分页标记后填写本页文案。');
  if(chunks.length>20)throw Error("一套作品最多20页，请分成两个项目。");
  const pages=chunks.map((chunk,i)=>{
   const lines=chunk.trim().split("\n").map(s=>preserveText?s:s.trim()).filter(s=>s.trim());
@@ -118,7 +118,7 @@ export function auditPage(doc,p,project={assets:[]}){
   const range=doc.createRange();range.selectNodeContents(n);
   for(const r of range.getClientRects()){
    if(!r.width||!r.height)continue;
-   if(r.left<box.left-1||r.right>box.right+1||r.top<box.top-1||r.bottom>box.bottom+1)issues.push({severity:"error",message:"文字超出版面，请调整字号、版式或分页。",id});
+   if(r.left<box.left-1||r.right>box.right+1||r.top<box.top-1||r.bottom>box.bottom+1)issues.push({severity:"error",message:projectPaginationMode(project)==='fixed'?"文字超出版面，请在本页调整图框、图文比例与排版，保持原分页。":"文字超出版面，请调整字号、版式或分页。",id});
    let a=e;
    while(a&&root.contains(a)){
     const s=doc.defaultView.getComputedStyle(a),b=a.getBoundingClientRect();
@@ -174,7 +174,7 @@ export function validateProject(value){
   let html=sanitizeHTML(pg.html||"");for(const [a,b]of assetIds)html=html.replaceAll('data-asset-id="'+escape(a)+'"','data-asset-id="'+b+'"');
   return {...pg,id:uid(),photoAssetId:assetIds.get(pg.photoAssetId)||null,label:String(pg.label||"图文页面").slice(0,100),requirements:String(pg.requirements||'').slice(0,5000),layout:LAYOUTS[pg.layout]?pg.layout:"editorial",html,css:sanitizeCSS(pg.css||""),settings:{accent:safeColor(pg.settings?.accent,"#214BE1"),fontScale:clamp(pg.settings?.fontScale||1,.75,1.3),photoZoom:clamp(pg.settings?.photoZoom||1,1,2),photoX:clamp(pg.settings?.photoX??50,0,100),photoY:clamp(pg.settings?.photoY??50,0,100)},copy:pg.copy.map(c=>({id:String(c.id),text:c.text})),originalCopy:Array.isArray(pg.originalCopy)?pg.originalCopy.map(c=>({id:String(c.id),text:String(c.text)})):clone(pg.copy)};
  });
- const imported={...p,id:uid(),name:String(p.name||"导入的作品").slice(0,100),stylePresetId:resolveStylePreset(p.stylePresetId)?.id||null,allowWebImages:p.allowWebImages===true,history:[],redo:[],createdAt:Date.now(),updatedAt:Date.now()};
+ const imported={...p,id:uid(),name:String(p.name||"导入的作品").slice(0,100),paginationMode:validatePaginationMode(p.paginationMode),stylePresetId:resolveStylePreset(p.stylePresetId)?.id||null,allowWebImages:p.allowWebImages===true,history:[],redo:[],createdAt:Date.now(),updatedAt:Date.now()};
  imported.allowWebImages=webImagesForMode(projectImageMode(imported),p.allowWebImages);
  for(const key of ['cloudRevision','_cloudDirty','_editVersion','_syncConflict','_lastSyncedAt','_aiState','lastAIJobId','aiCheck'])delete imported[key];
  for(const page of imported.pages){delete page.lastAIJobId;delete page.aiCheck;}

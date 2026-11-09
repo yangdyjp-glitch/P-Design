@@ -3,6 +3,7 @@ import fs from 'node:fs/promises';
 import {chromium} from 'playwright';
 const input=JSON.parse(await fs.readFile('/workspace/input/project.json','utf8'));
 const {uploadCoverageIssue}=await import('/workspace/runtime/image-policy.mjs');
+const {paginationIssue}=await import('/workspace/runtime/pagination-policy.mjs');
 const result=JSON.parse(await fs.readFile('/workspace/outputs/result.json','utf8'));
 const assets=[...input.assets];
 for(const file of ['web-photos.json','generated-photo.json'])try{const extra=JSON.parse(await fs.readFile('/workspace/input/'+file,'utf8'));for(const asset of extra.assets)if(!assets.some(item=>item.id===asset.id))assets.push(asset);}catch(error){if(error.code!=='ENOENT')throw error;}
@@ -21,8 +22,8 @@ try{
   try{
    await page.goto('file://'+file,{waitUntil:'load'});await page.evaluate(async()=>{await document.fonts.ready;await Promise.all([...document.images].map(image=>image.decode().catch(()=>{})));});
    await page.addScriptTag({content:policy});
-   const imageChecks=await page.evaluate(assets=>{const root=document.querySelector('.xhs-card');if(!root)throw Error('No xhs-card root');return window.__imagePolicy(root,assets);},assets);
-   records.push({id:output.id,imageChecks});
+   const {imageChecks,copyIds}=await page.evaluate(assets=>{const root=document.querySelector('.xhs-card');if(!root)throw Error('No xhs-card root');return {imageChecks:window.__imagePolicy(root,assets),copyIds:[...root.querySelectorAll('[data-copy]')].map(element=>element.dataset.copy)};},assets);
+   records.push({id:output.id,imageChecks,copyIds});
   }finally{await page.close();await fs.unlink(file);}
  }
 }finally{await browser.close();}
@@ -30,10 +31,12 @@ const errors=records.flatMap(page=>page.imageChecks.filter(check=>!check.passed)
 const requiredIds=input.imageMode==='upload'&&input.scope!=='page'?input.imagePolicy?.requiredUploadIds||[]:[];
 const visibleIds=records.flatMap(page=>page.imageChecks.filter(check=>check.source==='upload'&&check.passed).map(check=>check.assetId));
 const coverageIssue=uploadCoverageIssue(requiredIds,visibleIds,assets);if(coverageIssue)errors.push({pageId:result.pages[0]?.id,message:coverageIssue});
+const pageIssue=paginationIssue(input.pages.map(page=>({id:page.id,copy:page.copy.map(({id})=>({id}))})),records.map(page=>({id:page.id,copy:page.copyIds.map(id=>({id}))})),input.scope==='page'||input.paginationMode==='fixed'?'fixed':'auto');
+if(pageIssue)errors.push({pageId:result.pages[0]?.id,message:pageIssue});
 const audit={status:errors.length?'failed':'passed',pages:records,issues:errors,checkedAt:new Date().toISOString()};
 await fs.writeFile('/workspace/outputs/image-policy-audit.json',JSON.stringify(audit,null,2));
 const manifest=JSON.parse(await fs.readFile('/workspace/outputs/render-manifest.json','utf8'));
-for(const page of manifest.pages){const record=records.find(item=>item.id===page.id);if(record)page.imageChecks=record.imageChecks;}
+for(const page of manifest.pages){const record=records.find(item=>item.id===page.id);if(record){page.imageChecks=record.imageChecks;page.copyIds=record.copyIds;}}
 if(errors.length){manifest.status='failed';manifest.issues.push(...errors);}
 await fs.writeFile('/workspace/outputs/render-manifest.json',JSON.stringify(manifest,null,2));
 console.log(JSON.stringify(audit));if(errors.length)process.exitCode=1;

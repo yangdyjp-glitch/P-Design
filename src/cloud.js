@@ -1,4 +1,5 @@
 import {clone,uid,escape as esc,parseManuscript,sanitizeHTML,sanitizeCSS} from './engine.js';
+import {manuscriptPaginationMode,projectPaginationMode} from './pagination-policy.js';
 import {canApplyAutomatic,hasAuditErrors,automaticMessage,designProposal,jobApplied} from './ai-workflow.js';
 import {jobProgress} from './job-progress.js';
 const active=s=>['queued','starting','running','generating'].includes(s);
@@ -62,7 +63,7 @@ export function createCloud({S,project,current,modal,closeModal,toast,render,rem
    await save(p);await persist({skipCloud:true});
    if(p._cloudDirty)throw Error('内容有新修改，请等待保存后再次发送。');
    if(pageOnly&&!p.pages.some(target=>target.id===page.id&&String(target.requirements||'').trim()===notes))throw Error('本图要求已更新，请再次发送。');
-   const prompt=pageOnly?notes:String(prefill||p.brief||'').trim()||'根据全部文案与本项目素材，自行判断最合适的小红书画面、分页与视觉语言，完成整套设计和自动检查。';
+   const prompt=pageOnly?notes:String(prefill||p.brief||'').trim()||(projectPaginationMode(p)==='fixed'?'保留原有页数、页面顺序和每页全部文案，让图片适配页面，不能为了放图自行增页。完成整套设计和自动检查。':'根据全部未分页文案与本项目素材，自行判断最合适的小红书画面、分页与视觉语言，完成整套设计和自动检查。');
    submission.submissionStage='sending';updateBadge();
    const {job}=await api('jobs',{method:'POST',body:JSON.stringify({projectId:p.id,revision:p.cloudRevision,kind:pageOnly?'revise':'design',workflow:'automatic',scope:pageOnly?'page':'project',prompt,pageIds,baseCSS:baseCSS(),requestId:uid()})});
    S.jobs.unshift(job);closeModal();setState(p,job,'running',pageOnly?'AI 正在修改本图并自动检查，其他图保持不变。':'AI 正在判断视觉方案、制作画面并自动检查。');startPolling();toast(pageOnly?'已发送，只修改当前图，完成检查后自动呈现。':'已交给 AI，完成检查后会自动呈现。');
@@ -132,7 +133,7 @@ export function createCloud({S,project,current,modal,closeModal,toast,render,rem
   document.querySelector('[data-action="return-ai-result"]').onclick=()=>showResult(j);
  }
  async function applyLegacy(j,kind){
-  if(kind==='apply-ai-copy'){const p={id:uid(),name:('AI 草稿 · '+j.prompt).slice(0,100),pages:parseManuscript(j.result.manuscript),assets:[],history:[],redo:[],createdAt:Date.now(),updatedAt:Date.now()};S.projects.unshift(p);S.activeId=p.id;S.pageId=p.pages[0].id;}
+  if(kind==='apply-ai-copy'){const p={id:uid(),name:('AI 草稿 · '+j.prompt).slice(0,100),paginationMode:manuscriptPaginationMode(j.result.manuscript),pages:parseManuscript(j.result.manuscript),assets:[],history:[],redo:[],createdAt:Date.now(),updatedAt:Date.now()};S.projects.unshift(p);S.activeId=p.id;S.pageId=p.pages[0].id;}
   else{const p=project();if(!canApplyAutomatic(j,p))throw Error('文案已有新修改，请重新设计。');const draft=proposal(j),reports=await auditProposal(draft,j.result.pages.map(page=>page.id));if(hasAuditErrors(reports))throw Error('方案未通过画面或上传图片裁剪检查，请重新设计。');if(!canApplyAutomatic(j,p))throw Error('检查期间内容已有新修改，请重新设计。');remember('应用 AI 排版');p.pages=draft.pages;p.assets=draft.assets;}
   S.audit=null;project()._cloudDirty=true;project()._editVersion=(project()._editVersion||0)+1;persist();closeModal();modalJobId=null;render();
  }

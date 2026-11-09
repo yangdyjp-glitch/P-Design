@@ -1,4 +1,5 @@
 import {clone} from './engine.js';
+import {paginationIssue,projectPaginationMode} from './pagination-policy.js';
 
 export function canApplyAutomatic(job,project){
  return !!project&&job.projectId===project.id&&!project._cloudDirty&&!project._syncConflict&&project.cloudRevision===job.baseRevision;
@@ -11,6 +12,11 @@ export function designProposal(job,project){
  if(!project||job.projectId!==project.id)throw Error('原项目已删除，可从交付文件查看结果。');
  const result=job.result,draft=clone(project);
  if(job.scope==='page'&&(result.replacePages||job.pageIds?.length!==1||result.pages?.length!==1||result.pages[0].id!==job.pageIds[0]))throw Error('单图方案超出了当前图的修改范围。');
+ if(job.automatic&&job.scope!=='page'){
+  const mode=job.paginationMode==='fixed'||project.paginationMode==='fixed'?'fixed':job.paginationMode||projectPaginationMode(project);
+  const issue=paginationIssue(project.pages,result.pages,mode);
+  if(issue)throw Error(issue+'。本次结果未应用。');
+ }
  for(const asset of result.assets||[])if(!draft.assets.some(item=>item.id===asset.id))draft.assets.push(asset);
  if(result.replacePages){
   draft.pages=result.pages.map(page=>{

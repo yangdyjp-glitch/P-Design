@@ -1,6 +1,7 @@
 import {assertLockedCopy,readCopyBlocks} from './copy-integrity';
 import {styleIssue} from '../src/style-safety.js';
 import {imageModeIssue,requiresPhoto,requiredUploadIds} from '../src/preset-images.js';
+import {paginationIssue} from '../src/pagination-policy.js';
 
 export class DesignValidationError extends Error {
  constructor(public code:string,message:string){super(message);this.name='DesignValidationError';}
@@ -13,6 +14,7 @@ export function validateDesignResult(raw:any,job:{snapshot:string;skill_ids:stri
  const sourceCopy:any[]=snapshot.pages.flatMap((p:any)=>p.copy),copyById=new Map<string,any>(sourceCopy.map(c=>[c.id,c])),returnedCopyIds:string[]=[];
  if(automatic&&(raw.pages.length<1||raw.pages.length>20||copyById.size!==sourceCopy.length))reject('PAGE_COUNT','AI 分页数量或原文编号不正确');
  if(pageScoped&&(snapshot.pages.length!==1||raw.pages.length!==1))reject('PAGE_SCOPE','单图修改必须保留当前一张图，不能新增、删除或重新分页');
+ if(automatic&&snapshot.paginationMode==='fixed'&&raw.pages.length!==snapshot.pages.length)reject('PAGE_BOUNDARY','已明确分页的文案必须保持原页数；让图片适配页面，不能为了放图自行增页、拆页或合并');
  const assetIds=new Set<string>([...(snapshot.assets||[]).map((a:any)=>a.id),...(job.generatedAssetIds||[])]),usedImages=new Set<string>();
  const pages=raw.pages.map((page:any,position:number)=>{
   const original=allowed.get(page?.id),index=automatic?position+1:snapshot.pages.findIndex((p:any)=>p.id===page?.id)+1;
@@ -50,6 +52,7 @@ export function validateDesignResult(raw:any,job:{snapshot:string;skill_ids:stri
   }
   return {id:page.id,html:page.html,css:page.css,photoAssetId,...(automatic?{copy:structuredClone(copy),label:String(copy[0]?.text||'画面 '+index).slice(0,24)}:{})};
  });
+ if(automatic){const issue=paginationIssue(snapshot.pages,pages,pageScoped||snapshot.paginationMode==='fixed'?'fixed':'auto');if(issue)reject('PAGE_BOUNDARY',issue);}
  if(automatic&&usedImages.size>8)reject('ASSET_COUNT','一轮方案最多使用8张不同图片，请从上传及搜索素材中择优选用');
  const modeIssue=imageModeIssue(snapshot.imageMode,pages,[...(snapshot.assets||[]),...(job.generatedAssets||[])],{requirePhoto:automatic&&requiresPhoto(snapshot),requiredUploadIds:automatic?requiredUploadIds(snapshot):[]});if(modeIssue)reject('IMAGE_MODE',modeIssue);
  if(automatic&&(returnedCopyIds.length!==sourceCopy.length||returnedCopyIds.some((id,i)=>id!==sourceCopy[i].id)))reject('COPY_ORDER','AI 分页遗漏、重复或调整了原文顺序');

@@ -33,7 +33,7 @@ export function jobProgress(job,project){
   stage='correcting';action='自动修正版面';detail='正在根据检查发现的问题修正版面。';
  }else{
   stage='designing';action=job.kind==='write'?'整理文案':job.kind==='reference'?'分析参考图':job.kind==='image'?'制作视觉素材':pageOnly?'调整版式':'设计整套画面';
-  detail=job.kind==='write'?'正在根据素材整理文案。':job.kind==='reference'?'正在分析本次参考图片。':job.kind==='image'?'正在制作本次视觉素材。':pageOnly?'正在调整本图的文字层级、图文位置和版式。':'正在安排文案分页、图文位置和整套版式。';
+  detail=job.kind==='write'?'正在根据素材整理文案。':job.kind==='reference'?'正在分析本次参考图片。':job.kind==='image'?'正在制作本次视觉素材。':pageOnly?'正在调整本图的文字层级、图文位置和版式。':job.paginationMode==='fixed'?'正在保留原分页，安排图文位置和整套版式。':'正在安排文案分页、图文位置和整套版式。';
  }
  const shortAction=({'saving-input':'保存',submitting:'提交',queued:'排队',starting:'准备',designing:'设计',searching:'搜图',generating:'配图',correcting:'修正',checking:'检查',saving:'保存'})[stage];
  return {stage,action,shortAction,scope,label:scope+' · '+action,message:scope+'：'+detail,pageId,projectId:job.projectId};

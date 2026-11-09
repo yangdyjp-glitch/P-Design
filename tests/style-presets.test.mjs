@@ -52,3 +52,8 @@ test('published style selections survive project saving and resolve to server-ow
   assert.deepEqual(restored.pages,project.pages);assert.equal(restored.allowWebImages,preset.imageMode==='web');
  }
 });
+test('project saving retains explicit or automatic pagination and rejects unknown policy values',()=>{
+ for(const paginationMode of ['fixed','auto'])assert.equal(validateProject({...project,paginationMode}).paginationMode,paginationMode);
+ assert.equal(validateProject(project).paginationMode,'fixed');
+ for(const paginationMode of ['custom',{},false])assert.throws(()=>validateProject({...project,paginationMode}),error=>error.status===400);
+});

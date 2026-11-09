@@ -188,10 +188,11 @@ test('all skills remain available while startup stays small and optional resourc
 test('the hosted job receives the saved style recipe without weakening image or page policies',async()=>{
  const h=await harness();try{
   const stylePreset={id:'preset-1',name:'测试预案',version:3,direction:'仅用于隔离检查的风格规则。'};
-  h.db.prepare("UPDATE jobs SET status='queued',session_id=NULL,environment_id=NULL,snapshot=?").run(JSON.stringify({...source,stylePreset,scope:'page',imagePolicy:{minUploadedVisible:.8}}));
+  h.db.prepare("UPDATE jobs SET status='queued',session_id=NULL,environment_id=NULL,snapshot=?").run(JSON.stringify({...source,stylePreset,scope:'page',paginationMode:'fixed',imagePolicy:{minUploadedVisible:.8}}));
   await startJob(h.read());
   const body=h.starts[0],input=JSON.parse(Buffer.from(body.environment.files.find(file=>file.path==='/workspace/input/project.json').data,'base64').toString());
   assert.deepEqual(input.stylePreset,stylePreset);assert.equal(input.scope,'page');assert.equal(input.imagePolicy.minUploadedVisible,.8);
+  assert.equal(input.paginationMode,'fixed');assert(body.environment.files.some(file=>file.path==='/workspace/runtime/pagination-policy.mjs'));assert.match(body.agent.instructions,/MANDATORY PAGINATION RULE/);
   assert.match(body.agent.instructions,/mandatory image policy and authorized page scope take precedence/);
  }finally{h.db.close();}
 });
@@ -225,6 +226,16 @@ test('omitting one of two required uploads triggers one correction and only a co
   h.files['result-1']=JSON.stringify(result(['one']));await advanceJob(h.read());assert.equal(h.read().status,'running');assert.match(h.events.at(-1).input[0].content[0].text,/交流照/);
   h.state.turn='turn-2';h.state.invalid=false;h.files['result-2']=JSON.stringify(result(['one','two']));h.files['audit-2']=JSON.stringify({...manifest,pages:[{id:'reading-cover',imageChecks:assets.map(a=>({assetId:a.id,source:'upload',visibleFraction:1,loaded:true,passed:true}))}]});
   await advanceJob(h.read());assert.equal(h.read().status,'completed');assert.equal(JSON.parse(h.read().result).repairAttempts,1);assert.equal(h.events.filter(event=>event.type==='agent.session.input.message').length,1);
+ }finally{h.db.close();}
+});
+test('splitting a fixed page triggers one correction and only the restored page boundary can finish',async()=>{
+ const h=await harness();try{
+  h.db.prepare('UPDATE jobs SET snapshot=?').run(JSON.stringify({...source,scope:'project',paginationMode:'fixed'}));
+  h.files['result-1']=JSON.stringify({...validResult,pages:[{id:'source-page',html:markup(blocks.slice(0,1)),css:''},{id:'extra-photo-page',html:markup(blocks.slice(1)),css:''}]});
+  await advanceJob(h.read());assert.equal(h.read().status,'running');assert.match(h.events.at(-1).input[0].content[0].text,/保持原页数/);
+  h.state.turn='turn-2';h.state.invalid=false;h.files['result-2']=JSON.stringify({...validResult,pages:[{...validResult.pages[0],id:'source-page'}]});h.files['audit-2']=JSON.stringify({...manifest,pages:[{id:'source-page'}]});
+  await advanceJob(h.read());assert.equal(h.read().status,'completed');assert.equal(JSON.parse(h.read().snapshot).paginationMode,'fixed');
+  const result=JSON.parse(h.read().result);assert.equal(result.repairAttempts,1);assert.equal(result.pages.length,1);assert.deepEqual(result.pages[0].copy,blocks);assert.equal(h.events.filter(event=>event.type==='agent.session.input.message').length,1);
  }finally{h.db.close();}
 });
 test('invalid AI output gets one correction; stale turns are ignored; actual success keeps prior font artifacts',async()=>{
