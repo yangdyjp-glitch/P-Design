@@ -2,7 +2,9 @@
 
 更新日期：2026-11-09。本文记录版本及接续方法；后续修改应同步更新本文的部署记录和限制。
 
-后续新增 Railway 访客 AI 接入：用户本轮明确要求暂不做登录，先接 AI。代码、启动命令、环境变量、自动技能上传与持久化前提见 [docs/railway.md](docs/railway.md)。原 Sites 的部署记录仍单独保留；Railway 上线状态需要按该说明核验，不能仅凭 GitHub 推送或本机测试判定成功。
+**最新 0.5.0：用户已要求登录与独立账户，取代 Railway 的匿名访客入口。** 登录页为 `/login`，管理员账户名 `admin`，按用户指定的初始密码创建；管理员可新建、启停普通账户。项目、素材、任务、下载、个人额度及本机缓存按账户隔离，管理员不直接读取其他人的作品。账号与会话保存在现有数据库，启动自动迁移，原 Sites 身份与当前 PostgreSQL TLS 配置保留。完整使用、隔离边界和开发方法见 [账户说明](docs/accounts.md)。发布需核对 Railway 部署、`/api/health` 的 `accessMode=accounts` 与真实登录；证据位于忽略的 `qa/railway/accounts/`。
+
+历史阶段曾按用户要求先开放 Railway 访客 AI，启动命令、环境变量、自动技能上传与持久化前提见 [docs/railway.md](docs/railway.md)。其中匿名入口已由 0.5.0 替换，原 Sites 部署记录仍单独保留。
 
 Railway 随后已配置密钥，公网文案生成及实际文件下载验证通过，14 个技能就绪。后续排版失败排查发现正常 CSS 子选择器与标准 SVG 命名空间被误拦；修复入口是 `server/design-result.ts`、`src/style-safety.js`，验证方法和发布前备份要求见上述 Railway 说明及 [QA.md](QA.md)。发布仍需单独核验，不把本地修复或提交视为已上线。
 
@@ -61,7 +63,7 @@ appgprj_6aecb5faa0b881919c03675fe284bf42~appgver_4cc3db99fef48191a2c046f739c0ece
 
 已实现：
 
-- Sites 按 ChatGPT 用户 ID、Railway 按独立访客身份隔离云端项目、图片、AI 任务及交付文件。
+- Sites 按 ChatGPT 用户 ID、Railway 按登录账户 ID 隔离云端项目、图片、AI 任务及交付文件；历史访客数据保留原归属。
 - 0.3 主界面统一为自动设计；后台保留旧版设计、局部改稿、参考分析、封面、排版复核、文案创作、图像素材与模板接口。
 - 14 个完整技能包按需传入 OpenAI 托管环境，执行 Python、Node 和浏览器渲染；必要的示意图片由服务端调用生成。
 - 原文校验、HTML/CSS 清理、项目版本检查、任务幂等、取消及基础额度控制。
@@ -69,7 +71,7 @@ appgprj_6aecb5faa0b881919c03675fe284bf42~appgver_4cc3db99fef48191a2c046f739c0ece
 
 尚未完成或启用：
 
-- 原 Sites 的公开访问或邀请设置仍未启用；Railway 已公开提供独立访客空间。
+- 原 Sites 的公开访问或邀请设置仍未启用；Railway 提供登录入口，普通账户由管理员创建。
 - 关闭网页后的可靠后台任务推进。签名回调代码已实现，但未配置生产回调秘密与公开可达的回调链路。当前处理任务应保持网页打开，重新进入可继续处理、查看结果。
 - 收费、订阅、团队协作和按金额计费的预算上限。
 - 小红书账号登录、自动发帖、评论等运营功能。
@@ -158,6 +160,7 @@ node scripts/dev-ai-proxy.mjs
 | `src/style-presets.js` | 三个固定风格预案及可信解析；目前均待设定，按用户确认逐一完善 |
 | `src/engine.js` | 文案拆分、页面渲染、HTML/CSS 清理、排版检查；保留 `data-copy` 文案块标记 |
 | `src/cloud.js` | 登录状态、云端同步、技能库、AI 表单、轮询、结果预览和应用 |
+| `server/accounts.ts`、`src/accounts.js`、`public/accounts.css` | Railway 账户认证、管理、跨标签页退出及登录页面 |
 | `public/app.css`、`public/ai.css` | 编辑器与 AI 界面样式 |
 | `public/editor.js` | 从 `src/` 生成的文件；应修改源文件后重建 |
 | `public/assets/fonts/` | 中文字体及许可，网页和托管渲染共用 |

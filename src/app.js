@@ -2,6 +2,7 @@
 import {toBlob} from "html-to-image";
 import JSZip from "jszip";
 import {createCloud} from "./cloud.js";
+import {createAccounts} from "./accounts.js";
 import {STYLE_PRESETS,resolveStylePreset,validateStylePresetId} from "./style-presets.js";
 import {projectImageMode,webImagesForMode} from "./preset-images.js";
 import {uid,clean,escape as esc,clone,LAYOUTS,PALETTES,parseManuscript,pageMarkup,frameDocument,applyFontScale,auditPage,routeSkills,quickAdjustment,validateProject,clamp} from "./engine.js";
@@ -37,18 +38,20 @@ function current(){const p=project();return p?.pages.find(x=>x.id===S.pageId)||p
 function toast(t){const el=$("#toast");el.textContent=t;el.classList.add("visible");clearTimeout(toastTimer);toastTimer=setTimeout(()=>el.classList.remove("visible"),4300);}
 function openDB(){return new Promise((resolve,reject)=>{const r=indexedDB.open("tuxu-studio-"+(S.session?.user?.id||"guest"),1);r.onupgradeneeded=()=>r.result.createObjectStore("workspace");r.onsuccess=()=>resolve(r.result);r.onerror=()=>reject(r.error);});}
 function dbRead(){return new Promise((resolve,reject)=>{const r=S.db.transaction("workspace").objectStore("workspace").get("state");r.onsuccess=()=>resolve(r.result);r.onerror=()=>reject(r.error);});}
+function cacheWorkspace(){return new Promise((resolve,reject)=>{const t=S.db.transaction("workspace","readwrite");t.objectStore("workspace").put({projects:S.projects,activeId:S.activeId},"state");t.oncomplete=resolve;t.onerror=()=>reject(t.error);t.onabort=()=>reject(t.error);});}
 async function persist({skipCloud=false}={}){
+ if(S.authLocked||S.session?.accessMode==='accounts'&&!S.session.user)return;
  clearTimeout(saveTimer);
  const p=project();if(p)p.updatedAt=Date.now();
  const label=$("#save-status");if(label)label.textContent="正在保存…";
  try{
   if(!S.db)throw Error("浏览器存储不可用");
-  await new Promise((resolve,reject)=>{const t=S.db.transaction("workspace","readwrite");t.objectStore("workspace").put({projects:S.projects,activeId:S.activeId},"state");t.oncomplete=resolve;t.onerror=()=>reject(t.error);t.onabort=()=>reject(t.error);});
+  await cacheWorkspace();
   if(label)label.textContent=S.session?.user?(skipCloud?(p?._cloudDirty?"已保存到本机":"已保存到云端"):"正在同步云端…"):"已保存到此浏览器";
-  if(!skipCloud&&p&&S.session?.user){try{await Cloud.save(p);}catch(e){if(label)label.textContent="本机已保存 · 云端待同步";toast(e.message);}}
+  if(!skipCloud&&p&&S.session?.user){try{await Cloud.save(p);if(!S.authLocked&&S.db)await cacheWorkspace();}catch(e){if(label)label.textContent="本机已保存 · 云端待同步";toast(e.message);}}
  }catch(e){if(label)label.textContent="尚未保存 · 请备份项目";toast("浏览器存储不足或不可用，请下载项目备份以免丢失。");}
 }
-function scheduleSave(){const p=project();if(p){p._cloudDirty=true;p._editVersion=(p._editVersion||0)+1;}clearTimeout(saveTimer);const el=$("#save-status");if(el)el.textContent="正在保存…";saveTimer=setTimeout(persist,450);}
+function scheduleSave(){if(S.authLocked)return;const p=project();if(p){p._cloudDirty=true;p._editVersion=(p._editVersion||0)+1;}clearTimeout(saveTimer);const el=$("#save-status");if(el)el.textContent="正在保存…";saveTimer=setTimeout(persist,450);}
 function remember(label){
  const p=project();p.history??=[];p.redo=[];p.history.push({id:uid(),at:Date.now(),label,pages:clone(p.pages)});if(p.history.length>25)p.history.shift();
  const undo=$('[data-action="undo"]'),redo=$('[data-action="redo"]');if(undo)undo.disabled=false;if(redo)redo.disabled=true;
@@ -57,6 +60,7 @@ function edit(label,fn,{full=true}={}){remember(label);fn();S.audit=null;schedul
 function activePageIndex(){return project().pages.findIndex(p=>p.id===current().id);}
 function markup(p,interactive=false){return frameDocument(p,project(),S.baseCSS,{interactive});}
 function render(){
+ if(S.authLocked)return;
  const p=project(),page=current(),visitor=S.session?.accessMode==='visitor';if(!p||!page)return;
  S.pageId=page.id;
  $("#app").innerHTML='<div class="shell">'+
@@ -168,7 +172,7 @@ function showHistory(){
  modal("版本记录",'<div class="project-summary">'+icon("history")+'保留最近25次操作，可撤销或恢复。<span style="margin-left:auto">'+hist.length+' 条</span></div>'+
  (hist.length?hist.slice().reverse().map(h=>'<div class="version-item"><div>'+esc(h.label)+'<small>'+formatDate(h.at)+'</small></div>'+button("restore-history","恢复",null,"btn small",'data-id="'+h.id+'"')+'</div>').join(""):'<div class="empty">还没有修改记录。<br>修改文案、构图或照片后，记录会出现在这里。</div>'));
 }
-function showSettings(){modal("关于图序工作台",'<div class="settings-item"><b>你负责内容，AI 负责画面</b><p>准备文案与图片后，AI 自行决定分页、视觉方向、照片安排和设计技能，并执行渲染与网页检查。检查通过后自动呈现。</p></div><div class="settings-item"><b>保留你的修改</b><p>右侧文案始终可以编辑。如果生成期间更新了文案，旧方案会保留，新内容不会被旧结果覆盖。</p></div><div class="settings-item"><b>带走可编辑作品</b><p>可下载高清图片、可编辑 HTML 和项目备份。使用其他电脑前，请先备份项目。</p></div><p class="small-note">版本 0.4.3 · 三种排版预案</p>');}
+function showSettings(){modal("关于图序工作台",'<div class="settings-item"><b>你负责内容，AI 负责画面</b><p>准备文案与图片后，AI 自行决定分页、视觉方向、照片安排和设计技能，并执行渲染与网页检查。检查通过后自动呈现。</p></div><div class="settings-item"><b>每个账户，独立创作</b><p>文案、素材、项目和设计记录按账户隔离。管理员可以创建账户，使用者在自己的工作空间里继续编辑。</p></div><div class="settings-item"><b>带走可编辑作品</b><p>可下载高清图片、可编辑 HTML 和项目备份。</p></div><p class="small-note">版本 0.5.0 · 独立账户工作空间</p>');}
 function showExport(){
  modal("导出你的作品",'<div class="project-summary"><b>'+project().pages.length+'</b><div>个画面已准备就绪<br><span class="tiny muted">2160 × 2880 · 高清 PNG</span></div></div><div class="settings-item"><b>导出整套高清图</b><p>每页生成一张PNG，并打包成ZIP。导出前会自动检查缺字、越界与图片加载。</p></div><div class="panel-actions">'+button("export-all","整套PNG · ZIP","download","btn primary")+button("export-one","仅导出当前页",null,"btn")+'</div><div class="inspector-divider"></div><div class="settings-item"><b>保留可编辑作品</b><p>项目备份可再次导入图序；HTML工程包含正式文字、布局、照片和字体许可。</p></div><div class="panel-actions">'+button("backup","项目备份 · JSON","save","btn")+button("export-source","可编辑HTML · ZIP","folder","btn")+'</div>');
 }
@@ -182,10 +186,10 @@ function confirmDelete(kind){
  const p=project(),isProject=kind==="project";
  modal(isProject?"删除这个项目？":"删除这个页面？",'<p style="font-size:12px;line-height:1.9">将删除'+esc(isProject?p.name:"当前第 "+(activePageIndex()+1)+" 页")+'。'+(isProject?"建议先下载项目备份。":"页面删除后可以撤销。")+'</p>',button("close","取消",null,"btn")+button(isProject?"confirm-delete-project":"confirm-delete-page","确认删除","trash","btn primary"));
 }
-function mobileMenu(){modal("你的工作空间",'<div class="mobile-actions">'+button("new","新建图文","plus","btn full")+button("mobile-copy","编辑文案","type","btn full")+button("assets","项目素材","image","btn full")+button("ai-tasks","设计记录","history","btn full")+button("account","当前工作空间","settings","btn full")+button("backup","备份当前作品","save","btn full")+'</div>');}
+function mobileMenu(){modal("你的工作空间",'<div class="mobile-actions">'+button("new","新建图文","plus","btn full")+button("mobile-copy","编辑文案","type","btn full")+button("assets","项目素材","image","btn full")+button("ai-tasks","设计记录","history","btn full")+button("account",S.session?.accessMode==='accounts'?"我的账户":"当前工作空间","settings","btn full")+button("backup","备份当前作品","save","btn full")+'</div>');}
 function mobileCopy(){modal("编辑当前页文案",current().copy.map((c,i)=>'<label class="copy-field"><span class="field-heading">'+(i===0?"标题":"内容 "+i)+'</span><textarea data-copy-field="'+esc(c.id)+'" rows="4">'+esc(c.text)+'</textarea></label>').join(""),button("close","完成编辑","check","btn primary"));}
 const actions={
- "mobile-menu":mobileMenu,"mobile-copy":mobileCopy,"ai-design":()=>Cloud.startDesign(),"ai-page":()=>Cloud.startPageDesign(),"ai-tasks":()=>Cloud.showTasks(),skills:()=>Cloud.showSkills(),account:()=>Cloud.showAccount(),new:newProjectDialog,workspace:()=>{closeModal();},assets:showAssets,more:showMore,history:showHistory,settings:showSettings,
+ "mobile-menu":mobileMenu,"mobile-copy":mobileCopy,"ai-design":()=>Cloud.startDesign(),"ai-page":()=>Cloud.startPageDesign(),"ai-tasks":()=>Cloud.showTasks(),skills:()=>Cloud.showSkills(),account:()=>S.session.accessMode==='accounts'?Accounts.showAccount():Cloud.showAccount(),new:newProjectDialog,workspace:()=>{closeModal();},assets:showAssets,more:showMore,history:showHistory,settings:showSettings,
  "preset-details":showPresetDetails,
  close:()=>{if(!S.busy)closeModal();},export:showExport,overview:()=>showOverview(),phone:()=>showOverview(true),
  "project-settings":projectSettings,"save-project-name":()=>{const n=$("#project-name").value.trim();if(!n)return toast("请输入项目名称。");project().name=n;closeModal();scheduleSave();render();},
@@ -336,6 +340,7 @@ async function exportSource(){
 }
 
 document.addEventListener("click",e=>{
+ if(S.authLocked)return;
  const b=e.target.closest("[data-action]");if(!b||b.disabled)return;
  const fn=actions[b.dataset.action];if(fn&&!S.busy)Promise.resolve(fn(b)).catch(err=>toast(err.message));
 });
@@ -397,26 +402,34 @@ window.addEventListener("message",e=>{
  const field=$('[data-copy-field="'+c.id+'"]');field?.scrollIntoView({block:"center",behavior:"smooth"});field?.focus({preventScroll:true});
 });
 document.addEventListener("keydown",e=>{
+ if(S.authLocked||!project())return;
  if((e.ctrlKey||e.metaKey)&&e.key==="Enter"&&e.target.id==="design-notes"&&!e.isComposing){e.preventDefault();const send=$('[data-action="ai-page"]');if(send&&!send.disabled)Cloud.startPageDesign();return;}
  if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==="s"){e.preventDefault();persist();toast("已保存到此浏览器。");}
  if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==="z"&&!["TEXTAREA","INPUT"].includes(document.activeElement?.tagName)&&!S.busy){e.preventDefault();actions[e.shiftKey?"redo":"undo"]();}
 });
 window.addEventListener("resize",fitCanvas);
 window.addEventListener("beforeunload",()=>{clearTimeout(saveTimer);if(S.db)persist();});
-const Cloud=createCloud({S,project,current,modal,closeModal,toast,render,remember,persist,button,baseCSS:()=>S.baseCSS,auditProposal});
+function freezeWorkspace(){S.authLocked=true;clearTimeout(saveTimer);clearTimeout(previewTimer);Cloud.dispose();closeModal();S.db?.close();S.db=null;S.projects=[];S.jobs=[];S.activeId=null;S.pageId=null;dataURLCache.clear();delete window.TuXu;$("#file-images").value='';$("#file-project").value='';$("#app").innerHTML='<div class="boot"><p>正在更新登录状态…</p></div>';}
+const Cloud=createCloud({S,project,current,modal,closeModal,toast,render,remember,persist,button,baseCSS:()=>S.baseCSS,auditProposal,onAuthLost:()=>Accounts.onAuthLost()});
+const Accounts=createAccounts({S,request:Cloud.request,modal,toast,freeze:freezeWorkspace,persist});
 async function legacyProjects(name="tuxu-studio"){return new Promise(resolve=>{const r=indexedDB.open(name,1);r.onupgradeneeded=()=>{r.transaction.abort();resolve([]);};r.onerror=()=>resolve([]);r.onsuccess=()=>{try{const q=r.result.transaction("workspace").objectStore("workspace").get("state");q.onsuccess=()=>{resolve(q.result?.projects||[]);r.result.close();};q.onerror=()=>resolve([]);}catch{resolve([]);}};});}
 async function boot(){
  try{
   await Cloud.init();
+  if(S.authLocked)return;
+  if(S.session.serviceError)throw Error(S.session.serviceError);
+  if(S.session.accessMode==='accounts'&&!S.session.user){Accounts.login();return;}
+  if(S.session.accessMode==='accounts'&&location.pathname==='/login')history.replaceState(null,'','/');
   S.baseCSS=await (await fetch("sample/poster.css")).text();S.baseCSS=S.baseCSS.replace(/\\.ttf/g,".woff2").replace(/format\\("truetype"\\)/g,'format("woff2")');
   try{S.db=await openDB();const saved=await dbRead();if(saved?.projects?.length){S.projects=saved.projects;S.activeId=saved.activeId;}}catch{toast("本机缓存暂时不可用，请及时备份作品。");}
   let remote=[];try{remote=await Cloud.pull();}catch{toast("云端项目暂时无法载入，可继续使用本机缓存。");}
+  if(S.authLocked)return;
   for(const p of remote){const local=S.projects.find(x=>x.id===p.id);if(!local)S.projects.push(p);else if(!local._cloudDirty&&p.cloudRevision>(local.cloudRevision||0))S.projects[S.projects.indexOf(local)]=p;}
-  if(!S.projects.length&&S.session.isAdmin)S.projects=await legacyProjects();
+  if(!S.projects.length&&S.session.isAdmin&&S.session.accessMode!=='accounts')S.projects=await legacyProjects();
   if(!S.projects.length&&S.session.accessMode==='visitor'){S.projects=await legacyProjects('tuxu-studio-guest');for(const p of S.projects){delete p.cloudRevision;delete p._syncConflict;p._cloudDirty=true;}}
   if(!S.projects.length){const p={id:uid(),name:"从文案开始",pages:parseManuscript("让好内容，被看见\n把你的完整文案放在右侧，也可以上传本次图片。\n画面、分页和设计检查，交给 AI 自行完成。",{preserveText:true}),assets:[],history:[],redo:[],createdAt:Date.now(),updatedAt:Date.now()};S.projects=[p];}
   if(!project())S.activeId=S.projects[0].id;S.pageId=project().pages[0].id;render();Cloud.updateBadge();await persist({skipCloud:!project()._cloudDirty&&!!project().cloudRevision});Cloud.startPolling();
-  window.TuXu={getState:()=>clone({projects:S.projects,activeId:S.activeId,pageId:S.pageId,user:S.session.user,jobs:S.jobs}),auditCurrent:()=>auditPage($("#canvas-frame").contentDocument,current(),project()),version:"0.4.3"};
+  window.TuXu={getState:()=>clone({projects:S.projects,activeId:S.activeId,pageId:S.pageId,user:S.session.user,jobs:S.jobs}),auditCurrent:()=>auditPage($("#canvas-frame").contentDocument,current(),project()),version:"0.5.0"};
  }catch(e){$("#app").innerHTML='<div class="boot"><h1>工作台暂时未能打开</h1><p>'+esc(e.message)+'</p><button class="btn primary" onclick="location.reload()">重新打开</button></div>';}
 }
 boot();

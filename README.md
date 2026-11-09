@@ -1,14 +1,14 @@
 # 图序 · AI 小红书设计工作台
 
-从文案与真实素材，到可编辑的小红书图文。0.3 以右侧文案为中心，由 AI 自动决定画面、分页与技能，执行检查后呈现；改版发布状态与流程见 [自动设计说明](docs/automatic-workflow.md)。
+从文案与真实素材，到可编辑的小红书图文。AI 自动决定画面、分页与技能，执行检查后呈现。0.5.0 增加 [登录与独立账户](docs/accounts.md)：管理员创建普通账户，每个账户独立保存项目、素材与设计记录。
 
 换电脑接续开发，请先读 [HANDOFF.md](HANDOFF.md)，包含首次运行、AI配置、源码入口、发布步骤和当前限制。
 
-Railway 部署新增无需账号的访客 AI 模式，配置与验证见 [Railway 接入说明](docs/railway.md)。推荐启动命令为 `npm run start:railway`，此前带 sites-env 预加载的长命令也已兼容；需要配置 Railway 服务端密钥。原 Sites 站点仍沿用原认证与存储。
+Railway 部署默认需要账户登录，配置与验证见 [Railway 接入说明](docs/railway.md)。推荐启动命令为 `npm run start:railway`，此前带 sites-env 预加载的长命令也已兼容；需要配置 Railway 服务端 AI 密钥。原 Sites 站点仍沿用原认证与存储。
 
 Railway 可通过服务端 `DATABASE_URL` 接入 Supabase PostgreSQL，自动建表并将卷里的旧数据导入空的业务 schema；图片继续保存在现有卷。设置及验收见 [Supabase 接入说明](docs/supabase.md)。此能力需部署本次代码并核对健康接口，不能仅凭添加变量认定已生效。
 
-- Railway 无需登录即可使用独立访客空间；原 Sites 保留平台身份路径。
+- Railway 使用管理员创建的账户登录，服务端与本机缓存均按账户隔离；原 Sites 保留平台身份路径。
 - 保留右侧文案编辑，AI 自行判断分页、构图、配色、字重、照片安排和必要的示意素材。
 - 14 个完整设计模块由 AI 按需加载与使用，界面无需选择任务类型、主技能或排版参数。
 - 完整技能和脚本在隔离的托管环境执行，密钥始终保留在服务端。
@@ -23,7 +23,7 @@ Railway 可通过服务端 `DATABASE_URL` 接入 Supabase PostgreSQL，自动建
 
 0.4.3 为三种预案配置不同排版原则：上传图优先适配原图，联网图围绕实景主体与留白构图，纯文字根据段落和信息关系重新组织整张画面。AI 根据实际素材与内容选择布局并记录原因，各有检查重点。此前 0.4.2 的图片来源、裁剪保护及自动检查继续生效；具体规则见上述说明。
 
-原 [Sites 站点](https://tuxu-design-studio-20261106.phd-yang.chatgpt.site) 保留所有者私有范围；[Railway 站点](https://p-design.up.railway.app/) 已开放独立访客空间。2026-11-07 用户确认没有需要保留的云端项目，0.3 已合入 main 进行发布；生产就绪仍以实际部署及公网验证为准。本仓库保存源码和技能资源，不包含运行凭证或用户作品。原 Sites 部署记录见[部署记录](docs/deployment.md)。
+原 [Sites 站点](https://tuxu-design-studio-20261106.phd-yang.chatgpt.site) 保留所有者私有范围；[Railway 站点](https://p-design.up.railway.app/) 使用独立账户工作空间。生产就绪以实际部署及公网验证为准。本仓库保存源码和技能资源，不包含 AI 凭证或用户作品。原 Sites 部署记录见[部署记录](docs/deployment.md)。
 
 开发需要 Node>=22.13。首次运行 `npm ci`、`npm run build`，按[开发与部署说明](docs/setup.md)初始化本地数据库，再运行 `npm run dev`。本地地址为 http://127.0.0.1:5173 。类型检查运行 `npx tsc --noEmit`，构建运行 `npm run build`。开发凭证放在被忽略的 `.env.local`，生产凭证通过 Sites 的服务端秘密配置管理；网页代码无需填写密钥。当前本地真实AI还需要技能上传清单和开发转发服务 `scripts/dev-ai-proxy.mjs`，详见[交接文件](HANDOFF.md#4-新电脑本地真实-ai)。生产站点不经过本机。
 

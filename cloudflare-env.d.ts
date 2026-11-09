@@ -5,5 +5,7 @@ declare namespace Cloudflare {
     DATABASE_URL?: string;
     DATABASE_CA_CERT?: string;
     TUXU_POSTGRES_LOCAL_PORT?: string;
+    ACCESS_MODE?: string;
+    APP_ORIGIN?: string;
   }
 }

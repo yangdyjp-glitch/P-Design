@@ -16,7 +16,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="zh-CN">
-      <head><link rel="stylesheet" href="/app.css" /><link rel="stylesheet" href="/ai.css" /></head>
+      <head><link rel="stylesheet" href="/app.css" /><link rel="stylesheet" href="/ai.css" /><link rel="stylesheet" href="/accounts.css" /></head>
       <body>{children}</body>
     </html>
   );

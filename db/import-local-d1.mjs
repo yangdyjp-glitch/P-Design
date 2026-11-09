@@ -35,15 +35,17 @@ export async function importLocalD1(client, stateDirectory) {
     if (sources.length > 1) throw Object.assign(new Error('Multiple local application databases found; select and migrate them manually.'), { code: 'MULTIPLE_LOCAL_DATABASES' });
     const sqlite = sources[0];
     sqlite.exec('BEGIN');
-    const counts = Object.fromEntries(tables.map(table => [table, Number(sqlite.prepare(`SELECT count(*) AS n FROM ${table}`).get().n)]));
+    const sourceNames = new Set(sqlite.prepare("SELECT name FROM sqlite_master WHERE type='table'").all().map(row=>row.name));
+    const selectedTables = [...tables, ...['accounts','account_sessions','login_attempts'].filter(table=>sourceNames.has(table))];
+    const counts = Object.fromEntries(selectedTables.map(table => [table, Number(sqlite.prepare(`SELECT count(*) AS n FROM ${table}`).get().n)]));
     const localCount = Object.values(counts).reduce((sum, count) => sum + count, 0);
     if (!localCount) return { localDatabaseFound: true, imported: counts };
-    for (const table of tables) {
+    for (const table of selectedTables) {
       if (Number((await client.query(`SELECT count(*) AS n FROM tuxu.${table}`)).rows[0].n)) {
         throw Object.assign(new Error('Supabase already contains application data. Local data was not merged or overwritten.'), { code: 'LOCAL_IMPORT_TARGET_NOT_EMPTY' });
       }
     }
-    for (const table of tables) {
+    for (const table of selectedTables) {
       const columns = (await client.query("SELECT column_name FROM information_schema.columns WHERE table_schema='tuxu' AND table_name=$1 ORDER BY ordinal_position", [table])).rows.map(row => row.column_name);
       const sourceColumns = new Set(sqlite.prepare(`PRAGMA table_info(${table})`).all().map(row => row.name));
       const selected = columns.filter(column => sourceColumns.has(column));

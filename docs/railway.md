@@ -1,6 +1,6 @@
-# Railway 访客 AI 接入
+# Railway AI 接入与账户运行
 
-2026-11-06 新增。此方案沿用现有 Worker / D1 / R2 接口，在 Railway 容器内运行，先供无需账号登录的 AI 试用。原 Sites 项目和访问范围保持不变。
+2026-11-06 首次接入，0.5.0 更新为账户登录。此方案沿用现有 Worker / 数据库 / 文件接口，在 Railway 容器内运行。管理员创建普通账户，每人独立操作；见 [账户说明](accounts.md)。原 Sites 项目和访问范围保持不变。
 
 ## 当前部署与接续
 
@@ -40,7 +40,7 @@ Supabase PostgreSQL 接入见 [Supabase 说明](supabase.md)。配置 `DATABASE_
 | `SKILL_FILES_JSON` | 同一 OpenAI 项目中已有的 15 个文件记录。省略时启动流程从仓库打包并上传，输出保存在数据目录下的 `skill-release/` |
 | `AGENT_MODEL` | 默认 `gpt-6-astra`，沿用现有模型 |
 | `IMAGE_MODEL` | 默认 `gpt-image-2.5-flare`，沿用现有图像模型 |
-| `VISITOR_SESSION_SECRET` | 可提供至少 32 字符的随机秘密；省略时在数据目录生成并保存，不会输出到日志 |
+| `VISITOR_SESSION_SECRET` | 旧访客回归路径使用的签名秘密；账户会话保存在数据库，不依赖此值 |
 | `AI_ENABLED` | 设为 `false` 可关闭新 AI 任务 |
 | `TUXU_DATA_DIR` | 自定义数据目录；默认优先使用平台卷挂载路径，否则使用容器内 `.wrangler/railway/` |
 | `DATABASE_URL` | 可选。Supabase Session pooler / 直连的 PostgreSQL URI；配置后使用外部数据库 |
@@ -76,24 +76,23 @@ Supabase PostgreSQL 接入见 [Supabase 说明](supabase.md)。配置 `DATABASE_
 
 在 Railway 环境下，`npm start` 也会自动选择此流程。显式使用 `npm run start:railway` 最便于维护；之前包含 sites-env 预加载的长命令也已做兼容。本地不带 Railway 环境变量的 `npm start -- --port 5174` 仍是原 Sites 预览模式。
 
-## 无账号的工作空间
+## 账户工作空间与历史访客兼容
 
-- 不创建账号或登录页面。首次进入时获得随机访客空间，使用服务端签名、HttpOnly、SameSite Cookie 识别，HTTPS 下使用 Secure Cookie。
-- 访客的项目、素材、任务和交付文件仍按不同 ID 检查所有权，不共用一个全站访客账号。
+- 0.5.0 公开网站需要登录。管理员初始账户为 `admin`，密码使用本次用户指定值，后续改密不会被重新部署重置。
+- 项目、素材、任务和交付文件按账户 ID 检查所有权；管理员可以管理账户，不自动拥有其他人的作品。
 - 公网请求自带的 `oai-authenticated-user-*` 头会被清除，不能通过伪造平台身份进入其他空间。
-- 访客不具有管理员权限，也无法读取原所有者的历史照片接口。
-- Cookie 有效期为 30 天；换浏览器、清除 Cookie 或过期后，不保证自动找回原访客空间。应导出项目文件及交付文件备份。
-- 原有每日每空间 10 次、全站 60 次、每空间 1 个及全站 6 个并行任务限制继续生效。这是任务次数限制，不是按金额的预算上限。
+- 会话 Cookie 有效期七天，退出、改密和停用账户会失效。账户和会话使用现有 PostgreSQL / D1；新账户不会自动领取旧访客项目或本机缓存。
+- 原有每日每账户 10 次、全站 60 次、每账户 1 个及全站 6 个并行任务限制继续生效。这是任务次数限制，不是按金额的预算上限。
 
-已有匿名编辑缓存会在首次进入访客模式时从同一浏览器的 `tuxu-studio-guest` 缓存接续，不从其他账号的空间导入。
+历史访客兼容仅用于本地回归：回环 origin 配合 `TUXU_LOCAL_VISITOR_QA=true` 才启用旧访客模式。不要把它当成公网匿名入口；新账户不读取历史访客缓存。
 
 ## 核验
 
 完成构建、变量配置与部署后：
 
-1. 打开 `/api/health`，应返回 `status: "ok"`、`accessMode: "visitor"`、`ai: true`、`skillsReady: 14`、`skillsTotal: 14`。
+1. 打开 `/api/health`，应返回 `status: "ok"`、`accessMode: "accounts"`、`ai: true`、`skillsReady: 14`、`skillsTotal: 14`。
 2. 挂载卷后应为 `storagePersistent: true`。未挂载时显示 `false`，不能宣称重新部署后数据已受保护。
-3. 网页右上角显示「访客空间」；0.3 的「新建图文」提供原文、选填图片和选填要求，主界面没有技能及视觉参数选择。
+3. 未登录时显示登录页。登录后右上角显示「我的账户」，管理员可以进入「管理账户」；新建图文保留原文、图片、三种预案及补充要求。
 4. 新建项目并启动实际自动设计，等待 AI 完成渲染和检查；网页独立检查通过后自动呈现，核对原文、保存状态及真实高清下载。
 
 接口显示 `ai: true` 只证明配置存在；真实任务成功才证明模型权限、网络、技能文件和执行环境均能工作。
@@ -108,7 +107,7 @@ npm run test:automatic
 npm run build
 ```
 
-启动本地 Railway 预览时设置 `TUXU_RUNTIME=railway`、`PORT=5177`、`APP_ORIGIN=http://127.0.0.1:5177`。本机凭证仅通过忽略的本地配置或进程环境传入，不放命令参数。服务就绪后运行：
+启动本地 Railway 预览时设置 `TUXU_RUNTIME=railway`、`PORT=5177`、`APP_ORIGIN=http://127.0.0.1:5177`；旧访客 API 回归另加 `TUXU_LOCAL_VISITOR_QA=true`。账户检查使用 `npm run test:accounts`。本机凭证仅通过忽略的本地配置或进程环境传入，不放命令参数。旧访客测试服务就绪后运行：
 
 ```powershell
 npm run qa:visitor

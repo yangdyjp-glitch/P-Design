@@ -21,6 +21,8 @@ if (origin.protocol !== 'https:' && !['127.0.0.1', 'localhost', '[::1]'].include
 if (process.env.RAILWAY_ENVIRONMENT_ID && !process.env.APP_ORIGIN && !process.env.RAILWAY_PUBLIC_DOMAIN) throw new Error('Set APP_ORIGIN to the public website URL.');
 
 const workerEnv = { ...process.env, CI: 'true', CLOUDFLARE_LOAD_DEV_VARS_FROM_DOT_ENV: 'true' };
+// Visitor mode remains available only for explicitly isolated, loopback QA.
+const accessMode=process.env.TUXU_LOCAL_VISITOR_QA==='true'&&['127.0.0.1','localhost','[::1]'].includes(origin.hostname)?'visitor':'accounts';
 if (!workerEnv.VISITOR_SESSION_SECRET) {
   const secretPath = path.join(dataDir, 'visitor-session-secret');
   try { workerEnv.VISITOR_SESSION_SECRET = (await fs.readFile(secretPath, 'utf8')).trim(); }
@@ -60,7 +62,7 @@ if (!manifest || Array.isArray(manifest) || typeof manifest !== 'object') throw 
 const configPath = path.join(root, 'dist/server/wrangler.railway.json');
 const config = JSON.parse(await fs.readFile(path.join(root, 'dist/server/wrangler.json'), 'utf8'));
 config.vars = {
-  ACCESS_MODE: 'visitor', APP_ORIGIN: origin.origin,
+  ACCESS_MODE: accessMode, APP_ORIGIN: origin.origin,
   AI_ENABLED: process.env.AI_ENABLED || 'true', STORAGE_PERSISTENT: String(persistent),
   AGENT_MODEL: process.env.AGENT_MODEL || 'gpt-6-astra', IMAGE_MODEL: process.env.IMAGE_MODEL || 'gpt-image-2.5-flare',
   APP_COMMIT: /^[a-f0-9]{40}$/i.test(process.env.RAILWAY_GIT_COMMIT_SHA || '') ? process.env.RAILWAY_GIT_COMMIT_SHA : '',
@@ -82,8 +84,8 @@ const stateDir = path.join(dataDir, 'state');
 const wrangler = 'node_modules/wrangler/bin/wrangler.js';
 if (!workerEnv.DATABASE_URL) await run(wrangler, ['d1', 'migrations', 'apply', 'DB', '--local', '--config', configPath, '--persist-to', stateDir]);
 console.log('TuXu database: ' + (workerEnv.DATABASE_URL ? 'PostgreSQL (tuxu)' : 'local D1') + '; file storage ' + (persistent ? 'persistent volume' : 'ephemeral') + '.');
-console.log('TuXu visitor workspace: ' + origin.origin + '; AI credential ' + (workerEnv.OPENAI_API_KEY ? 'configured' : 'missing') + '; skill resources ' + Object.keys(manifest).filter(x => x !== '_runtime').length + '/14.');
-if (!persistent) console.warn('No persistent volume is configured. Visitor projects and results must be exported before a redeployment.');
+console.log('TuXu '+accessMode+' workspace: ' + origin.origin + '; AI credential ' + (workerEnv.OPENAI_API_KEY ? 'configured' : 'missing') + '; skill resources ' + Object.keys(manifest).filter(x => x !== '_runtime').length + '/14.');
+if (!persistent) console.warn('No persistent file volume is configured. Export projects and results before redeployment; PostgreSQL account and project records remain persistent.');
 
 const child = spawn(process.execPath, [wrangler, 'dev', '--config', configPath, '--local', '--persist-to', stateDir, '--ip', bindIP, '--port', String(port), '--inspector-port', '0', '--log-level', logLevel], { cwd: root, env: workerEnv, stdio: ['ignore', 'inherit', 'inherit'] });
 for (const signal of ['SIGINT', 'SIGTERM']) process.once(signal, () => { child.kill(signal); void postgresTunnel?.close(); });

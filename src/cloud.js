@@ -3,15 +3,17 @@ import {canApplyAutomatic,hasAuditErrors,automaticMessage,designProposal,jobAppl
 const active=s=>['queued','starting','running','generating'].includes(s);
 const labels={queued:'等待开始',starting:'准备设计',running:'AI 设计与自检中',generating:'AI 制作视觉素材',completed:'已完成',failed:'未完成',cancelled:'已停止'};
 const kinds={design:'AI 自动设计',revise:'AI 自动调整',cover:'封面设计',polish:'排版复核',reference:'参考分析',write:'文案创作',image:'视觉素材',template:'主题制图'};
-export function createCloud({S,project,current,modal,closeModal,toast,render,remember,persist,button,baseCSS,auditProposal}){
- let saveChain=Promise.resolve(),pollTimer,modalJobId=null,polling=false,submitting=false;
+export function createCloud({S,project,current,modal,closeModal,toast,render,remember,persist,button,baseCSS,auditProposal,onAuthLost}){
+ let saveChain=Promise.resolve(),pollTimer,modalJobId=null,polling=false,submitting=false,owner=null,disposed=false;
+ const requests=new AbortController();
  const api=async(path,opts={})=>{
-  const r=await fetch('/api/'+path,{...opts,headers:{...(opts.body instanceof Blob?{}:{'Content-Type':'application/json'}),...(opts.headers||{})}});
+  if(disposed)throw Error('登录状态已变化，请重新打开工作台。');
+  const r=await fetch('/api/'+path,{...opts,signal:requests.signal,cache:'no-store',headers:{...(opts.body instanceof Blob?{}:{'Content-Type':'application/json'}),...(opts.headers||{}),...(owner?{'X-Tuxu-Account':owner}:{})}});
   let value;try{value=await r.json();}catch{throw Error('服务暂时不可用，请稍后重试。');}
-  if(!r.ok){const error=Error(value.error||'请求未完成。');error.status=r.status;throw error;}return value;
+  if(!r.ok){const error=Error(value.error||'请求未完成。');error.status=r.status;if(['AUTH_REQUIRED','AUTH_CHANGED'].includes(value.code))onAuthLost?.();throw error;}return value;
  };
  function signin(){modal('工作空间暂时未就绪','<p class="small-note">'+esc(S.session?.serviceError||'请先连接工作空间，再使用 AI。')+'</p>');}
- async function init(){S.jobs=[];try{S.session=await api('session');if(S.session.user)S.jobs=(await api('jobs')).jobs;}catch(error){S.session={user:null,serviceError:error.message,capabilities:{cloud:false,ai:false,skills:[]}};}return S.session;}
+ async function init(){S.jobs=[];try{S.session=await api('session');owner=S.session.accessMode==='accounts'?S.session.user?.id:null;if(S.session.user)S.jobs=(await api('jobs')).jobs;}catch(error){S.session={user:null,serviceError:error.message,capabilities:{cloud:false,ai:false,skills:[]}};}return S.session;}
  async function pull(){return S.session?.user?(await api('projects')).projects:[];}
  async function uploadAsset(p,a){
   if(a.url===`/api/files/${a.id}`)return;
@@ -94,15 +96,15 @@ export function createCloud({S,project,current,modal,closeModal,toast,render,rem
   }catch(error){j.clientState='check-failed';setState(p,j,'failed','自动检查暂未完成，方案与文案已保留。');toast(error.message);}
   finally{S.checkingAI=false;updateBadge();}
  }
- function startPolling(){clearTimeout(pollTimer);pollTimer=setTimeout(poll,1200);}
+ function startPolling(){if(disposed)return;clearTimeout(pollTimer);pollTimer=setTimeout(poll,1200);}
  async function poll(){
-  if(polling)return;polling=true;
+  if(polling||disposed)return;polling=true;
   try{
    for(const j of (S.jobs||[]).filter(j=>active(j.status))){try{Object.assign(j,(await api('jobs/'+j.id+'/advance',{method:'POST',body:'{}'})).job);}catch(error){if(error.status!==409)throw error;}}
    for(const j of (S.jobs||[]).filter(j=>j.automatic&&j.status==='completed'&&!j.clientState))await reviewAutomatic(j);
    if(document.querySelector('[data-ai-list]'))paintTasks();if(modalJobId){const j=S.jobs.find(j=>j.id===modalJobId);if(j)paintResult(j);}updateBadge();
   }catch(error){const state=document.querySelector('#automatic-state');if(state)state.textContent='服务暂时繁忙，任务已保留，稍后自动继续。';}
-  finally{polling=false;if(S.jobs?.some(j=>active(j.status)||j.automatic&&j.status==='completed'&&!j.clientState))pollTimer=setTimeout(poll,8000);}
+  finally{polling=false;if(!disposed&&S.jobs?.some(j=>active(j.status)||j.automatic&&j.status==='completed'&&!j.clientState))pollTimer=setTimeout(poll,8000);}
  }
  function showTasks(){if(!S.session?.user)return signin();modalJobId=null;modal('设计记录','<div data-ai-list></div><p class="small-note">AI 自行选择方案并执行检查。处理期间保持网页打开，回来后也可继续。</p>');paintTasks();}
  function paintTasks(){
@@ -135,5 +137,5 @@ export function createCloud({S,project,current,modal,closeModal,toast,render,rem
   if(!S.session?.user)return signin();const visitor=S.session.accessMode==='visitor';
   modal(visitor?'当前访客空间':'我的工作空间','<div class="settings-item"><b>'+esc(S.session.user.name||'工作空间')+'</b><p>文案、素材和作品属于当前空间。换浏览器或电脑前，请下载项目备份。</p>'+(visitor&&!S.session.capabilities.storagePersistent?'<p>当前服务器未配置持久存储，重新部署前请下载项目和交付文件。</p>':'')+'</div><div class="settings-item"><b>AI 服务</b><p>'+S.session.capabilities.skills.filter(s=>s.ready).length+' 个设计技能已就绪，由 AI 按内容自行选择。每人每天最多 10 个任务，自动修正同样计入额度。</p></div>');
  }
- return {init,pull,save,remove,startDesign,startPageDesign:()=>startDesign('',{scope:'page'}),showAI:startDesign,showTasks,showSkills,showAccount,startPolling,updateBadge};
+ return {init,pull,save,remove,startDesign,startPageDesign:()=>startDesign('',{scope:'page'}),showAI:startDesign,showTasks,showSkills,showAccount,startPolling,updateBadge,request:api,dispose(){disposed=true;clearTimeout(pollTimer);requests.abort();}};
 }

@@ -4,6 +4,8 @@ import type { ConnectorBinding } from "../lib/connector-contract.mjs";
 import {webhook} from '../server/webhooks';
 import {visitorContext,visitorResponse} from '../server/visitor-session';
 import {withPostgres} from '../server/database';
+import {accountContext} from '../server/accounts';
+import {currentDatabase} from '../db/context';
 
 const worker = {
   async fetch(request: Request, env: Cloudflare.Env, ctx: ExecutionContext<{ CONNECTORS?: ConnectorBinding }>) {
@@ -17,7 +19,10 @@ const worker = {
 
 async function dispatch(request:Request,env:Cloudflare.Env,ctx:ExecutionContext<{ CONNECTORS?: ConnectorBinding }>,waitUntil:(promise:Promise<unknown>)=>void){
     if(new URL(request.url).pathname==='/api/openai/webhook')return webhook(request,{waitUntil});
-    const visitor=await visitorContext(request,env as unknown as Parameters<typeof visitorContext>[1]);
+    const account=await accountContext(request,{...env,DB:currentDatabase()?.database||env.DB!});
+    if(account instanceof Response)return account;
+    if(account)request=account.request;
+    const visitor=account||await visitorContext(request,env as unknown as Parameters<typeof visitorContext>[1]);
     if(visitor instanceof Response)return visitor;
     if(visitor)request=visitor.request;
     let binding = ctx.props?.CONNECTORS;

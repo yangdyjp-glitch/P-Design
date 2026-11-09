@@ -1,7 +1,7 @@
 {
   "deployedCommit": "38ac060abe604bb3a574bcff3e6ddc85f1d727e3",
   "siteProjectId": "appgprj_6aecb5faa0b881919c03675fe284bf42",
-  "sourceVersion": "0.4.3",
+  "sourceVersion": "0.5.0",
   "sourceBranch": "main",
   "railwayReleasePendingProjectBackup": false,
   "skills": [
@@ -31,6 +31,56 @@
     "deployment repository history"
   ],
   "files": [
+    {
+      "path": "app/login/page.tsx",
+      "bytes": 121,
+      "sha256": "9816e81bbeea664030d053aaac1c1e846c4365850fd69ba861f74f4a42c66c7c"
+    },
+    {
+      "path": "docs/accounts.md",
+      "bytes": 5005,
+      "sha256": "9319967f7a933615162ee94b336b69309561ce9b52e3da0dd608c90416e9d004"
+    },
+    {
+      "path": "drizzle/0003_accounts.sql",
+      "bytes": 1028,
+      "sha256": "c4360c32b1cb7ec925850a6a8f02e68a7a1f1d35361a46c2f261f5695f2940da"
+    },
+    {
+      "path": "drizzle/meta/0003_snapshot.json",
+      "bytes": 15213,
+      "sha256": "c49b8ccc35a7f428cbdba66fa0043677881c72569221ed8a95a6e661508e7741"
+    },
+    {
+      "path": "postgres/0001_accounts.sql",
+      "bytes": 1071,
+      "sha256": "8ab59c3a8d8225219742b878e998dcefc225b63565e7c2729a411687bbf39b83"
+    },
+    {
+      "path": "public/accounts.css",
+      "bytes": 4910,
+      "sha256": "99711de23b4ec286fd920c6626b4186ecb96ddca97310d91e0e06ff04895ca94"
+    },
+    {
+      "path": "server/account-bootstrap.ts",
+      "bytes": 348,
+      "sha256": "a2bebaf959813f28a819954024e48d5688d89de14feab644f32edb76ac0cc78e"
+    },
+    {
+      "path": "server/accounts.ts",
+      "bytes": 13196,
+      "sha256": "70b91c75fe842a43c94e0925b3f852b85e6cf3ceb1bf49377b5ba8d0991b444e"
+    },
+    {
+      "path": "src/accounts.js",
+      "bytes": 10066,
+      "sha256": "9c0635e88a9b6f63bcaaa0287b9b82183d2251820d6ec969eed368d58dc335da"
+    },
+    {
+      "path": "tests/accounts.test.mjs",
+      "bytes": 16156,
+      "sha256": "3e05eaa0888cf6d1173a00fd919e35854076650f3b58cde96ee47cf4466d7a4c"
+    },
     {
       "path": "scripts/postgres-tunnel.mjs",
       "bytes": 2933,
@@ -83,8 +133,8 @@
     },
     {
       "path": "db/import-local-d1.mjs",
-      "bytes": 3500,
-      "sha256": "c8a8c1e9f6a1137c2afc6a67325b8c6eeea157277aa6b310d38f1473cd778880"
+      "bytes": 3782,
+      "sha256": "a449496448e658fa6a718de29c8999f792a03d5b2579764dd9972c8320580edd"
     },
     {
       "path": "db/migrate-postgres.mjs",
@@ -273,8 +323,8 @@
     },
     {
       "path": "app/layout.tsx",
-      "bytes": 557,
-      "sha256": "4a6be08b335dd56bd621e9406326bbc9bf013051a167bc1bf32b57f4b452425d"
+      "bytes": 603,
+      "sha256": "edb5ab5646e4949cddf1cbd811d8928976b149b7e1e1e88c28d95f67b0ce764b"
     },
     {
       "path": "app/page.tsx",
@@ -283,8 +333,8 @@
     },
     {
       "path": "cloudflare-env.d.ts",
-      "bytes": 196,
-      "sha256": "9286d1255139bc4b18b90d7cca06e9eced75fd35c08773ffd2a611d33ab2837f"
+      "bytes": 247,
+      "sha256": "2e47aa7688760b61f7017e214ca08f87efb4f6b7dd6b2552ec3f4f44ce33e94f"
     },
     {
       "path": "components/connector-error.tsx",
@@ -608,8 +658,8 @@
     },
     {
       "path": "db/schema.ts",
-      "bytes": 2228,
-      "sha256": "a0f55dbf40354f03ab6b73dcc6c510250948cdbee30ff85fd6e6891c51a61389"
+      "bytes": 3159,
+      "sha256": "63ed9ba4c72663133948967fa82b02508a645c18120b66a217c3db596c565931"
     },
     {
       "path": "design-skills/auto-redbook/.gitignore",
@@ -3638,8 +3688,8 @@
     },
     {
       "path": "docs/railway.md",
-      "bytes": 9839,
-      "sha256": "507c61aa060124e1e653675999a8e007eeedb903a3ccbf365f6a4098f2d39e4f"
+      "bytes": 10065,
+      "sha256": "2d80025f27b2683c64a99424683daedeb1bb791f23605fd286bedb8b0a677af4"
     },
     {
       "path": "docs/setup.md",
@@ -3668,8 +3718,8 @@
     },
     {
       "path": "drizzle/meta/_journal.json",
-      "bytes": 493,
-      "sha256": "af182231db3c64cecdc10970ddfc044d0a355afe98a36ffc0acf5a6a930c9b31"
+      "bytes": 629,
+      "sha256": "391a4d3ad9822cee3de289a82d8802babbe57c6de4b988bd40b10fb34960a1a6"
     },
     {
       "path": "drizzle.config.ts",
@@ -3693,8 +3743,8 @@
     },
     {
       "path": "HANDOFF.md",
-      "bytes": 25073,
-      "sha256": "d51fd871040316748be6a222a5de32d92d034c5b95ca7d635764a1c9392c7f63"
+      "bytes": 25851,
+      "sha256": "1f16bc1cc8fa3fd0c90a7cdc7e9da24b67243cb17396b287fc8ec1bd7be25b46"
     },
     {
       "path": "hooks/use-mobile.ts",
@@ -3744,12 +3794,12 @@
     {
       "path": "package-lock.json",
       "bytes": 515996,
-      "sha256": "8a7b66161393b8ac70ffe9dd67df62b56c1ba7214dbc83d60dda45def4e0993f"
+      "sha256": "92e670669a8ed7379df1082f843619d7976f5694d910d590af4996e0ffc46d0f"
     },
     {
       "path": "package.json",
-      "bytes": 2840,
-      "sha256": "78229ce77240373dc6564e7e44937b01941a31bccdbbf3272462ce28d3f26259"
+      "bytes": 2900,
+      "sha256": "3a95fd1e8ec346f7d0ecc8702e649e385eeeab974e204015d2a4b9ecf3920d9d"
     },
     {
       "path": "postcss.config.mjs",
@@ -3793,8 +3843,8 @@
     },
     {
       "path": "public/editor.js",
-      "bytes": 237922,
-      "sha256": "e433286966537355fabeb577672d94e587a593dc6b54113ee0a4894ce5a2485f"
+      "bytes": 249668,
+      "sha256": "b4b9bc4543900a21b3d77743c50516a7ab32ac6a5f95c2d71eff75e731f74b5d"
     },
     {
       "path": "public/editor.js.LEGAL.txt",
@@ -3813,13 +3863,13 @@
     },
     {
       "path": "QA.md",
-      "bytes": 26344,
-      "sha256": "67cc5cff933c834983adf4fa754d84f8c39b9fa5768c5f654474a2886cafa9ae"
+      "bytes": 28701,
+      "sha256": "8145bfeac62f8cd6b0730f4d8e7677d27cda76152fde11ccaf34f29fb6785a12"
     },
     {
       "path": "README.md",
-      "bytes": 4992,
-      "sha256": "a7fad10cace1b5f204c2c6d519a729cb4dbb876fcb3738a789f1dfd6df06d5dc"
+      "bytes": 4954,
+      "sha256": "32af371dcae9118d279883092e2c61fb1d1084dc3f411e7c0b525e19a242f9a9"
     },
     {
       "path": "scripts/api-local.mjs",
@@ -3968,8 +4018,8 @@
     },
     {
       "path": "scripts/start-railway.mjs",
-      "bytes": 6776,
-      "sha256": "9082db0850dcd514a5998ccceaa71973943b0cb011a8ef5617bb4e928caa8948"
+      "bytes": 7047,
+      "sha256": "5eaa196e3c334ea889fb27fe61f166c7606ac70635830630f23ab6cfb42df740"
     },
     {
       "path": "scripts/start.mjs",
@@ -4013,8 +4063,8 @@
     },
     {
       "path": "server/core.ts",
-      "bytes": 7403,
-      "sha256": "168b1e1892c167cf93dfaf5a5843a106e547e619edc3dfdfd67364bfc37b65e9"
+      "bytes": 7534,
+      "sha256": "1972325bbd738b62288e953a87a1ea7c480811dc4d382df59950f2fd3bf3f560"
     },
     {
       "path": "server/legacy-photos.json",
@@ -4023,8 +4073,8 @@
     },
     {
       "path": "server/routes.ts",
-      "bytes": 15308,
-      "sha256": "a065e156ca2d80d6b21cfc62b5b5a2d80a5429ebee22b4de7e93abfc60697d56"
+      "bytes": 15725,
+      "sha256": "b1ab649669f5ae6aec9439789a4453d731dcdb5765dcb42d5c7093bf7876d67e"
     },
     {
       "path": "server/skills.ts",
@@ -4043,13 +4093,13 @@
     },
     {
       "path": "src/app.js",
-      "bytes": 55205,
-      "sha256": "40573d56203a13f89a42026c9e496ca70c69f1212f6b9b18e3a741363921dcd2"
+      "bytes": 56484,
+      "sha256": "910c994e0a433bcde68d95beb89503c303ee2d6ae2f7d60354523fa5dd805faa"
     },
     {
       "path": "src/cloud.js",
-      "bytes": 17974,
-      "sha256": "547bdf876be720f449a065a76cb30eedc2930e5ec6a7815a963e4cedad3ed4e2"
+      "bytes": 18466,
+      "sha256": "04457e9f19eda674108649fdae495511003c84c83287db6feaac3fd6d1157c1a"
     },
     {
       "path": "src/engine.js",
@@ -4093,8 +4143,8 @@
     },
     {
       "path": "worker/index.ts",
-      "bytes": 2828,
-      "sha256": "bda353f657a65261e82ab3e58ada786960ee3f03aa281dc9278140c221b6da1b"
+      "bytes": 3124,
+      "sha256": "249567ac78631ea3a183aad5948cea041395672cff7b2fc8f18c84ce08771a4e"
     },
     {
       "path": "server/design-result.ts",
