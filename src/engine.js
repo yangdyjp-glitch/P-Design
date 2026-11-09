@@ -66,12 +66,14 @@ export function pageMarkup(p,project){
 }
 export function frameDocument(p,project,css,{interactive=false,fontCSS="",portable=false}={}){
  const s=p.settings||{};
+ const theme=p.layout!=='original'||!p.css?resolveStylePreset(project.stylePresetId)?.theme:null;
+ const themeCSS=theme?':root{--blue:'+theme.primary+'}.generic{background:'+theme.paper+';color:'+theme.ink+'}.generic-closing{background:'+theme.primary+';color:'+theme.onPrimary+'}.generic-closing h1{color:'+theme.onPrimary+'}.generic-closing .generic-body p:last-child{background:'+theme.tint+';color:'+theme.primary+'}.generic-timeline{background:'+theme.tint+'}':'';
  const extra=(p.layout==="original"&&p.css?"":genericCSS)+':root{--blue:'+safeColor(s.accent,"#214BE1")+';} .xhs-card{width:1080px!important;height:1440px!important;margin:0!important;} body{margin:0!important;padding:0!important;background:transparent!important;} figure{overflow:hidden;} figure img{object-position:'+clamp(s.photoX??50,0,100)+'% '+clamp(s.photoY??50,0,100)+'%!important;transform:scale('+clamp(s.photoZoom??1,1,2)+');transform-origin:center;}'+(s.background?'.xhs-card{background:'+safeColor(s.background,"#F5F2EB")+'!important;}':"");
  const markup=pageMarkup(p,project);
  const nonce=crypto.randomUUID().replaceAll("-","");
  const policy=portable?'':'<meta http-equiv="Content-Security-Policy" content="default-src \'none\'; img-src \'self\' data:; font-src \'self\' data:; style-src \'unsafe-inline\'; script-src \'nonce-'+nonce+'\'; base-uri \'self\'; form-action \'none\'">';
  const script=interactive?'<script nonce="'+nonce+'">document.addEventListener("click",e=>{const t=e.target.closest("[data-copy]");if(t)parent.postMessage({type:"tuxu-select",id:t.dataset.copy},"'+location.origin+'")});document.fonts.ready.then(()=>parent.postMessage({type:"tuxu-ready"},"'+location.origin+'"));<\/script>':"";
- return '<!doctype html><html lang="zh-CN"><head><meta charset="utf-8">'+policy+(!portable?'<base href="'+location.origin+'/">':"")+'<style>'+css+extra+sanitizeCSS(p.css||'')+fontCSS+' [data-copy]{cursor:'+(interactive?"text":"default")+'} '+(interactive?'[data-copy]:hover{outline:2px dashed #86a993;outline-offset:6px}.exporting [data-copy]{outline:none!important}':"")+'</style></head><body>'+markup+script+'</body></html>';
+ return '<!doctype html><html lang="zh-CN"><head><meta charset="utf-8">'+policy+(!portable?'<base href="'+location.origin+'/">':"")+'<style>'+css+extra+sanitizeCSS(p.css||'')+themeCSS+fontCSS+' [data-copy]{cursor:'+(interactive?"text":"default")+'} '+(interactive?'[data-copy]:hover{outline:2px dashed #86a993;outline-offset:6px}.exporting [data-copy]{outline:none!important}':"")+'</style></head><body>'+markup+script+'</body></html>';
 }
 export const clamp=(n,a,b)=>Math.max(a,Math.min(b,Number(n)||a));
 export const safeColor=(s,f)=>/^#[a-f\d]{6}$/i.test(s||"")?s:f;

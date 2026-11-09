@@ -15,11 +15,12 @@ export function designProposal(job,project){
  if(result.replacePages){
   draft.pages=result.pages.map(page=>{
    const previous=project.pages.find(item=>item.id===page.id)||project.pages.find(item=>item.copy.length===page.copy.length&&item.copy.every((copy,index)=>copy.id===page.copy[index].id));
-   return {id:page.id,label:page.label||page.copy[0]?.text.slice(0,24)||'画面',copy:clone(page.copy),originalCopy:clone(page.copy),requirements:previous?.requirements||'',html:page.html,css:page.css,layout:'original',photoAssetId:page.photoAssetId,settings:{accent:'#214BE1',fontScale:1,photoZoom:1,photoX:50,photoY:50}};
+   return {id:page.id,label:page.label||page.copy[0]?.text.slice(0,24)||'画面',copy:clone(page.copy),originalCopy:clone(page.copy),requirements:previous?.requirements||'',html:page.html,css:page.css,layout:'original',photoAssetId:page.photoAssetId,settings:{accent:result.theme?.primary||'#214BE1',fontScale:1,photoZoom:1,photoX:50,photoY:50}};
   });
  }else for(const page of result.pages||[]){
   const target=draft.pages.find(item=>item.id===page.id);if(!target)throw Error('页面已发生变化，请重新设计。');
   target.html=page.html;target.css=page.css;target.layout='original';target.photoAssetId=page.photoAssetId||null;
+  if(result.theme?.primary){target.settings??={};target.settings.accent=result.theme.primary;}
  }
  return draft;
 }

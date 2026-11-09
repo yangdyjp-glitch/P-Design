@@ -129,7 +129,7 @@ function stylePresetChoices(){
  return '<fieldset class="style-presets"><legend>整套初始方向 <span class="muted">选填</span></legend><div class="preset-intro"><p>'+ (STYLE_PRESETS.some(preset=>resolveStylePreset(preset.id))?'三种排版原则，AI 按实际素材与内容安排画面。':'预留三套固定风格，设定后可一键选用。')+'</p><label class="preset-auto"><input type="radio" name="style-preset" value="" checked><span>AI 自行判断</span></label></div><div class="preset-grid">'+STYLE_PRESETS.map((preset,index)=>{
   const content='<span class="preset-top"><span class="preset-number">'+String(index+1).padStart(2,'0')+'</span><span class="preset-status">'+(resolveStylePreset(preset.id)?'已预设':'待设定')+'</span></span><span class="preset-name">'+esc(preset.name).split(' · ').join('<br>')+'</span><span class="preset-summary">'+esc(preset.summary||'风格将逐一设定')+'</span>';
   return resolveStylePreset(preset.id)?'<label class="preset-card preset-ready"><input type="radio" name="style-preset" value="'+preset.id+'"><span class="preset-content">'+content+'</span></label>':'<button type="button" class="preset-card preset-pending" data-action="preset-details" data-id="'+preset.id+'" aria-expanded="false" aria-controls="preset-detail">'+content+'</button>';
- }).join('')+'</div><div class="preset-detail" id="preset-detail" role="region" aria-live="polite" hidden></div><p class="preset-help">原图适配、实景主导、文字主导，各有自己的构图与检查重点。</p></fieldset>';
+ }).join('')+'</div><div class="preset-detail" id="preset-detail" role="region" aria-live="polite" hidden></div><p class="preset-help">三种模式统一使用途洋 LOGO 蓝，分别保留原图适配、实景主导、文字主导的构图与检查重点。</p></fieldset>';
 }
 function showPresetDetails(control){
  const preset=STYLE_PRESETS.find(preset=>preset.id===control.dataset.id),panel=$('#preset-detail');if(!preset||!panel)return;
@@ -173,7 +173,7 @@ function showHistory(){
  modal("版本记录",'<div class="project-summary">'+icon("history")+'保留最近25次操作，可撤销或恢复。<span style="margin-left:auto">'+hist.length+' 条</span></div>'+
  (hist.length?hist.slice().reverse().map(h=>'<div class="version-item"><div>'+esc(h.label)+'<small>'+formatDate(h.at)+'</small></div>'+button("restore-history","恢复",null,"btn small",'data-id="'+h.id+'"')+'</div>').join(""):'<div class="empty">还没有修改记录。<br>修改文案、构图或照片后，记录会出现在这里。</div>'));
 }
-function showSettings(){modal("关于图序工作台",'<div class="settings-item"><b>你负责内容，AI 负责画面</b><p>准备文案与图片后，AI 自行决定分页、视觉方向、照片安排和设计技能，并执行渲染与网页检查。检查通过后自动呈现。</p></div><div class="settings-item"><b>每个账户，独立创作</b><p>文案、素材、项目和设计记录按账户隔离。管理员可以创建账户，使用者在自己的工作空间里继续编辑。</p></div><div class="settings-item"><b>带走可编辑作品</b><p>可下载高清图片、可编辑 HTML 和项目备份。</p></div><p class="small-note">版本 0.5.2 · 独立账户工作空间</p>');}
+function showSettings(){modal("关于图序工作台",'<div class="settings-item"><b>你负责内容，AI 负责画面</b><p>准备文案与图片后，AI 自行决定分页、视觉方向、照片安排和设计技能，并执行渲染与网页检查。检查通过后自动呈现。</p></div><div class="settings-item"><b>每个账户，独立创作</b><p>文案、素材、项目和设计记录按账户隔离。管理员可以创建账户，使用者在自己的工作空间里继续编辑。</p></div><div class="settings-item"><b>带走可编辑作品</b><p>可下载高清图片、可编辑 HTML 和项目备份。</p></div><p class="small-note">版本 0.5.3 · 独立账户工作空间</p>');}
 function showExport(){
  modal("导出你的作品",'<div class="project-summary"><b>'+project().pages.length+'</b><div>个画面已准备就绪<br><span class="tiny muted">2160 × 2880 · 高清 PNG</span></div></div><div class="settings-item"><b>导出整套高清图</b><p>每页生成一张PNG，并打包成ZIP。导出前会自动检查缺字、越界与图片加载。</p></div><div class="panel-actions">'+button("export-all","整套PNG · ZIP","download","btn primary")+button("export-one","仅导出当前页",null,"btn")+'</div><div class="inspector-divider"></div><div class="settings-item"><b>保留可编辑作品</b><p>项目备份可再次导入图序；HTML工程包含正式文字、布局、照片和字体许可。</p></div><div class="panel-actions">'+button("backup","项目备份 · JSON","save","btn")+button("export-source","可编辑HTML · ZIP","folder","btn")+'</div>');
 }
@@ -431,7 +431,7 @@ async function boot(){
   if(!S.projects.length&&S.session.accessMode==='visitor'){S.projects=await legacyProjects('tuxu-studio-guest');for(const p of S.projects){delete p.cloudRevision;delete p._syncConflict;p._cloudDirty=true;}}
   if(!S.projects.length){const p={id:uid(),name:"从文案开始",pages:parseManuscript("让好内容，被看见\n把你的完整文案放在右侧，也可以上传本次图片。\n画面、分页和设计检查，交给 AI 自行完成。",{preserveText:true}),assets:[],history:[],redo:[],createdAt:Date.now(),updatedAt:Date.now()};S.projects=[p];}
   if(!project())S.activeId=S.projects[0].id;S.pageId=project().pages[0].id;render();Cloud.updateBadge();await persist({skipCloud:!project()._cloudDirty&&!!project().cloudRevision});Cloud.startPolling();
-  window.TuXu={getState:()=>clone({projects:S.projects,activeId:S.activeId,pageId:S.pageId,user:S.session.user,jobs:S.jobs}),auditCurrent:()=>auditPage($("#canvas-frame").contentDocument,current(),project()),version:"0.5.2"};
+  window.TuXu={getState:()=>clone({projects:S.projects,activeId:S.activeId,pageId:S.pageId,user:S.session.user,jobs:S.jobs}),auditCurrent:()=>auditPage($("#canvas-frame").contentDocument,current(),project()),version:"0.5.3"};
  }catch(e){$("#app").innerHTML='<div class="boot"><h1>工作台暂时未能打开</h1><p>'+esc(e.message)+'</p><button class="btn primary" onclick="location.reload()">重新打开</button></div>';}
 }
 boot();
