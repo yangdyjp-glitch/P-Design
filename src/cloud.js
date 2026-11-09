@@ -7,6 +7,7 @@ const labels={queued:'等待开始',starting:'准备设计',running:'AI 设计�
 const kinds={design:'AI 自动设计',revise:'AI 自动调整',cover:'封面设计',polish:'排版复核',reference:'参考分析',write:'文案创作',image:'视觉素材',template:'主题制图'};
 export function createCloud({S,project,current,modal,closeModal,toast,render,remember,persist,button,baseCSS,auditProposal,onAuthLost}){
  let saveChain=Promise.resolve(),pollTimer,modalJobId=null,polling=false,submitting=false,submission=null,owner=null,disposed=false;
+ const removingProjects=new Set(),deletedProjects=new Set(),removals=new Map();
  const requests=new AbortController();
  const api=async(path,opts={})=>{
   if(disposed)throw Error('登录状态已变化，请重新打开工作台。');
@@ -25,6 +26,7 @@ export function createCloud({S,project,current,modal,closeModal,toast,render,rem
   Object.assign(a,asset);if(asset.source!=='web'){delete a.sourceUrl;delete a.imageUrl;}
  }
  async function saveNow(p){
+  if(deletedProjects.has(p.id))return;
   if(!S.session?.user||p.cloudRevision&&!p._cloudDirty)return;
   if(p._syncConflict)throw Error('项目有其他窗口的新修改，请先备份再重新载入。');
   const stamp=p._editVersion||0;for(const a of p.assets)await uploadAsset(p,a);
@@ -36,7 +38,17 @@ export function createCloud({S,project,current,modal,closeModal,toast,render,rem
   }catch(error){if(error.status===409)p._syncConflict=true;throw error;}
  }
  async function save(p){saveChain=saveChain.catch(()=>{}).then(()=>saveNow(p));return saveChain;}
- async function remove(p){if(S.session?.user&&p.cloudRevision)await api('projects/'+p.id,{method:'DELETE'});}
+ async function remove(p){
+  if(removals.has(p.id))return removals.get(p.id);
+  removingProjects.add(p.id);
+  const operation=saveChain.catch(()=>{}).then(async()=>{
+   if(S.session?.user)try{await api('projects/'+p.id,{method:'DELETE'});}catch(error){if(error.status!==404)throw error;}
+   deletedProjects.add(p.id);
+   for(const job of S.jobs||[])if(job.projectId===p.id){if(active(job.status))job.status='cancelled';job.clientState='orphaned';}
+  });
+  removals.set(p.id,operation);saveChain=operation.catch(()=>{});
+  try{return await operation;}finally{removingProjects.delete(p.id);removals.delete(p.id);updateBadge();}
+ }
  function updateBadge(){
   const busy=submitting||S.checkingAI||(S.jobs||[]).some(j=>active(j.status));
   const working=submission||S.jobs?.find(job=>['checking','saving'].includes(job.clientState))||S.jobs?.find(job=>active(job.status));
@@ -47,6 +59,7 @@ export function createCloud({S,project,current,modal,closeModal,toast,render,rem
   const otherProject=working&&working.projectId!==currentProject?.id,otherPage=working&&(otherProject||working.scope==='page'&&!working.pageIds?.includes(page?.id));
   const state=document.querySelector('#automatic-state');if(state)state.textContent=busy&&progress?(otherProject?'「'+(target?.name||'其他项目')+'」'+progress.message:progress.message)+(otherPage?' 完成后可发送本图要求。':''):!busy&&notes&&notes!==originalRequest?.prompt?'本图要求已保存，点击发送后开始修改。':latest?automaticMessage(latest,currentProject):'补充本图的调整要求后发送，AI 只修改这张图。';
   for(const control of document.querySelectorAll('[data-action="ai-design"],#design-submit'))control.disabled=!!busy||!S.session?.capabilities.ai;
+  for(const control of document.querySelectorAll('[data-action="delete-project"],[data-action="confirm-delete-project"]'))control.disabled=!!S.busy||submitting||!!S.checkingAI;
   const send=document.querySelector('[data-action="ai-page"]');if(send){send.disabled=!!busy||!S.session?.capabilities.ai||!notes;send.querySelector('span').textContent=busy&&progress?(otherProject?'其他项目 · '+progress.action:progress.label):'发送并修改本图';send.setAttribute('aria-busy',String(!!busy));if(busy&&progress)send.title=progress.message;else send.removeAttribute('title');}
  }
  function setState(p,j,state,message){p._aiState={jobId:j.id,state,message};updateBadge();}
@@ -76,13 +89,16 @@ export function createCloud({S,project,current,modal,closeModal,toast,render,rem
  async function reviewAutomatic(j){
   if(S.busy)return;
   const p=S.projects.find(p=>p.id===j.projectId);
-  if(!p||jobApplied(j,p)){j.clientState='applied';return;}
+  if(!p||deletedProjects.has(j.projectId)){j.clientState='orphaned';return;}
+  if(removingProjects.has(j.projectId))return;
+  if(jobApplied(j,p)){j.clientState='applied';return;}
   if(S.jobs.some(other=>other.projectId===j.projectId&&other.createdAt>j.createdAt&&(active(other.status)||other.status==='completed'))){j.clientState='superseded';return;}
   if(S.jobs.some(child=>child.repairOf===j.id)){j.clientState='superseded';return;}
   if(!canApplyAutomatic(j,p)){j.clientState='held';setState(p,j,'held','文案或素材已有新修改，原方案已保留。点击 AI 重新设计即可。');return;}
   j.clientState='checking';S.checkingAI=true;setState(p,j,'checking','AI 已完成渲染自检，正在自动核对网页中的实际画面。');
   try{
    const draft=proposal(j),reports=await auditProposal(draft,j.scope==='page'?j.pageIds:undefined,progress=>{j.clientProgress=progress;updateBadge();if(modalJobId===j.id)paintResult(j);},j.scope==='page'?[]:j.requiredUploadIds||[]);
+   if(removingProjects.has(p.id)||deletedProjects.has(p.id)){delete j.clientState;return;}
    if(!canApplyAutomatic(j,p)){j.clientState='held';setState(p,j,'held','检查期间文案已有新修改，已保留你的最新内容。');return;}
    if(S.busy){delete j.clientState;return;}
    if(hasAuditErrors(reports)){
@@ -97,7 +113,7 @@ export function createCloud({S,project,current,modal,closeModal,toast,render,rem
    const history={id:uid(),at:Date.now(),label:j.scope==='page'?'AI 单图修改与检查':'AI 自动设计与检查',pages:clone(p.pages)};p.history??=[];p.history.push(history);if(p.history.length>25)p.history.shift();p.redo=[];
    p.pages=draft.pages;p.assets=draft.assets;p.lastAIJobId=j.id;for(const changed of j.result.pages){const target=p.pages.find(page=>page.id===changed.id);if(target)target.lastAIJobId=j.id;}p.aiCheck={jobId:j.id,status:'passed',scope:j.scope||'project',pageIds:j.result.pages.map(page=>page.id),pageCount:reports.length,checkedAt:Date.now()};p._cloudDirty=true;p._editVersion=(p._editVersion||0)+1;
    if(project()?.id===p.id){if(j.scope!=='page'||!p.pages.some(page=>page.id===S.pageId))S.pageId=p.pages[0].id;S.audit=reports;render();}
-   await save(p);j.clientState='applied';delete j.clientProgress;setState(p,j,'passed',j.scope==='page'?'本图已更新并通过自动检查，其他图保持不变。':'设计已呈现，AI 渲染检查与网页检查均已通过。');await persist({skipCloud:true});toast('AI 已完成设计和自动检查，可以查看或下载作品。');
+   await save(p);if(removingProjects.has(p.id)||deletedProjects.has(p.id)){delete j.clientState;return;}j.clientState='applied';delete j.clientProgress;setState(p,j,'passed',j.scope==='page'?'本图已更新并通过自动检查，其他图保持不变。':'设计已呈现，AI 渲染检查与网页检查均已通过。');await persist({skipCloud:true});toast('AI 已完成设计和自动检查，可以查看或下载作品。');
   }catch(error){const saving=j.clientState==='saving';j.clientState=saving?'save-failed':'check-failed';setState(p,j,'failed',saving?'画面检查已通过，但云端保存暂未完成，可先备份当前项目。':'自动检查暂未完成，方案与文案已保留。');if(saving)await persist({skipCloud:true});toast(error.message);}
   finally{S.checkingAI=false;updateBadge();}
  }
@@ -105,7 +121,7 @@ export function createCloud({S,project,current,modal,closeModal,toast,render,rem
  async function poll(){
   if(polling||disposed)return;polling=true;
   try{
-   for(const j of (S.jobs||[]).filter(j=>active(j.status))){try{j.startingRequest=j.status==='queued';updateBadge();Object.assign(j,(await api('jobs/'+j.id+'/advance',{method:'POST',body:'{}'})).job);updateBadge();}catch(error){if(error.status!==409)throw error;}finally{delete j.startingRequest;updateBadge();}}
+   for(const j of (S.jobs||[]).filter(j=>active(j.status))){if(removingProjects.has(j.projectId)||deletedProjects.has(j.projectId))continue;try{j.startingRequest=j.status==='queued';updateBadge();const next=(await api('jobs/'+j.id+'/advance',{method:'POST',body:'{}'})).job;if(!deletedProjects.has(j.projectId))Object.assign(j,next);updateBadge();}catch(error){if(error.status!==409&&!deletedProjects.has(j.projectId))throw error;}finally{delete j.startingRequest;updateBadge();}}
    for(const j of (S.jobs||[]).filter(j=>j.automatic&&j.status==='completed'&&!j.clientState))await reviewAutomatic(j);
    if(document.querySelector('[data-ai-list]'))paintTasks();if(modalJobId){const j=S.jobs.find(j=>j.id===modalJobId);if(j)paintResult(j);}updateBadge();
   }catch(error){const state=document.querySelector('#automatic-state');if(state)state.textContent='服务暂时繁忙，任务已保留，稍后自动继续。';}

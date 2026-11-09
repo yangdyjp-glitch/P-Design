@@ -1,7 +1,7 @@
 {
   "deployedCommit": "38ac060abe604bb3a574bcff3e6ddc85f1d727e3",
   "siteProjectId": "appgprj_6aecb5faa0b881919c03675fe284bf42",
-  "sourceVersion": "0.5.4",
+  "sourceVersion": "0.5.5",
   "sourceBranch": "main",
   "railwayReleasePendingProjectBackup": false,
   "skills": [
@@ -31,6 +31,26 @@
     "deployment repository history"
   ],
   "files": [
+    {
+      "path": "docs/project-deletion.md",
+      "bytes": 2750,
+      "sha256": "3d9944f4dda457c1b71547727a892dfc0b47e7b556bc6a59727a77c66ea2fba2"
+    },
+    {
+      "path": "public/projects.css",
+      "bytes": 2651,
+      "sha256": "26155546e20baf8fd9e4568c2e12e21c42665890d560738c23a6a0c0431489b8"
+    },
+    {
+      "path": "src/project-management.js",
+      "bytes": 1005,
+      "sha256": "ab4ccfd23c3a70cadcca842f54922dd23749d58b0f3982b20bb31e0bb0bed2de"
+    },
+    {
+      "path": "tests/project-management.test.mjs",
+      "bytes": 5145,
+      "sha256": "95ffa5b5749d9687f660d308537e63e490dd0529361ff4d9da2ea22c5d9cb325"
+    },
     {
       "path": "docs/pagination-policy.md",
       "bytes": 3118,
@@ -113,8 +133,8 @@
     },
     {
       "path": "tests/accounts.test.mjs",
-      "bytes": 16156,
-      "sha256": "3e05eaa0888cf6d1173a00fd919e35854076650f3b58cde96ee47cf4466d7a4c"
+      "bytes": 17834,
+      "sha256": "62683317bcf9ac5461db928f7046969e25a86a8f679181729fddeb6f6cd050e8"
     },
     {
       "path": "scripts/postgres-tunnel.mjs",
@@ -358,8 +378,8 @@
     },
     {
       "path": "app/layout.tsx",
-      "bytes": 603,
-      "sha256": "edb5ab5646e4949cddf1cbd811d8928976b149b7e1e1e88c28d95f67b0ce764b"
+      "bytes": 649,
+      "sha256": "4238160b6795ec6f0b829b21942084958ed5869d10968bab8e751b7898f822ac"
     },
     {
       "path": "app/page.tsx",
@@ -3778,8 +3798,8 @@
     },
     {
       "path": "HANDOFF.md",
-      "bytes": 28241,
-      "sha256": "3b757327d989c501cdc119ceb7be0c53c956916d3701a872dfe0e1ffc4bf9936"
+      "bytes": 29044,
+      "sha256": "64b1b97f5873db3ebfff34e438d7c111c0649dabd932c794fe55b8a0915bbcc7"
     },
     {
       "path": "hooks/use-mobile.ts",
@@ -3829,12 +3849,12 @@
     {
       "path": "package-lock.json",
       "bytes": 515996,
-      "sha256": "1516b4edbb0d5e9dce3dddeba823dfbcf026174e2ba0f5b8c86d2660cffa876b"
+      "sha256": "0bc039427c0c6b61e7d263ed078d1b01dbbcaf84b2f0706a5b69957ac7f62ac1"
     },
     {
       "path": "package.json",
       "bytes": 2900,
-      "sha256": "3f6972e8c1df8a3d9a7f44861d09f62c223fe17b3ef25d6e192746c096167ead"
+      "sha256": "8590dbd432b938182e798627047301edad5c3c1c0c77f2ea1b18f0dcca9153e0"
     },
     {
       "path": "postcss.config.mjs",
@@ -3878,8 +3898,8 @@
     },
     {
       "path": "public/editor.js",
-      "bytes": 263026,
-      "sha256": "d99bd0324f92f956c9c94589347cc517c3b76874921f67beb28be3e79e31cf01"
+      "bytes": 267300,
+      "sha256": "0e16de79a4d783d30eae4d81551815c657065ef9f2b015e8d83f62496e2fd38f"
     },
     {
       "path": "public/editor.js.LEGAL.txt",
@@ -3898,13 +3918,13 @@
     },
     {
       "path": "QA.md",
-      "bytes": 36150,
-      "sha256": "b187607b9e66d2ba3ea8ae51e868856118bbeb6d4246c6ec291da52b5c70135c"
+      "bytes": 38345,
+      "sha256": "ef9558a676e8caf747e8c11c5f5dd9463c6c7d996548e4eb4fa9ae34969d7cda"
     },
     {
       "path": "README.md",
-      "bytes": 5937,
-      "sha256": "b21b5f392d2475ba2a599f0000cdb6dc8ea4600070489d4e0f9c6032ff56288b"
+      "bytes": 6207,
+      "sha256": "2e8815989a95c6ab74ae7eb5c2b985d2f87031e7b8571ebe144496a36401c861"
     },
     {
       "path": "scripts/api-local.mjs",
@@ -4108,8 +4128,8 @@
     },
     {
       "path": "server/routes.ts",
-      "bytes": 16152,
-      "sha256": "e393644963394de7d5f119661f9b7821352e383a175bd19c84883868bc037187"
+      "bytes": 16388,
+      "sha256": "80882d8cececbae38c035e8fbc7edcfb4e119a31f24db4c26937157bd2d9e224"
     },
     {
       "path": "server/skills.ts",
@@ -4128,13 +4148,13 @@
     },
     {
       "path": "src/app.js",
-      "bytes": 58059,
-      "sha256": "2cc25b6ccea64905298e86a8185b92a0e5cb4e9446e08e34a8c8aeba7ca40344"
+      "bytes": 61340,
+      "sha256": "80c3dce1663963c005b0c74493c26b48b2b93643770254dd588214b93a2dc743"
     },
     {
       "path": "src/cloud.js",
-      "bytes": 20303,
-      "sha256": "248d1526ce975cb07eb30ade5694c9dcf029bd6f3dbccbfd98ac8bffff7542fe"
+      "bytes": 21584,
+      "sha256": "39f43abeaef77de6524f1572d994e79d187fc8a130f8c1fa7f966c3184fef7d2"
     },
     {
       "path": "src/engine.js",

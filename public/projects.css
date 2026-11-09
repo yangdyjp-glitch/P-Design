@@ -1,0 +1,27 @@
+.project-row{display:flex;align-items:center;gap:2px;min-width:0;border:1px solid transparent;border-radius:7px}
+.project-row.active{border-color:#e1e8dc;background:#fff}
+.project-row .project-item{flex:1;min-width:0;width:auto;padding:10px 5px 10px 9px;border:0;background:transparent}
+.project-row .project-item span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.project-row.active .project-item{color:var(--green)}
+.project-delete{flex:none;width:30px;height:34px;margin-right:3px;color:#856b64}
+.project-delete svg{width:16px;height:16px}
+.project-delete:hover:not(:disabled){color:#a13a2d;background:#fff0ec;border-color:#f1d5cd}
+.project-list-empty{padding:9px 11px;color:var(--muted);font-size:12px}
+.project-manager-list{display:flex;flex-direction:column;gap:8px;margin-top:16px}
+.project-manager-list .project-row{border-color:var(--line)}
+.project-manager-list .project-row.active{background:#f2f6ef}
+.project-manager-list .project-item{font-size:13px;min-height:48px;padding:12px}
+.project-manager-list .project-delete{width:42px;height:42px;margin-right:4px}
+.project-manager-list .project-item span{white-space:normal;overflow-wrap:anywhere}
+.workspace-empty{min-height:calc(100vh - 65px);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:40px 24px;text-align:center;background:#f7f9f5}
+.empty-project-icon{display:grid;place-items:center;width:72px;height:72px;border-radius:20px;background:#e9f0e5;color:var(--green);margin-bottom:22px}
+.empty-project-icon svg{width:34px;height:34px;stroke-width:1.4}
+.empty-project-eyebrow{font-size:12px;letter-spacing:2px;color:#6e826c;margin:0 0 12px}
+.workspace-empty h1{font-size:clamp(21px,3vw,30px);font-weight:700;line-height:1.5;margin:0 0 12px;color:#304b3d}
+.workspace-empty>p:not(.empty-project-eyebrow){max-width:380px;font-size:13px;line-height:1.9;color:#798474;margin:0}
+.workspace-empty .panel-actions{margin-top:27px;justify-content:center;gap:10px;flex-wrap:wrap}
+.delete-project-description{font-size:13px;line-height:1.9;overflow-wrap:anywhere}
+.delete-project-error{margin:10px 0 0;font-size:12px;line-height:1.8;color:#a13a2d}
+.btn.danger{background:#a33c2f;color:#fff;border-color:#a33c2f}
+.btn.danger:hover:not(:disabled){background:#8c3024;border-color:#8c3024}
+@media(max-width:650px){.workspace-empty{min-height:calc(100dvh - 53px);padding:34px 22px}.modal-footer:has([data-action="confirm-delete-project"]){flex-wrap:wrap;gap:8px}.modal-footer [data-action="backup-delete-project"]{margin-right:auto}.modal-footer:has([data-action="confirm-delete-project"]) .btn{min-height:42px}.project-manager-list .project-row{gap:0}}

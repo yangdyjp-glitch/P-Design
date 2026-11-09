@@ -89,6 +89,16 @@ for(const postgres of [false,true])test((postgres?'PostgreSQL':'SQLite')+': logi
   const queued=await call('jobs',{method:'POST',user:a,body:{projectId:project.id,revision:1,requestId:'test-own-job',kind:'write',prompt:'只测试归属，不调用外部 AI',pageIds:['page-one']}});assert.equal(queued.status,201);
   assert.equal((await call('jobs',{user:b})).value.jobs.length,0);assert.equal((await call('jobs/'+queued.value.job.id,{user:b})).status,404);assert.equal((await call('jobs/'+queued.value.job.id+'/cancel',{method:'POST',body:{},user:admin})).status,404);
   assert.equal((await call('jobs/'+queued.value.job.id+'/artifacts/fake',{user:b})).status,404);assert.equal((await call('jobs/'+queued.value.job.id+'/cancel',{method:'POST',body:{},user:a})).value.job.status,'cancelled');
+  const disposable={...project,id:'delete-fixture',name:'Disposable deletion fixture'};
+  await call('projects/'+disposable.id,{method:'PUT',user:a,body:{project:disposable,revision:0}});
+  const doomed=await call('assets?projectId='+disposable.id+'&id=delete-photo',{method:'POST',user:a,body:png,headers:{'Content-Type':'image/png'}});assert.equal(doomed.status,200);
+  const active=await call('jobs',{method:'POST',user:a,body:{projectId:disposable.id,revision:1,requestId:'delete-job',kind:'write',prompt:'Disposable queued job, no provider execution',pageIds:['page-one']}});assert.equal(active.status,201);
+  for(const user of [b,admin])assert.equal((await call('projects/'+disposable.id,{method:'DELETE',user})).status,404);
+  assert.equal((await call('projects/'+disposable.id,{method:'DELETE',user:a})).status,200);assert.equal((await call('files/delete-photo',{user:a})).status,404);assert.equal((await call('jobs/'+active.value.job.id,{user:a})).value.job.status,'cancelled');
+  assert.equal((await call('projects',{user:a})).value.projects[0].id,project.id);assert.equal((await call('projects',{user:b})).value.projects[0].name,'Only designer two');
+  assert.equal((await call('projects/'+disposable.id,{method:'PUT',user:a,body:{project:disposable,revision:1}})).status,409);
+  await call('assets?projectId=unsaved-fixture&id=orphan-photo',{method:'POST',user:a,body:png,headers:{'Content-Type':'image/png'}});
+  assert.equal((await call('projects/unsaved-fixture',{method:'DELETE',user:b})).status,404);assert.equal((await call('projects/unsaved-fixture',{method:'DELETE',user:a})).status,200);assert.equal((await call('files/orphan-photo',{user:a})).status,404);
   const extra=await login('designer_one','test-password-123');assert.equal((await call('accounts/'+a.id,{method:'PATCH',user:admin,body:{disabled:true}})).status,200);assert.equal((await call('projects',{user:a})).status,401);assert.equal((await call('projects',{user:extra})).status,401);
   assert.equal((await call('auth/login',{method:'POST',body:{username:'designer_one',password:'test-password-123'}})).status,401);
   assert.equal((await call('accounts/'+admin.id,{method:'PATCH',user:admin,body:{disabled:true}})).status,404);
