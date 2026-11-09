@@ -2,6 +2,7 @@ import {clone,uid,escape as esc,parseManuscript,sanitizeHTML,sanitizeCSS} from '
 import {manuscriptPaginationMode,projectPaginationMode} from './pagination-policy.js';
 import {canApplyAutomatic,hasAuditErrors,automaticMessage,designProposal,jobApplied} from './ai-workflow.js';
 import {jobProgress} from './job-progress.js';
+import {lastPageRevision} from './page-revision.js';
 const active=s=>['queued','starting','running','generating'].includes(s);
 const labels={queued:'等待开始',starting:'准备设计',running:'AI 设计与自检中',generating:'AI 制作视觉素材',completed:'已完成',failed:'未完成',cancelled:'已停止'};
 const kinds={design:'AI 自动设计',revise:'AI 自动调整',cover:'封面设计',polish:'排版复核',reference:'参考分析',write:'文案创作',image:'视觉素材',template:'主题制图'};
@@ -55,9 +56,16 @@ export function createCloud({S,project,current,modal,closeModal,toast,render,rem
   const target=working&&S.projects.find(item=>item.id===working.projectId),progress=jobProgress(working,target);
   const badge=document.querySelector('[data-action="ai-tasks"] span');if(badge)badge.textContent=busy&&progress?'设计记录 · '+progress.shortAction:'设计记录';
   const currentProject=project(),page=current(),notes=page?.requirements?.trim()||'',latest=S.jobs?.find(j=>j.projectId===currentProject?.id&&(j.scope!=='page'||j.pageIds?.includes(page?.id)));
-  const originalRequest=latest?.repairOf?S.jobs.find(j=>j.id===latest.repairOf):latest;
+  const local=lastPageRevision(S.jobs,currentProject?.id,page?.id);
   const otherProject=working&&working.projectId!==currentProject?.id,otherPage=working&&(otherProject||working.scope==='page'&&!working.pageIds?.includes(page?.id));
-  const state=document.querySelector('#automatic-state');if(state)state.textContent=busy&&progress?(otherProject?'「'+(target?.name||'其他项目')+'」'+progress.message:progress.message)+(otherPage?' 完成后可发送本图要求。':''):!busy&&notes&&notes!==originalRequest?.prompt?'本图要求已保存，点击发送后开始修改。':latest?automaticMessage(latest,currentProject):'补充本图的调整要求后发送，AI 只修改这张图。';
+  const state=document.querySelector('#automatic-state');if(state)state.textContent=busy&&progress?(otherProject?'「'+(target?.name||'其他项目')+'」'+progress.message:progress.message)+(otherPage?' 完成后可发送本图要求。':''):!busy&&notes&&notes!==local?.request?'本图要求已保存，点击发送后开始修改。':latest?automaticMessage(latest,currentProject):'补充本图的调整要求后发送，AI 只修改这张图。';
+  const feedback=document.querySelector('#page-revision-feedback');if(feedback){
+   feedback.hidden=!local;
+   if(local){const job=local.job,review=job.result?.revisionReview,status=jobApplied(job,currentProject)?review?.outcome==='already_satisfied'?'原图已满足，本次未改动':'已应用到本图':labels[job.status]||'已记录';
+    const html='<summary>上次本图修改 · '+esc(status)+'</summary><div class="page-revision-content"><p><b>发送的要求</b>'+esc(local.request)+'</p>'+(job.error?'<p class="revision-error">'+esc(job.error)+'</p>':review?review.checks.map(check=>'<p><b>'+esc(check.requirement)+'</b>'+esc(check.change)+'<span>'+esc(check.evidence)+'</span></p>').join(''):job.result?.summary?'<p><b>实际改动</b>'+esc(job.result.summary)+'</p>':'<p>正在按本图要求处理，完成后显示改动说明。</p>')+'</div>';
+    if(feedback._content!==html){feedback.innerHTML=html;feedback._content=html;}
+   }
+  }
   for(const control of document.querySelectorAll('[data-action="ai-design"],#design-submit'))control.disabled=!!busy||!S.session?.capabilities.ai;
   for(const control of document.querySelectorAll('[data-action="delete-project"],[data-action="confirm-delete-project"]'))control.disabled=!!S.busy||submitting||!!S.checkingAI;
   const send=document.querySelector('[data-action="ai-page"]');if(send){send.disabled=!!busy||!S.session?.capabilities.ai||!notes;send.querySelector('span').textContent=busy&&progress?(otherProject?'其他项目 · '+progress.action:progress.label):'发送并修改本图';send.setAttribute('aria-busy',String(!!busy));if(busy&&progress)send.title=progress.message;else send.removeAttribute('title');}
@@ -113,7 +121,7 @@ export function createCloud({S,project,current,modal,closeModal,toast,render,rem
    const history={id:uid(),at:Date.now(),label:j.scope==='page'?'AI 单图修改与检查':'AI 自动设计与检查',pages:clone(p.pages)};p.history??=[];p.history.push(history);if(p.history.length>25)p.history.shift();p.redo=[];
    p.pages=draft.pages;p.assets=draft.assets;p.lastAIJobId=j.id;for(const changed of j.result.pages){const target=p.pages.find(page=>page.id===changed.id);if(target)target.lastAIJobId=j.id;}p.aiCheck={jobId:j.id,status:'passed',scope:j.scope||'project',pageIds:j.result.pages.map(page=>page.id),pageCount:reports.length,checkedAt:Date.now()};p._cloudDirty=true;p._editVersion=(p._editVersion||0)+1;
    if(project()?.id===p.id){if(j.scope!=='page'||!p.pages.some(page=>page.id===S.pageId))S.pageId=p.pages[0].id;S.audit=reports;render();}
-   await save(p);if(removingProjects.has(p.id)||deletedProjects.has(p.id)){delete j.clientState;return;}j.clientState='applied';delete j.clientProgress;setState(p,j,'passed',j.scope==='page'?'本图已更新并通过自动检查，其他图保持不变。':'设计已呈现，AI 渲染检查与网页检查均已通过。');await persist({skipCloud:true});toast('AI 已完成设计和自动检查，可以查看或下载作品。');
+   await save(p);if(removingProjects.has(p.id)||deletedProjects.has(p.id)){delete j.clientState;return;}j.clientState='applied';delete j.clientProgress;setState(p,j,'passed',j.scope==='page'?(j.result.revisionReview?.outcome==='already_satisfied'?'本图原本已满足本次要求，画面未改动。':'本图已更新并通过自动检查，其他图保持不变。'):'设计已呈现，AI 渲染检查与网页检查均已通过。');await persist({skipCloud:true});toast('AI 已完成设计和自动检查，可以查看或下载作品。');
   }catch(error){const saving=j.clientState==='saving';j.clientState=saving?'save-failed':'check-failed';setState(p,j,'failed',saving?'画面检查已通过，但云端保存暂未完成，可先备份当前项目。':'自动检查暂未完成，方案与文案已保留。');if(saving)await persist({skipCloud:true});toast(error.message);}
   finally{S.checkingAI=false;updateBadge();}
  }

@@ -196,6 +196,18 @@ test('the hosted job receives the saved style recipe without weakening image or 
   assert.match(body.agent.instructions,/mandatory image policy and authorized page scope take precedence/);
  }finally{h.db.close();}
 });
+test('single-page hosted work receives a frozen request and rejects an unmet request through one correction',async()=>{
+ const h=await harness();try{
+  const pageRevision={version:1,pageId:'source-page',request:'正文分段更清楚'};
+  h.db.prepare("UPDATE jobs SET status='queued',session_id=NULL,environment_id=NULL,kind='revise',snapshot=?").run(JSON.stringify({...source,scope:'page',pageRevision}));
+  await startJob(h.read());const body=h.starts[0],input=JSON.parse(Buffer.from(body.environment.files.find(f=>f.path==='/workspace/input/project.json').data,'base64').toString());
+  assert.deepEqual(input.pageRevision,{...pageRevision,baselineCopyCurrent:false});assert.match(body.agent.instructions,/SINGLE-PAGE REVISION/);assert(body.environment.files.some(f=>f.path==='/workspace/runtime/page-revision.mjs'));
+  h.files['result-1']=JSON.stringify({...validResult,pages:[{...validResult.pages[0],id:'source-page'}],revisionReview:{pageId:'source-page',request:pageRevision.request,outcome:'updated',checks:[{requirement:pageRevision.request,status:'unmet',change:'尚未完成分组',evidence:'预览仍然难以分辨段落'}]}});
+  await advanceJob(h.read());assert.equal(h.read().status,'running');assert.equal(h.events.filter(e=>e.type==='agent.session.input.message').length,2);assert.match(h.events.at(-1).input[0].content[0].text,/要求未落实/);
+  h.state.turn='turn-2';h.state.invalid=true;await advanceJob(h.read());assert.equal(h.read().status,'failed');assert.equal(h.events.filter(e=>e.type==='agent.session.input.message').length,2);
+  assert(h.deleted.includes('/agents/sessions/session-test'));
+ }finally{h.db.close();}
+});
 test('both uploaded image files reach the hosted job, including on-demand resources',async()=>{
  const h=await harness();try{
   const assets=[{id:'one',name:'环境照.jpg',source:'upload'},{id:'two',name:'交流照.jpg',source:'upload'}];

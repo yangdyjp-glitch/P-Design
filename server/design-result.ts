@@ -2,6 +2,7 @@ import {assertLockedCopy,readCopyBlocks} from './copy-integrity';
 import {styleIssue} from '../src/style-safety.js';
 import {imageModeIssue,requiresPhoto,requiredUploadIds} from '../src/preset-images.js';
 import {paginationIssue} from '../src/pagination-policy.js';
+import {revisionReviewIssue} from '../src/page-revision.js';
 
 export class DesignValidationError extends Error {
  constructor(public code:string,message:string){super(message);this.name='DesignValidationError';}
@@ -57,6 +58,13 @@ export function validateDesignResult(raw:any,job:{snapshot:string;skill_ids:stri
  const modeIssue=imageModeIssue(snapshot.imageMode,pages,[...(snapshot.assets||[]),...(job.generatedAssets||[])],{requirePhoto:automatic&&requiresPhoto(snapshot),requiredUploadIds:automatic?requiredUploadIds(snapshot):[]});if(modeIssue)reject('IMAGE_MODE',modeIssue);
  if(automatic&&(returnedCopyIds.length!==sourceCopy.length||returnedCopyIds.some((id,i)=>id!==sourceCopy[i].id)))reject('COPY_ORDER','AI 分页遗漏、重复或调整了原文顺序');
  if(['write','reference'].includes(job.kind)&&pages.length)reject('ANALYSIS_SCOPE','分析或文案任务不能自动修改原版面');
+ let revisionReview:any=null;
+ if(pageScoped&&snapshot.pageRevision){
+  const issue=revisionReviewIssue(raw.revisionReview,snapshot.pageRevision);if(issue)reject('PAGE_REQUIREMENTS',issue);
+  revisionReview={pageId:raw.revisionReview.pageId,request:raw.revisionReview.request,outcome:raw.revisionReview.outcome,checks:raw.revisionReview.checks.map(({requirement,status,change,evidence}:any)=>({requirement,status,change,evidence}))};
+  const before=snapshot.pages[0],after=pages[0];
+  if(revisionReview.outcome==='updated'&&before.html===after.html&&(before.css||'')===after.css&&(before.photoAssetId||null)===after.photoAssetId)reject('PAGE_UNCHANGED','本图没有实际改动，不能仅凭检查通过就报告修改完成');
+ }
  const selected=automatic?(snapshot.loadedSkills||['xiaohongshu-design','xhs-design-polish']):JSON.parse(job.skill_ids);
- return {theme:snapshot.stylePreset?.theme?structuredClone(snapshot.stylePreset.theme):null,summary:raw.summary.slice(0,3000),report:raw.report.slice(0,30000),usedSkills:Array.isArray(raw.usedSkills)?[...new Set(raw.usedSkills.filter((s:any)=>selected.includes(s)))]:[],pages,replacePages:automatic&&!pageScoped,manuscript:job.kind==='write'?String(raw.manuscript||'').slice(0,60000):'',sources:Array.isArray(raw.sources)?raw.sources.filter((s:any)=>s&&typeof s.title==='string'&&/^https:\/\//.test(s.url)).slice(0,20):[],artifacts:[] as any[]};
+ return {theme:snapshot.stylePreset?.theme?structuredClone(snapshot.stylePreset.theme):null,summary:raw.summary.slice(0,3000),report:raw.report.slice(0,30000),...(revisionReview?{revisionReview}:{}),usedSkills:Array.isArray(raw.usedSkills)?[...new Set(raw.usedSkills.filter((s:any)=>selected.includes(s)))]:[],pages,replacePages:automatic&&!pageScoped,manuscript:job.kind==='write'?String(raw.manuscript||'').slice(0,60000):'',sources:Array.isArray(raw.sources)?raw.sources.filter((s:any)=>s&&typeof s.title==='string'&&/^https:\/\//.test(s.url)).slice(0,20):[],artifacts:[] as any[]};
 }
