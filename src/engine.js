@@ -3,6 +3,7 @@ import {auditImagePolicy,imageSource} from './image-policy.js';
 import {resolveStylePreset} from './style-presets.js';
 import {projectImageMode,imageModeIssue,webImagesForMode} from './preset-images.js';
 import {manuscriptParts,validatePaginationMode,projectPaginationMode} from './pagination-policy.js';
+import {previewFontCSS} from './preview-fonts.js';
 export const uid=()=>crypto.randomUUID();
 export const clean=s=>String(s??"").replace(/\s+/gu,"");
 export const escape=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
@@ -64,7 +65,8 @@ export function pageMarkup(p,project){
  for(const img of d.querySelectorAll("img")){const specific=project.assets.find(a=>a.id===img.dataset.assetId)||asset;if(specific){img.setAttribute("src",specific.url);img.dataset.assetId=specific.id;img.dataset.imageSource=imageSource(specific);}}
  return d.body.innerHTML;
 }
-export function frameDocument(p,project,css,{interactive=false,fontCSS="",portable=false}={}){
+export function frameDocument(p,project,css,{interactive=false,fontCSS="",portable=false,preview=false}={}){
+ if(preview&&!portable)css=previewFontCSS(css);
  const s=p.settings||{};
  const theme=p.layout!=='original'||!p.css?resolveStylePreset(project.stylePresetId)?.theme:null;
  const themeCSS=theme?':root{--blue:'+theme.primary+'}.generic{background:'+theme.paper+';color:'+theme.ink+'}.generic-closing{background:'+theme.primary+';color:'+theme.onPrimary+'}.generic-closing h1{color:'+theme.onPrimary+'}.generic-closing .generic-body p:last-child{background:'+theme.tint+';color:'+theme.primary+'}.generic-timeline{background:'+theme.tint+'}':'';

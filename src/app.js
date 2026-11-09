@@ -11,7 +11,7 @@ import {manuscriptPaginationMode,projectPaginationMode} from './pagination-polic
 import {removeLocalProject,reconcileProjects} from './project-management.js';
 const $=(s,r=document)=>r.querySelector(s),$$=(s,r=document)=>[...r.querySelectorAll(s)];
 const S={projects:[],activeId:null,pageId:null,tab:"copy",selectedCopy:null,baseCSS:"",db:null,zoom:1,editing:null,audit:null,busy:false};
-let saveTimer,previewTimer,toastTimer;
+let saveTimer,previewTimer,toastTimer,thumbnailObserver,previewLoadToken=0;
 const paths={
  grid:'<rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/>',
  plus:'<path d="M12 5v14M5 12h14"/>', image:'<rect x="3" y="4" width="18" height="16" rx="2"/><circle cx="8" cy="9" r="1.5"/><path d="m3 17 5-5 4 4 4-6 5 6"/>',
@@ -61,7 +61,7 @@ function remember(label){
 }
 function edit(label,fn,{full=true}={}){remember(label);fn();S.audit=null;scheduleSave();if(full)render();else{updatePreview();renderInspector();}}
 function activePageIndex(){return project().pages.findIndex(p=>p.id===current().id);}
-function markup(p,interactive=false){return frameDocument(p,project(),S.baseCSS,{interactive});}
+function markup(p,interactive=false){return frameDocument(p,project(),S.baseCSS,{interactive,preview:true});}
 function projectRows(){return S.projects.map(pr=>'<div class="project-row '+(pr.id===S.activeId?'active':'')+'"><button class="project-item" data-action="switch-project" data-id="'+esc(pr.id)+'" title="'+esc(pr.name)+'" '+(pr.id===S.activeId?'aria-current="true"':'')+'><i></i><span>'+esc(pr.name)+'</span></button><button class="icon-btn project-delete" data-action="delete-project" data-id="'+esc(pr.id)+'" aria-label="删除项目：'+esc(pr.name)+'" title="删除项目">'+icon('trash')+'</button></div>').join('');}
 function showProjects(){modal('我的项目','<p class="small-note">'+S.projects.length+' 个项目，点击名称进入，点击垃圾桶删除。</p><div class="project-manager-list">'+(S.projects.length?projectRows():'<p class="empty">还没有项目，从一段文案开始。</p>')+'</div>','<div class="panel-actions">'+button('new','新建图文','plus','btn primary')+button('import-project','导入项目','upload','btn')+'</div>');Cloud.updateBadge();}
 function emptyWorkspace(){return '<main class="workspace-empty"><div class="empty-project-icon">'+icon('folder')+'</div><p class="empty-project-eyebrow">你的创作空间</p><h1>从一段文案，开始新设计</h1><p>新建图文交给 AI 排版，或导入项目备份继续编辑。</p><div class="panel-actions">'+button('new','新建图文','plus','btn primary')+button('import-project','导入项目','upload','btn')+'</div></main>';}
@@ -83,8 +83,27 @@ function render(){
  '</div></section><div class="stage-layout"><aside class="page-rail"><div class="rail-label"><span>画面</span><span>'+p.pages.length+'</span></div><div id="page-list">'+p.pages.map((pg,i)=>'<button class="page-item '+(pg.id===page.id?"active":"")+'" data-action="select-page" data-id="'+pg.id+'" title="'+esc(pg.label)+'"><span class="thumb"><iframe tabindex="-1" title="第'+(i+1)+'页缩略预览" data-thumb="'+pg.id+'"></iframe></span><span class="page-index">'+String(i+1).padStart(2,"0")+'</span></button>').join("")+'</div></aside>'+
  '<main class="canvas-workspace"><div class="canvas-bar"><div class="row"><span>画面 '+String(activePageIndex()+1).padStart(2,"0")+'</span><span style="color:#b7c0ac">/</span><span>'+esc(page.label.slice(0,18))+'</span></div><div class="row"><span>'+icon("lock")+' 原文保真排版</span></div></div><div class="canvas-area"><div class="canvas-holder"><iframe id="canvas-frame" title="当前页面可编辑预览"></iframe><div class="canvas-loading">正在呈现画面…</div></div></div><div class="view-hint">点击画面中的文字，可定位到右侧文案</div><div class="canvas-footer"><div class="zoom-control"><button data-action="zoom-out" aria-label="缩小">−</button><span id="zoom-label">适应</span><button data-action="zoom-in" aria-label="放大">＋</button><button data-action="fit" title="适应画布" aria-label="适应画布">'+icon("expand")+'</button></div>'+button("phone","手机预览","phone","btn small")+'</div></main>'+
  '<aside class="inspector"><div class="copy-panel-head"><b>文案</b><span>你负责内容，AI 负责画面</span></div><div class="inspector-body" id="inspector-body"></div><div class="assistant automatic-assistant"><label class="assistant-title" for="design-notes">本图补充要求 <span class="muted">第 '+String(activePageIndex()+1).padStart(2,"0")+' 张</span></label><textarea id="design-notes" rows="2" maxlength="5000" aria-label="给本图的补充要求" aria-describedby="page-notes-help" placeholder="例如：本图的照片完整显示，不要裁切。">'+esc(page.requirements||'')+'</textarea><p class="page-notes-help" id="page-notes-help">只修改当前这张图，其他图保持不变。</p>'+button("ai-page","发送并修改本图","arrow","btn primary full")+'<div class="automatic-state"><span class="ai-state-dot"></span><p id="automatic-state" aria-live="polite"></p></div><details class="page-revision-feedback" id="page-revision-feedback" hidden></details><div class="assistant-footnote">AI 逐项复核本图要求 · Ctrl + Enter 发送</div></div></aside></div>':emptyWorkspace())+'</div></div>';
- for(const pg of p?.pages||[]){const fr=$('[data-thumb="'+pg.id+'"]');fr.srcdoc=markup(pg);fr.addEventListener("load",()=>fr.contentDocument?.fonts.ready.then(()=>applyFontScale(fr.contentDocument,pg.settings.fontScale||1)),{once:true});}
- if(page){renderInspector();updatePreview();fitCanvas();}Cloud.updateBadge();
+ mountThumbnails();
+ if(page){renderInspector();updatePreview({updateThumbnail:false});fitCanvas();}Cloud.updateBadge();
+}
+function loadThumbnail(pg,fr,force=false){
+ if(!pg||!fr||!fr.isConnected||fr.dataset.loaded&&!force)return;
+ fr.dataset.loaded='true';fr.onload=async()=>{const doc=fr.contentDocument;await doc.fonts.ready;if(fr.isConnected&&doc===fr.contentDocument)applyFontScale(doc,pg.settings.fontScale||1);};fr.srcdoc=markup(pg);
+}
+function mountThumbnails(){
+ thumbnailObserver?.disconnect();
+ const frames=$$('[data-thumb]'),load=target=>{const fr=target.querySelector('[data-thumb]');loadThumbnail(project()?.pages.find(pg=>pg.id===fr?.dataset.thumb),fr);};
+ if(typeof IntersectionObserver==='undefined'){for(const fr of frames)load(fr.parentElement);return;}
+ thumbnailObserver=new IntersectionObserver(entries=>{for(const entry of entries)if(entry.isIntersecting){load(entry.target);thumbnailObserver.unobserve(entry.target);}},{rootMargin:'140px 0px'});
+ for(const fr of frames)if(fr.dataset.thumb===S.pageId)load(fr.parentElement);else thumbnailObserver.observe(fr.parentElement);
+}
+function selectPage(id){
+ const p=project(),pg=p?.pages.find(page=>page.id===id);if(!pg||pg.id===S.pageId)return;
+ S.pageId=id;S.selectedCopy=null;S.editing=null;S.zoom=1;
+ for(const item of $$('[data-action="select-page"]'))item.classList.toggle('active',item.dataset.id===id);
+ $('.canvas-bar .row').innerHTML='<span>画面 '+String(activePageIndex()+1).padStart(2,'0')+'</span><span style="color:#b7c0ac">/</span><span>'+esc(pg.label.slice(0,18))+'</span>';
+ $('.assistant-title .muted').textContent='第 '+String(activePageIndex()+1).padStart(2,'0')+' 张';$('#design-notes').value=pg.requirements||'';
+ renderInspector();updatePreview({updateThumbnail:false});loadThumbnail(pg,$('[data-thumb="'+pg.id+'"]'));fitCanvas();Cloud.updateBadge();
 }
 function renderInspector(){
  const pg=current(),p=project(),el=$("#inspector-body");if(!el)return;
@@ -111,12 +130,12 @@ function renderInspector(){
   '<div class="inspector-divider"></div><h3 class="section-title">本页采用的设计方法</h3>'+routeSkills(pg).map(([k,v])=>'<div class="audit-line"><span>'+esc(v)+'</span></div>').join("")+'<p class="small-note">AI 设计可调用完整技能与云端制作工具，具体使用记录见任务结果。</p>';
  }
 }
-function updatePreview(){
+function updatePreview({updateThumbnail=true}={}){
  clearTimeout(previewTimer);const fr=$("#canvas-frame");if(!fr)return;
- $(".canvas-loading").style.display="flex";fr.onload=async()=>{try{await fr.contentDocument.fonts.ready;applyFontScale(fr.contentDocument,current().settings.fontScale||1);$(".canvas-loading").style.display="none";}catch(e){toast("画面加载失败，请刷新页面。");}};
- fr.srcdoc=markup(current(),true);updateActiveThumb();
+ const pg=current(),token=++previewLoadToken;$(".canvas-loading").style.display="flex";fr.onload=async()=>{try{const doc=fr.contentDocument;await doc.fonts.ready;if(!fr.isConnected||token!==previewLoadToken||doc!==fr.contentDocument)return;applyFontScale(doc,pg.settings.fontScale||1);$(".canvas-loading").style.display="none";}catch(e){toast("画面加载失败，请刷新页面。");}};
+ fr.srcdoc=markup(pg,true);if(updateThumbnail)updateActiveThumb();
 }
-function updateActiveThumb(){const pg=current(),fr=$('[data-thumb="'+pg.id+'"]');if(fr){fr.onload=async()=>{await fr.contentDocument.fonts.ready;applyFontScale(fr.contentDocument,pg.settings.fontScale||1);};fr.srcdoc=markup(pg);}}
+function updateActiveThumb(){const pg=current();loadThumbnail(pg,$('[data-thumb="'+pg.id+'"]'),true);}
 function fitCanvas(){
  const area=$(".canvas-area"),holder=$(".canvas-holder");if(!area||!holder)return;
  const fit=Math.min((area.clientWidth-(innerWidth<650?18:50))/1080,(area.clientHeight-28)/1440);
@@ -178,7 +197,7 @@ function showHistory(){
  modal("版本记录",'<div class="project-summary">'+icon("history")+'保留最近25次操作，可撤销或恢复。<span style="margin-left:auto">'+hist.length+' 条</span></div>'+
  (hist.length?hist.slice().reverse().map(h=>'<div class="version-item"><div>'+esc(h.label)+'<small>'+formatDate(h.at)+'</small></div>'+button("restore-history","恢复",null,"btn small",'data-id="'+h.id+'"')+'</div>').join(""):'<div class="empty">还没有修改记录。<br>修改文案、构图或照片后，记录会出现在这里。</div>'));
 }
-function showSettings(){modal("关于图序工作台",'<div class="settings-item"><b>你负责内容，AI 负责画面</b><p>已明确分页的文案保留原页数和每页内容，让图片适配页面；未分页才由 AI 安排。AI 自行设计画面、安排照片、选择技能并执行检查，通过后自动呈现。</p></div><div class="settings-item"><b>每个账户，独立创作</b><p>文案、素材、项目和设计记录按账户隔离。管理员可以创建账户，使用者在自己的工作空间里继续编辑。</p></div><div class="settings-item"><b>带走可编辑作品</b><p>可下载高清图片、可编辑 HTML 和项目备份。</p></div><p class="small-note">版本 0.5.6 · 独立账户工作空间</p>');}
+function showSettings(){modal("关于图序工作台",'<div class="settings-item"><b>你负责内容，AI 负责画面</b><p>已明确分页的文案保留原页数和每页内容，让图片适配页面；未分页才由 AI 安排。AI 自行设计画面、安排照片、选择技能并执行检查，通过后自动呈现。</p></div><div class="settings-item"><b>每个账户，独立创作</b><p>文案、素材、项目和设计记录按账户隔离。管理员可以创建账户，使用者在自己的工作空间里继续编辑。</p></div><div class="settings-item"><b>带走可编辑作品</b><p>可下载高清图片、可编辑 HTML 和项目备份。</p></div><p class="small-note">版本 0.5.7 · 独立账户工作空间</p>');}
 function showExport(){
  modal("导出你的作品",'<div class="project-summary"><b>'+project().pages.length+'</b><div>个画面已准备就绪<br><span class="tiny muted">2160 × 2880 · 高清 PNG</span></div></div><div class="settings-item"><b>导出整套高清图</b><p>每页生成一张PNG，并打包成ZIP。导出前会自动检查缺字、越界与图片加载。</p></div><div class="panel-actions">'+button("export-all","整套PNG · ZIP","download","btn primary")+button("export-one","仅导出当前页",null,"btn")+'</div><div class="inspector-divider"></div><div class="settings-item"><b>保留可编辑作品</b><p>项目备份可再次导入图序；HTML工程包含正式文字、布局、照片和字体许可。</p></div><div class="panel-actions">'+button("backup","项目备份 · JSON","save","btn")+button("export-source","可编辑HTML · ZIP","folder","btn")+'</div>');
 }
@@ -216,8 +235,8 @@ const actions={
  "preset-details":showPresetDetails,
  close:()=>{if(!S.busy)closeModal();},export:showExport,overview:()=>showOverview(),phone:()=>showOverview(true),
  "project-settings":projectSettings,"save-project-name":()=>{const n=$("#project-name").value.trim();if(!n)return toast("请输入项目名称。");project().name=n;closeModal();scheduleSave();render();},
- "select-page":b=>{S.pageId=b.dataset.id;S.selectedCopy=null;S.editing=null;S.zoom=1;render();},
- "switch-project":b=>{if(!S.projects.some(p=>p.id===b.dataset.id))return;S.activeId=b.dataset.id;S.pageId=project().pages[0].id;S.audit=null;S.zoom=1;closeModal();render();scheduleSave();},
+ "select-page":b=>selectPage(b.dataset.id),
+ "switch-project":b=>{if(!S.projects.some(p=>p.id===b.dataset.id))return;const previous=project();if(previous?._cloudDirty)Cloud.save(previous).then(()=>{if(!S.authLocked&&S.db)return cacheWorkspace();}).catch(error=>toast(error.message));S.activeId=b.dataset.id;S.pageId=project().pages[0].id;S.audit=null;S.zoom=1;closeModal();render();persist({skipCloud:true});},
  tab:b=>{S.tab=b.dataset.tab;renderInspector();},
  undo:()=>{const p=project(),h=p.history?.pop();if(!h)return;p.redo??=[];p.redo.push({id:uid(),at:Date.now(),label:h.label,pages:clone(p.pages)});p.pages=h.pages;S.audit=null;scheduleSave();render();},
  redo:()=>{const p=project(),h=p.redo?.pop();if(!h)return;p.history??=[];p.history.push({id:uid(),at:Date.now(),label:h.label,pages:clone(p.pages)});p.pages=h.pages;S.audit=null;scheduleSave();render();},
@@ -247,7 +266,7 @@ async function renderFrame(pg,targetProject=project()){
  const fr=document.createElement("iframe");fr.style.cssText="position:fixed;left:-20000px;top:0;width:1080px;height:1440px;border:0;pointer-events:none";
  document.body.append(fr);
  try{
-  await new Promise((resolve,reject)=>{const timer=setTimeout(()=>reject(Error("画面加载超时，请重试。")),45000);fr.onload=()=>{clearTimeout(timer);resolve();};fr.onerror=reject;fr.srcdoc=frameDocument(pg,targetProject,S.baseCSS);});
+  await new Promise((resolve,reject)=>{const timer=setTimeout(()=>reject(Error("画面加载超时，请重试。")),45000);fr.onload=()=>{clearTimeout(timer);resolve();};fr.onerror=reject;fr.srcdoc=frameDocument(pg,targetProject,S.baseCSS,{preview:true});});
   const doc=fr.contentDocument;await doc.fonts.ready;applyFontScale(doc,pg.settings.fontScale||1);
   await Promise.all([...doc.images].map(im=>im.decode().catch(()=>{})));
   return {frame:fr,doc,root:doc.querySelector(".xhs-card"),remove:()=>fr.remove()};
@@ -433,18 +452,19 @@ document.addEventListener("keydown",e=>{
 });
 window.addEventListener("resize",fitCanvas);
 window.addEventListener("beforeunload",()=>{clearTimeout(saveTimer);if(S.db)persist();});
-function freezeWorkspace(){S.authLocked=true;clearTimeout(saveTimer);clearTimeout(previewTimer);Cloud.dispose();closeModal();S.db?.close();S.db=null;S.projects=[];S.jobs=[];S.activeId=null;S.pageId=null;dataURLCache.clear();delete window.TuXu;$("#file-images").value='';$("#file-project").value='';$("#app").innerHTML='<div class="boot"><p>正在更新登录状态…</p></div>';}
+function freezeWorkspace(){S.authLocked=true;clearTimeout(saveTimer);clearTimeout(previewTimer);thumbnailObserver?.disconnect();previewLoadToken++;Cloud.dispose();closeModal();S.db?.close();S.db=null;S.projects=[];S.jobs=[];S.activeId=null;S.pageId=null;dataURLCache.clear();delete window.TuXu;$("#file-images").value='';$("#file-project").value='';$("#app").innerHTML='<div class="boot"><p>正在更新登录状态…</p></div>';}
 const Cloud=createCloud({S,project,current,modal,closeModal,toast,render,remember,persist,button,baseCSS:()=>S.baseCSS,auditProposal,onAuthLost:()=>Accounts.onAuthLost()});
 const Accounts=createAccounts({S,request:Cloud.request,modal,toast,freeze:freezeWorkspace,persist});
 async function legacyProjects(name="tuxu-studio"){return new Promise(resolve=>{const r=indexedDB.open(name,1);r.onupgradeneeded=()=>{r.transaction.abort();resolve([]);};r.onerror=()=>resolve([]);r.onsuccess=()=>{try{const q=r.result.transaction("workspace").objectStore("workspace").get("state");q.onsuccess=()=>{resolve(q.result?.projects||[]);r.result.close();};q.onerror=()=>resolve([]);}catch{resolve([]);}};});}
 async function boot(){
  try{
+  const cssRequest=fetch('sample/poster.css').then(response=>{if(!response.ok)throw Error('画面样式暂时无法载入。');return response.text();});cssRequest.catch(()=>{});
   await Cloud.init();
   if(S.authLocked)return;
   if(S.session.serviceError)throw Error(S.session.serviceError);
   if(S.session.accessMode==='accounts'&&!S.session.user){Accounts.login();return;}
   if(S.session.accessMode==='accounts'&&location.pathname==='/login')history.replaceState(null,'','/');
-  S.baseCSS=await (await fetch("sample/poster.css")).text();S.baseCSS=S.baseCSS.replace(/\\.ttf/g,".woff2").replace(/format\\("truetype"\\)/g,'format("woff2")');
+  S.baseCSS=(await cssRequest).replaceAll('.ttf','.woff2').replaceAll('format("truetype")','format("woff2")');
   let restored=false;
   try{S.db=await openDB();const saved=await dbRead();if(Array.isArray(saved?.projects)){S.projects=saved.projects;S.activeId=saved.activeId;restored=true;}}catch{toast("本机缓存暂时不可用，请及时备份作品。");}
   let remote=[],remoteLoaded=false;try{remote=await Cloud.pull();remoteLoaded=!!S.session?.user;}catch{toast("云端项目暂时无法载入，可继续使用本机缓存。");}
@@ -453,7 +473,7 @@ async function boot(){
   if(!restored&&!S.projects.length&&S.session.isAdmin&&S.session.accessMode!=='accounts')S.projects=await legacyProjects();
   if(!restored&&!S.projects.length&&S.session.accessMode==='visitor'){S.projects=await legacyProjects('tuxu-studio-guest');for(const p of S.projects){delete p.cloudRevision;delete p._syncConflict;p._cloudDirty=true;}}
   if(!project())S.activeId=S.projects[0]?.id||null;S.pageId=current()?.id||null;render();Cloud.updateBadge();const active=project();await persist({skipCloud:!active||!active._cloudDirty&&!!active.cloudRevision});Cloud.startPolling();
-  window.TuXu={getState:()=>clone({projects:S.projects,activeId:S.activeId,pageId:S.pageId,user:S.session.user,jobs:S.jobs}),auditCurrent:()=>project()?auditPage($("#canvas-frame").contentDocument,current(),project()):[],version:"0.5.6"};
+  window.TuXu={getState:()=>clone({projects:S.projects,activeId:S.activeId,pageId:S.pageId,user:S.session.user,jobs:S.jobs}),auditCurrent:()=>project()?auditPage($("#canvas-frame").contentDocument,current(),project()):[],version:"0.5.7"};
  }catch(e){$("#app").innerHTML='<div class="boot"><h1>工作台暂时未能打开</h1><p>'+esc(e.message)+'</p><button class="btn primary" onclick="location.reload()">重新打开</button></div>';}
 }
 boot();

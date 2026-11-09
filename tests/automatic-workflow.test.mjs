@@ -178,6 +178,7 @@ test('all skills remain available while startup stays small and optional resourc
   const loader=body.agent.tools.find(t=>t.name==='load_design_resource');assert.equal(loader.parameters.properties.resourceId.enum.length,14);
   const input=JSON.parse(Buffer.from(body.environment.files.find(f=>f.path==='/workspace/input/project.json').data,'base64').toString());
   assert.equal(input._resources,undefined);assert.deepEqual(input.loadedSkills,['xiaohongshu-design','xhs-design-polish']);
+  const setup=body.environment.setup_commands.map(step=>step.command).join('\n');assert.equal((setup.match(/playwright install/g)||[]).length,1);assert.match(setup,/playwright install --with-deps chromium/);assert.doesNotMatch(setup,/python -m playwright install/);
   h.state.calls=[{type:'function_call',name:'load_design_resource',turn_id:'turn-1',call_id:'load-1',arguments:JSON.stringify({resourceId:'skill/victor-design'})}];
   await advanceJob(h.read());assert.equal(h.attachments.length,1);assert(JSON.parse(h.read().snapshot).loadedSkills.includes('victor-design'));
   await advanceJob(h.read());assert.equal(h.attachments.length,1);
@@ -228,6 +229,32 @@ test('a missing upload fails before launching AI instead of silently omitting th
   h.db.prepare('INSERT INTO assets(id,user_id,project_id,object_key,name,mime,size,generated,created_at) VALUES(?,?,?,?,?,?,?,?,?)').run('missing','visitor_test','own-project','missing-object','图片.jpg','image/jpeg',8,0,Date.now());
   h.db.prepare("UPDATE jobs SET status='queued',session_id=NULL,environment_id=NULL,snapshot=?").run(JSON.stringify({...source,assets:[{id:'missing',source:'upload'}]}));
   await startJob(h.read());assert.equal(h.starts.length,0);assert.equal(h.read().status,'failed');assert.match(h.read().error,/图片文件不存在/);
+ }finally{h.db.close();}
+});
+test('single-page work eagerly loads images used in HTML and uploads other photos only if requested',async()=>{
+ const h=await harness();try{
+  const assets=[{id:'used',source:'upload'},{id:'optional',source:'upload'}];
+  for(const asset of assets){h.db.prepare('INSERT INTO assets(id,user_id,project_id,object_key,name,mime,size,generated,created_at) VALUES(?,?,?,?,?,?,?,?,?)').run(asset.id,'visitor_test','own-project','upload-'+asset.id,asset.id+'.jpg','image/jpeg',16,0,Date.now());h.storedFiles.push({key:'upload-'+asset.id,bytes:new Uint8Array([1,2,3])});}
+  let uploaded=0;globalThis.automaticHarness.upload=async()=>'private-'+(++uploaded);
+  h.db.prepare("UPDATE jobs SET status='queued',session_id=NULL,environment_id=NULL,snapshot=?").run(JSON.stringify({...source,scope:'page',assets,pages:[{...source.pages[0],html:'<img data-asset-id="used">'}]}));
+  await startJob(h.read());assert.equal(uploaded,1);const snapshot=JSON.parse(h.read().snapshot);assert.equal(snapshot._resources['image/optional'].pendingUpload,true);assert.equal(snapshot._resources['image/used'].loaded,true);
+  h.state.calls=[{type:'function_call',name:'load_design_resource',turn_id:'turn-1',call_id:'load-optional',arguments:JSON.stringify({resourceId:'image/optional'})}];
+  await advanceJob(h.read());assert.equal(uploaded,2);assert.equal(h.attachments.length,1);assert.equal(h.attachments[0].path,'/workspace/input/optional.jpg');assert(JSON.parse(h.read().snapshot).assets.find(a=>a.id==='optional').loaded);assert.deepEqual(JSON.parse(h.read().provider_files),['private-1','private-2']);
+  await advanceJob(h.read());assert.equal(uploaded,2);assert.equal(h.attachments.length,1);
+ }finally{h.db.close();}
+});
+test('cancelling while a lazy photo upload finishes deletes private inputs and never attaches or resumes it',async()=>{
+ const h=await harness();try{
+  h.db.prepare('INSERT INTO assets(id,user_id,project_id,object_key,name,mime,size,generated,created_at) VALUES(?,?,?,?,?,?,?,?,?)').run('optional','visitor_test','own-project','upload-optional','photo.jpg','image/jpeg',16,0,Date.now());h.storedFiles.push({key:'upload-optional',bytes:new Uint8Array([1])});
+  h.db.prepare("UPDATE jobs SET status='queued',session_id=NULL,environment_id=NULL,snapshot=?").run(JSON.stringify({...source,scope:'page',assets:[{id:'optional',source:'upload'}]}));
+  await startJob(h.read());globalThis.automaticHarness.upload=async()=>{h.db.exec("UPDATE jobs SET status='cancelled'");return 'private-late';};
+  h.state.calls=[{type:'function_call',name:'load_design_resource',turn_id:'turn-1',call_id:'cancel-photo',arguments:JSON.stringify({resourceId:'image/optional'})}];await advanceJob(h.read());assert.equal(h.read().status,'cancelled');assert.deepEqual(JSON.parse(h.read().provider_files),[]);assert(h.deleted.includes('/files/private-late'));assert.equal(h.attachments.length,0);assert(!h.events.some(e=>e.call_id==='cancel-photo'));
+ }finally{h.db.close();}
+});
+test('shared-font jobs keep editable HTML and audits while avoiding redundant font downloads',async()=>{
+ const h=await harness();try{
+  h.db.prepare('UPDATE jobs SET snapshot=?').run(JSON.stringify({...source,renderRuntime:{version:2,fontsBaseURL:'https://example.test/assets/fonts/'}}));h.state.turn='turn-2';h.state.invalid=false;
+  await advanceJob(h.read());assert.equal(h.read().status,'completed');const result=JSON.parse(h.read().result);assert(!result.artifacts.some(a=>a.name.endsWith('.woff2')));assert(result.artifacts.some(a=>a.name==='cover.png'));assert.equal(result.timings.deliveredBytes,108);assert(result.timings.totalMs>=result.timings.deliveryMs);
  }finally{h.db.close();}
 });
 test('omitting one of two required uploads triggers one correction and only a complete result can finish',async()=>{

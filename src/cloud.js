@@ -7,18 +7,19 @@ const active=s=>['queued','starting','running','generating'].includes(s);
 const labels={queued:'等待开始',starting:'准备设计',running:'AI 设计与自检中',generating:'AI 制作视觉素材',completed:'已完成',failed:'未完成',cancelled:'已停止'};
 const kinds={design:'AI 自动设计',revise:'AI 自动调整',cover:'封面设计',polish:'排版复核',reference:'参考分析',write:'文案创作',image:'视觉素材',template:'主题制图'};
 export function createCloud({S,project,current,modal,closeModal,toast,render,remember,persist,button,baseCSS,auditProposal,onAuthLost}){
- let saveChain=Promise.resolve(),pollTimer,modalJobId=null,polling=false,submitting=false,submission=null,owner=null,disposed=false;
+ let saveChain=Promise.resolve(),pollTimer,modalJobId=null,polling=false,submitting=false,submission=null,owner=null,disposed=false,initialProjects=null;
  const removingProjects=new Set(),deletedProjects=new Set(),removals=new Map();
  const requests=new AbortController();
  const api=async(path,opts={})=>{
   if(disposed)throw Error('登录状态已变化，请重新打开工作台。');
   const r=await fetch('/api/'+path,{...opts,signal:requests.signal,cache:'no-store',headers:{...(opts.body instanceof Blob?{}:{'Content-Type':'application/json'}),...(opts.headers||{}),...(owner?{'X-Tuxu-Account':owner}:{})}});
   let value;try{value=await r.json();}catch{throw Error('服务暂时不可用，请稍后重试。');}
-  if(!r.ok){const error=Error(value.error||'请求未完成。');error.status=r.status;if(['AUTH_REQUIRED','AUTH_CHANGED'].includes(value.code))onAuthLost?.();throw error;}return value;
+  if(!r.ok){const error=Error(value.error||'请求未完成。');error.status=r.status;if(['AUTH_REQUIRED','AUTH_CHANGED'].includes(value.code))onAuthLost?.();throw error;}if(disposed)throw Error('登录状态已变化，请重新打开工作台。');return value;
  };
  function signin(){modal('工作空间暂时未就绪','<p class="small-note">'+esc(S.session?.serviceError||'请先连接工作空间，再使用 AI。')+'</p>');}
- async function init(){S.jobs=[];try{S.session=await api('session');owner=S.session.accessMode==='accounts'?S.session.user?.id:null;if(S.session.user)S.jobs=(await api('jobs')).jobs;}catch(error){S.session={user:null,serviceError:error.message,capabilities:{cloud:false,ai:false,skills:[]}};}return S.session;}
- async function pull(){return S.session?.user?(await api('projects')).projects:[];}
+ async function init(){S.jobs=[];initialProjects=null;try{const data=await api('workspace');if(disposed)return;S.session=data.session;owner=S.session.accessMode==='accounts'?S.session.user?.id:null;S.jobs=data.jobs;initialProjects=data.projects;}catch(error){S.session={user:null,serviceError:error.message,capabilities:{cloud:false,ai:false,skills:[]}};}return S.session;}
+ async function pull(){if(!S.session?.user)return [];if(initialProjects!==null){const projects=initialProjects;initialProjects=null;return projects;}return (await api('projects')).projects;}
+ async function details(j){if(j.detailsLoaded===false){Object.assign(j,(await api('jobs/'+j.id)).job);j.detailsLoaded=true;}return j;}
  async function uploadAsset(p,a){
   if(a.url===`/api/files/${a.id}`)return;
   const source=a.url.startsWith('assets/photos/')?'/api/legacy-assets/'+a.url.split('/').pop():a.url;
@@ -105,7 +106,7 @@ export function createCloud({S,project,current,modal,closeModal,toast,render,rem
   if(!canApplyAutomatic(j,p)){j.clientState='held';setState(p,j,'held','文案或素材已有新修改，原方案已保留。点击 AI 重新设计即可。');return;}
   j.clientState='checking';S.checkingAI=true;setState(p,j,'checking','AI 已完成渲染自检，正在自动核对网页中的实际画面。');
   try{
-   const draft=proposal(j),reports=await auditProposal(draft,j.scope==='page'?j.pageIds:undefined,progress=>{j.clientProgress=progress;updateBadge();if(modalJobId===j.id)paintResult(j);},j.scope==='page'?[]:j.requiredUploadIds||[]);
+   await details(j);const draft=proposal(j),reports=await auditProposal(draft,j.scope==='page'?j.pageIds:undefined,progress=>{j.clientProgress=progress;updateBadge();if(modalJobId===j.id)paintResult(j);},j.scope==='page'?[]:j.requiredUploadIds||[]);
    if(removingProjects.has(p.id)||deletedProjects.has(p.id)){delete j.clientState;return;}
    if(!canApplyAutomatic(j,p)){j.clientState='held';setState(p,j,'held','检查期间文案已有新修改，已保留你的最新内容。');return;}
    if(S.busy){delete j.clientState;return;}
@@ -141,7 +142,7 @@ export function createCloud({S,project,current,modal,closeModal,toast,render,rem
   el.innerHTML=S.jobs?.length?S.jobs.map(j=>{const progress=jobProgress(j,S.projects.find(p=>p.id===j.projectId));return '<button class="job-card" data-job-view="'+j.id+'"><div class="between"><b>'+esc(j.scope==='page'?'单图修改':kinds[j.kind]||j.kind)+'</b><span class="job-status '+(progress?'running':j.status)+'">'+esc(progress?.label||(j.clientState==='applied'?'已呈现 · 检查通过':labels[j.status]))+'</span></div><p>'+esc(j.result?.summary||j.prompt.slice(0,100))+'</p><small>'+new Date(j.createdAt).toLocaleString('zh-CN')+' · '+(j.status==='completed'?'实际使用 '+(j.result?.usedSkills?.length||0)+' 个技能':'AI 可从 '+j.skillIds.length+' 个技能中择用')+'</small></button>';}).join(''):'<div class="empty">还没有设计记录。准备文案后，交给 AI 开始。</div>';
   el.querySelectorAll('[data-job-view]').forEach(b=>b.onclick=()=>showResult(S.jobs.find(j=>j.id===b.dataset.jobView)));
  }
- function showResult(j){modalJobId=j.id;modal('AI 设计结果','<div id="ai-result"></div>');paintResult(j);}
+ async function showResult(j){modalJobId=j.id;modal('AI 设计结果','<div id="ai-result"><p class="small-note">正在载入这次设计…</p></div>');try{await details(j);if(modalJobId===j.id)paintResult(j);}catch(error){toast(error.message);}}
  function paintResult(j){
   const el=document.querySelector('#ai-result');if(!el)return;const r=j.result,progress=jobProgress(j,S.projects.find(p=>p.id===j.projectId));
   const skillNames=(r?.usedSkills||[]).map(id=>S.session.capabilities.skills.find(s=>s.id===id)?.name||id).join('、');
@@ -153,7 +154,7 @@ export function createCloud({S,project,current,modal,closeModal,toast,render,rem
  async function preview(j){
   const {frameDocument}=await import('./engine.js'),draft=proposal(j);if(j.scope==='page')draft.pages=draft.pages.filter(page=>j.pageIds.includes(page.id));modalJobId=null;
   modal('AI 方案预览','<div class="ai-preview-grid">'+draft.pages.map(pg=>'<div class="overview-frame"><iframe title="AI 排版提案" data-proposal="'+pg.id+'"></iframe></div>').join('')+'</div>',button('return-ai-result','返回设计结果',null,'btn'),true);
-  for(const pg of draft.pages){const frame=document.querySelector('[data-proposal="'+pg.id+'"]');if(frame)frame.srcdoc=frameDocument(pg,draft,baseCSS());}
+  for(const pg of draft.pages){const frame=document.querySelector('[data-proposal="'+pg.id+'"]');if(frame)frame.srcdoc=frameDocument(pg,draft,baseCSS(),{preview:true});}
   document.querySelector('[data-action="return-ai-result"]').onclick=()=>showResult(j);
  }
  async function applyLegacy(j,kind){
@@ -166,5 +167,5 @@ export function createCloud({S,project,current,modal,closeModal,toast,render,rem
   if(!S.session?.user)return signin();const visitor=S.session.accessMode==='visitor';
   modal(visitor?'当前访客空间':'我的工作空间','<div class="settings-item"><b>'+esc(S.session.user.name||'工作空间')+'</b><p>文案、素材和作品属于当前空间。换浏览器或电脑前，请下载项目备份。</p>'+(visitor&&!S.session.capabilities.storagePersistent?'<p>当前服务器未配置持久存储，重新部署前请下载项目和交付文件。</p>':'')+'</div><div class="settings-item"><b>AI 服务</b><p>'+S.session.capabilities.skills.filter(s=>s.ready).length+' 个设计技能已就绪，由 AI 按内容自行选择。每人每天最多 10 个任务，自动修正同样计入额度。</p></div>');
  }
- return {init,pull,save,remove,startDesign,startPageDesign:()=>startDesign('',{scope:'page'}),showAI:startDesign,showTasks,showSkills,showAccount,startPolling,updateBadge,request:api,dispose(){disposed=true;clearTimeout(pollTimer);requests.abort();}};
+ return {init,pull,save,remove,startDesign,startPageDesign:()=>startDesign('',{scope:'page'}),showAI:startDesign,showTasks,showSkills,showAccount,startPolling,updateBadge,request:api,dispose(){disposed=true;initialProjects=null;clearTimeout(pollTimer);requests.abort();}};
 }

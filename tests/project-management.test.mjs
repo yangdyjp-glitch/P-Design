@@ -25,8 +25,7 @@ async function fixture(handler){
  const originalFetch=globalThis.fetch,originalDocument=globalThis.document,events=[],p={...project('own'),cloudRevision:undefined,_cloudDirty:true},S={projects:[p],jobs:[]};
  globalThis.document={querySelector:()=>null,querySelectorAll:()=>[]};
  globalThis.fetch=async(url,options={})=>{
-  if(url==='/api/session')return Response.json({user:{id:'account'},accessMode:'accounts',capabilities:{ai:true}});
-  if(url==='/api/jobs')return Response.json({jobs:[]});
+  if(url==='/api/workspace')return Response.json({session:{user:{id:'account'},accessMode:'accounts',capabilities:{ai:true}},projects:[p],jobs:[]});
   events.push(options.method);return handler(url,options,events);
  };
  const cloud=createCloud({S,project:()=>p,current:()=>p.pages[0]});await cloud.init();

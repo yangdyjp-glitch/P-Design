@@ -121,7 +121,7 @@ export async function accountContext(request:Request,env:AccountEnv):Promise<Acc
     if(account&&!['GET','HEAD'].includes(normalized.method)&&url.pathname!=='/api/auth/login'&&expected!==account.id)reject(401,'请刷新工作台后重试。','AUTH_CHANGED');
     const handled=await accountRoute(normalized,url,env.DB,account,token);
     if(handled){await discardRequestBody(normalized);return handled;}
-    if(!account&&url.pathname!=='/api/session')reject(401,'请先登录，再使用工作台。','AUTH_REQUIRED');
+    if(!account&&!['/api/session','/api/workspace'].includes(url.pathname))reject(401,'请先登录，再使用工作台。','AUTH_REQUIRED');
     if(account){normalized.headers.set('oai-authenticated-user-id',account.id);normalized.headers.set('oai-authenticated-user-email',account.username+'@accounts.invalid');normalized.headers.set('oai-authenticated-user-full-name',encodeURIComponent(account.display_name));normalized.headers.set('oai-authenticated-user-full-name-encoding','percent-encoded-utf-8');}
     return {request:normalized};
   }catch(error){await discardRequestBody(normalized);return response({error:error instanceof AccountError?error.message:'账户服务暂时不可用，请稍后重试。',...(error instanceof AccountError&&error.code?{code:error.code}:{})},error instanceof AccountError?error.status:500);}

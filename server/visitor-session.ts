@@ -68,7 +68,7 @@ export async function visitorContext(request: Request, env: VisitorEnv): Promise
     if (valid) id = match[1];
   }
   let cookie: string | undefined;
-  if (!id && request.method === 'GET' && (url.pathname === '/' || url.pathname === '/api/session')) {
+  if (!id && request.method === 'GET' && ['/', '/api/session', '/api/workspace'].includes(url.pathname)) {
     id = crypto.randomUUID();
     const payload = `v1.${id}.${now + TTL}`;
     const signature = Buffer.from(await crypto.subtle.sign('HMAC', key, new TextEncoder().encode(payload))).toString('base64url');

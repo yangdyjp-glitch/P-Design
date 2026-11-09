@@ -63,6 +63,7 @@ for(const postgres of [false,true])test((postgres?'PostgreSQL':'SQLite')+': logi
  async function login(username,password){const result=await call('auth/login',{method:'POST',body:{username,password}});assert.equal(result.status,200,JSON.stringify(result.value));return {id:result.value.user.id,cookie:result.headers.get('set-cookie').split(';')[0],result};}
  try{
   assert.equal((await call('health')).value.accessMode,'accounts');assert.equal((await call('session')).value.user,null);
+  const guest=await call('workspace',{headers:{'oai-authenticated-user-id':'account_admin','oai-authenticated-user-email':'admin@accounts.invalid'}});assert.equal(guest.status,200);assert.equal(guest.value.session.user,null);assert.deepEqual(guest.value.projects,[]);assert.deepEqual(guest.value.jobs,[]);
   assert.equal((await call('projects',{headers:{'oai-authenticated-user-id':'account_admin','oai-authenticated-user-email':'admin@accounts.invalid'}})).status,401);
   assert.equal((await call('auth/login',{method:'POST',body:{username:'admin',password:'test-admin-password'},headers:{Origin:'https://attacker.test'}})).status,403);
   assert.equal((await call('auth/login',{method:'POST',body:{username:'admin',password:'incorrect'}})).status,401);
@@ -80,6 +81,7 @@ for(const postgres of [false,true])test((postgres?'PostgreSQL':'SQLite')+': logi
   assert.equal((await call('projects',{user:b})).value.projects.length,0);assert.equal((await call('projects',{user:admin})).value.projects.length,0);
   assert.equal((await call('projects/'+project.id,{method:'PUT',user:b,body:{project:{...project,name:'Only designer two'},revision:0}})).status,200);
   assert.equal((await call('projects',{user:a})).value.projects[0].name,project.name);assert.equal((await call('projects',{user:b})).value.projects[0].name,'Only designer two');
+  const workspaceA=await call('workspace',{user:a}),workspaceB=await call('workspace',{user:b});assert.equal(workspaceA.value.session.user.id,a.id);assert.equal(workspaceA.value.session.isAdmin,false);assert.equal(workspaceA.value.projects[0].name,project.name);assert.equal(workspaceB.value.projects[0].name,'Only designer two');assert.deepEqual((await call('workspace?user_id='+a.id,{user:admin})).value.projects,[]);
   const stale=await call('projects/stale',{method:'PUT',user:b,headers:{'X-Tuxu-Account':a.id},body:{project:{...project,id:'stale'},revision:0}});assert.equal(stale.status,401);assert.equal(stale.value.code,'AUTH_CHANGED');
   assert.equal((await call('projects/missing-header',{method:'PUT',user:b,headers:{'X-Tuxu-Account':''},body:{project:{...project,id:'missing-header'},revision:0}})).status,401);
   const png=Uint8Array.from(Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+a/m8AAAAASUVORK5CYII=','base64'));
@@ -89,6 +91,7 @@ for(const postgres of [false,true])test((postgres?'PostgreSQL':'SQLite')+': logi
   const queued=await call('jobs',{method:'POST',user:a,body:{projectId:project.id,revision:1,requestId:'test-own-job',kind:'write',prompt:'只测试归属，不调用外部 AI',pageIds:['page-one']}});assert.equal(queued.status,201);
   assert.equal((await call('jobs',{user:b})).value.jobs.length,0);assert.equal((await call('jobs/'+queued.value.job.id,{user:b})).status,404);assert.equal((await call('jobs/'+queued.value.job.id+'/cancel',{method:'POST',body:{},user:admin})).status,404);
   assert.equal((await call('jobs/'+queued.value.job.id+'/artifacts/fake',{user:b})).status,404);assert.equal((await call('jobs/'+queued.value.job.id+'/cancel',{method:'POST',body:{},user:a})).value.job.status,'cancelled');
+  const historical={summary:'历史设计',report:'实际设计说明'.repeat(2000),usedSkills:[],pages:[{id:'page-one',html:'旧设计内容'.repeat(2000),css:'.xhs-card{}'}],artifacts:[]};await db.prepare("UPDATE jobs SET status='completed',result=? WHERE id=?").bind(JSON.stringify(historical),queued.value.job.id).run();const compact=(await call('workspace',{user:a})).value.jobs[0];assert.equal(compact.detailsLoaded,false);assert.equal(compact.result.summary,historical.summary);assert.equal(compact.result.pages,undefined);assert.equal(compact.result.report,undefined);assert.equal((await call('jobs/'+compact.id,{user:a})).value.job.result.report,historical.report);assert.deepEqual((await call('workspace',{user:b})).value.jobs,[]);assert.deepEqual((await call('workspace',{user:admin})).value.jobs,[]);
   const disposable={...project,id:'delete-fixture',name:'Disposable deletion fixture'};
   await call('projects/'+disposable.id,{method:'PUT',user:a,body:{project:disposable,revision:0}});
   const doomed=await call('assets?projectId='+disposable.id+'&id=delete-photo',{method:'POST',user:a,body:png,headers:{'Content-Type':'image/png'}});assert.equal(doomed.status,200);

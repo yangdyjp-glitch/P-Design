@@ -1,7 +1,7 @@
 {
   "deployedCommit": "38ac060abe604bb3a574bcff3e6ddc85f1d727e3",
   "siteProjectId": "appgprj_6aecb5faa0b881919c03675fe284bf42",
-  "sourceVersion": "0.5.6",
+  "sourceVersion": "0.5.7",
   "sourceBranch": "main",
   "railwayReleasePendingProjectBackup": false,
   "skills": [
@@ -32,6 +32,76 @@
   ],
   "files": [
     {
+      "path": "docs/performance.md",
+      "bytes": 5151,
+      "sha256": "f0f68d1da1deaf82ac30e12e70fa336036eb9b3a1b09c5f5e1a988debd5e10bb"
+    },
+    {
+      "path": "public/_headers",
+      "bytes": 265,
+      "sha256": "b2edd5e08985753145df2eb255fb96436891d5d8a22607c08ce7a420e0c51380"
+    },
+    {
+      "path": "public/assets/fonts/preview/OFL.txt",
+      "bytes": 4388,
+      "sha256": "1c05c68c34f9708415aada51f17e1b0092d2cea709bf4a94cd38114f9e73d7d9"
+    },
+    {
+      "path": "public/assets/fonts/preview/TuXuPreviewSans-Black.0822ce30eefe.woff2",
+      "bytes": 818852,
+      "sha256": "0822ce30eefec302a05cbd517b8be114143fe6073e332bb915c9f2a258147781"
+    },
+    {
+      "path": "public/assets/fonts/preview/TuXuPreviewSans-Bold.25038e6129ef.woff2",
+      "bytes": 849224,
+      "sha256": "25038e6129ef4d4e001b7062ae74d634ec078ea91a6440018942cd234b4255cf"
+    },
+    {
+      "path": "public/assets/fonts/preview/TuXuPreviewSans-Medium.a163ff02a6e1.woff2",
+      "bytes": 839828,
+      "sha256": "a163ff02a6e1b409d9e8dd9f8575f1e37ef3dc79535de5c20c080e867a66723c"
+    },
+    {
+      "path": "public/assets/fonts/preview/TuXuPreviewSans-Regular.192702ba3f62.woff2",
+      "bytes": 827984,
+      "sha256": "192702ba3f6293c6b01a38d40c6c03780560ac7a1faba30c8d29d62cc7e92011"
+    },
+    {
+      "path": "scripts/build-preview-fonts.py",
+      "bytes": 5085,
+      "sha256": "079fc5203ba1a34a671c890e8e9b86293391fee524b8e6ad8f49167190be1697"
+    },
+    {
+      "path": "server/artifacts.ts",
+      "bytes": 1850,
+      "sha256": "fc564f9bc4115ca5d751903a1073a8a57f61c7ced17bee485ef7978bba19cca6"
+    },
+    {
+      "path": "src/preview-font-data.js",
+      "bytes": 31451,
+      "sha256": "19549e0059a9cae0db7e19b62fea20f07ec625c280dd704fd4cda8c333f5ec2c"
+    },
+    {
+      "path": "src/preview-fonts.js",
+      "bytes": 528,
+      "sha256": "ccff9d96ed63506e09bb9a73bdc19aa4ddb67fd2e08d482b1eb3fc9a148d6ac8"
+    },
+    {
+      "path": "src/preview-fonts.json",
+      "bytes": 31435,
+      "sha256": "fc8c10e46b1fc3af45a0716f40e5b7a3f33151eb02eb14b979f2576ec88f10c7"
+    },
+    {
+      "path": "tests/artifacts.test.mjs",
+      "bytes": 2853,
+      "sha256": "aa2b50f6e31f74ddb91f6059eb123b2620e0fefe4c06806260f9b7738495509c"
+    },
+    {
+      "path": "tests/preview-fonts.test.mjs",
+      "bytes": 1344,
+      "sha256": "7258565594564ad37e6705ecccc13167fed3216c2a2d6eb4c9463443380caf1a"
+    },
+    {
       "path": "src/page-revision.js",
       "bytes": 2626,
       "sha256": "fbcecd006b063329fa290ae2a342c6517d9e81c3593ac92d768e3681231b3db9"
@@ -58,8 +128,8 @@
     },
     {
       "path": "tests/project-management.test.mjs",
-      "bytes": 5145,
-      "sha256": "95ffa5b5749d9687f660d308537e63e490dd0529361ff4d9da2ea22c5d9cb325"
+      "bytes": 5122,
+      "sha256": "de14b18cca26c85ec6545cea0272ec5e0c6a2a40220f05f2c462fbdb94521a9d"
     },
     {
       "path": "docs/pagination-policy.md",
@@ -93,8 +163,8 @@
     },
     {
       "path": "tests/job-progress.test.mjs",
-      "bytes": 7523,
-      "sha256": "fc91dab2dab6ec022c263ac19c6ff9cb72f5dfbdd81d61bbbd19ef604444a3c8"
+      "bytes": 7790,
+      "sha256": "43c45d41e3f8d044a333d0032423749fa86e4525f6b00e39647299ca9f6bd850"
     },
     {
       "path": "app/login/page.tsx",
@@ -133,8 +203,8 @@
     },
     {
       "path": "server/accounts.ts",
-      "bytes": 13196,
-      "sha256": "70b91c75fe842a43c94e0925b3f852b85e6cf3ceb1bf49377b5ba8d0991b444e"
+      "bytes": 13224,
+      "sha256": "c12fe17626a38d62c279ca784638a80fbd4cc723ad39095991a343f219219a7a"
     },
     {
       "path": "src/accounts.js",
@@ -143,8 +213,8 @@
     },
     {
       "path": "tests/accounts.test.mjs",
-      "bytes": 17834,
-      "sha256": "62683317bcf9ac5461db928f7046969e25a86a8f679181729fddeb6f6cd050e8"
+      "bytes": 19373,
+      "sha256": "56fc8bd3e0467f6dfa0737d6e4eaaf37ab14fbca247ced8d347cf0057fc980c9"
     },
     {
       "path": "scripts/postgres-tunnel.mjs",
@@ -328,8 +398,8 @@
     },
     {
       "path": "tests/automatic-workflow.test.mjs",
-      "bytes": 36480,
-      "sha256": "12b0e097c540f78fc331329ecfdb1fa70ebeb0831b0cb80d34c9dab04be36ff1"
+      "bytes": 40394,
+      "sha256": "bf0cb91271de92b8f9151b5cfe5861938402fa42e7094ec16b45c01e935b7797"
     },
     {
       "path": ".dockerignore",
@@ -3808,8 +3878,8 @@
     },
     {
       "path": "HANDOFF.md",
-      "bytes": 30009,
-      "sha256": "1e2da9b3c325295463525af9f690891491fa3ec4595ab0ddf6fe23583e5105f0"
+      "bytes": 30836,
+      "sha256": "5bf98ad8a41cd21bd249b6ea3cac82edac19381518003e1f457c7000f24c1d8c"
     },
     {
       "path": "hooks/use-mobile.ts",
@@ -3859,12 +3929,12 @@
     {
       "path": "package-lock.json",
       "bytes": 515996,
-      "sha256": "e0baf6d6c4916b6b0787a0f9a397b2f21e8cc82643c2fc02b3c00525637b7c58"
+      "sha256": "baa280ed56ffb6997bc45bdd89081e1166ada9b368d4b2c8c74e08a8c9742903"
     },
     {
       "path": "package.json",
       "bytes": 2900,
-      "sha256": "1096c83a50f2e339866d1f88f2570fedd7b1f51c8b041ea037d9134776c46289"
+      "sha256": "d1ef906fed69ae472aa30b8b9341c79158b6e9407a43e46593a4ec260448764a"
     },
     {
       "path": "postcss.config.mjs",
@@ -3908,8 +3978,8 @@
     },
     {
       "path": "public/editor.js",
-      "bytes": 269029,
-      "sha256": "5e0fc1deb2d176983a42b2c77929c0643924cc9b1212a7faddf35503fee029bc"
+      "bytes": 302338,
+      "sha256": "abacc89b08306f0a354aea831dbcc7565b6af89ecee736dbdada9af9201007d0"
     },
     {
       "path": "public/editor.js.LEGAL.txt",
@@ -3928,13 +3998,13 @@
     },
     {
       "path": "QA.md",
-      "bytes": 41659,
-      "sha256": "71d300f1119db91e300de75bb29fc005b7d1386b0776bdc1b7939a5610ac1d12"
+      "bytes": 43803,
+      "sha256": "581d7b92f8118edb4542c01c9c7f5f5b75607645bba12ea6aec0bb2e2c91a5b7"
     },
     {
       "path": "README.md",
-      "bytes": 6499,
-      "sha256": "dac770da524054fde3ac449d2f8753fa64680d120714955da15ad5ca52984145"
+      "bytes": 6805,
+      "sha256": "ace4f030555a772852bac28ede106c71f74f492d81f975efd226de85a2d1a0a4"
     },
     {
       "path": "scripts/api-local.mjs",
@@ -4118,8 +4188,8 @@
     },
     {
       "path": "server/agent.ts",
-      "bytes": 42220,
-      "sha256": "1e89bcc1274514b61530e0870776ba92042818a720d18c02598fc4d9a8071ae3"
+      "bytes": 44903,
+      "sha256": "d568095540369d4993300f83d567cd2c4c7486e4e582c91befac9483788d9d4d"
     },
     {
       "path": "server/copy-integrity.ts",
@@ -4138,8 +4208,8 @@
     },
     {
       "path": "server/routes.ts",
-      "bytes": 16599,
-      "sha256": "15fe60e5b99bb98731933fb63a68fc0403f6fbda4085ab2053763750a8a2a6ce"
+      "bytes": 17626,
+      "sha256": "54725f44029281af475268def2997cacf44121b184692600b1e6dbdfb43fb622"
     },
     {
       "path": "server/skills.ts",
@@ -4148,8 +4218,8 @@
     },
     {
       "path": "server/visitor-session.ts",
-      "bytes": 4997,
-      "sha256": "f8fdca0dc08efc3e1db510414713b1e5256b877c6645ac5d030f8a059f876bd8"
+      "bytes": 5002,
+      "sha256": "5d10f4f4ffb7494db27cc2a319aaea12f0e159239e6df3f963618463c53e90cd"
     },
     {
       "path": "server/webhooks.ts",
@@ -4158,18 +4228,18 @@
     },
     {
       "path": "src/app.js",
-      "bytes": 61428,
-      "sha256": "5567b11706fd3c19e630995d41b452bcffe7167ad5238522926a4722d5738ea0"
+      "bytes": 63349,
+      "sha256": "4aec613a78ebda52a86c7f2b7bef34c6470961b3230e601559effb3663f4e6ce"
     },
     {
       "path": "src/cloud.js",
-      "bytes": 22675,
-      "sha256": "5d7c4dd693aba29060ee0e1b5d0abca10e39a5ecff95866348e4c0a74a3820a6"
+      "bytes": 23270,
+      "sha256": "40f87da925030cf1e65f14a16a35d4dd071e4026d468c3c4237592114ca5638b"
     },
     {
       "path": "src/engine.js",
-      "bytes": 17940,
-      "sha256": "c38e05dbbdc9fd61a3719cc7e311c2cec15c396d26308f087a7e3f08297d2090"
+      "bytes": 18053,
+      "sha256": "7c67bbe31278554d9c6f009980abdd6a40cd95b81b52c056c55bbda39034c22b"
     },
     {
       "path": "tests/visitor-session.test.mjs",
@@ -4178,8 +4248,8 @@
     },
     {
       "path": "THIRD_PARTY.md",
-      "bytes": 1665,
-      "sha256": "fe9aa573a61c9e162796914125cbed985aecbccc74d4523f56fc122b927643e0"
+      "bytes": 2099,
+      "sha256": "53860d8b886bc0b3213af871a82d34f86c95970ad82d8cd17e4018667d343b9c"
     },
     {
       "path": "tsconfig.json",
