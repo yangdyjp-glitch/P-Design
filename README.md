@@ -4,6 +4,8 @@
 
 换电脑接续开发，请先读 [HANDOFF.md](HANDOFF.md)，包含首次运行、AI配置、源码入口、发布步骤和当前限制。
 
+0.5.1 增加 [任务阶段与画面进度](docs/job-progress.md)：显示正在调整的目标画面及准备、配图、设计、检查、保存等实际阶段；网页检查按真实结果逐页显示计数。
+
 Railway 部署默认需要账户登录，配置与验证见 [Railway 接入说明](docs/railway.md)。推荐启动命令为 `npm run start:railway`，此前带 sites-env 预加载的长命令也已兼容；需要配置 Railway 服务端 AI 密钥。原 Sites 站点仍沿用原认证与存储。
 
 Railway 可通过服务端 `DATABASE_URL` 接入 Supabase PostgreSQL，自动建表并将卷里的旧数据导入空的业务 schema；图片继续保存在现有卷。设置及验收见 [Supabase 接入说明](docs/supabase.md)。此能力需部署本次代码并核对健康接口，不能仅凭添加变量认定已生效。

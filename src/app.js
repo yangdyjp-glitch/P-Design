@@ -172,7 +172,7 @@ function showHistory(){
  modal("版本记录",'<div class="project-summary">'+icon("history")+'保留最近25次操作，可撤销或恢复。<span style="margin-left:auto">'+hist.length+' 条</span></div>'+
  (hist.length?hist.slice().reverse().map(h=>'<div class="version-item"><div>'+esc(h.label)+'<small>'+formatDate(h.at)+'</small></div>'+button("restore-history","恢复",null,"btn small",'data-id="'+h.id+'"')+'</div>').join(""):'<div class="empty">还没有修改记录。<br>修改文案、构图或照片后，记录会出现在这里。</div>'));
 }
-function showSettings(){modal("关于图序工作台",'<div class="settings-item"><b>你负责内容，AI 负责画面</b><p>准备文案与图片后，AI 自行决定分页、视觉方向、照片安排和设计技能，并执行渲染与网页检查。检查通过后自动呈现。</p></div><div class="settings-item"><b>每个账户，独立创作</b><p>文案、素材、项目和设计记录按账户隔离。管理员可以创建账户，使用者在自己的工作空间里继续编辑。</p></div><div class="settings-item"><b>带走可编辑作品</b><p>可下载高清图片、可编辑 HTML 和项目备份。</p></div><p class="small-note">版本 0.5.0 · 独立账户工作空间</p>');}
+function showSettings(){modal("关于图序工作台",'<div class="settings-item"><b>你负责内容，AI 负责画面</b><p>准备文案与图片后，AI 自行决定分页、视觉方向、照片安排和设计技能，并执行渲染与网页检查。检查通过后自动呈现。</p></div><div class="settings-item"><b>每个账户，独立创作</b><p>文案、素材、项目和设计记录按账户隔离。管理员可以创建账户，使用者在自己的工作空间里继续编辑。</p></div><div class="settings-item"><b>带走可编辑作品</b><p>可下载高清图片、可编辑 HTML 和项目备份。</p></div><p class="small-note">版本 0.5.1 · 独立账户工作空间</p>');}
 function showExport(){
  modal("导出你的作品",'<div class="project-summary"><b>'+project().pages.length+'</b><div>个画面已准备就绪<br><span class="tiny muted">2160 × 2880 · 高清 PNG</span></div></div><div class="settings-item"><b>导出整套高清图</b><p>每页生成一张PNG，并打包成ZIP。导出前会自动检查缺字、越界与图片加载。</p></div><div class="panel-actions">'+button("export-all","整套PNG · ZIP","download","btn primary")+button("export-one","仅导出当前页",null,"btn")+'</div><div class="inspector-divider"></div><div class="settings-item"><b>保留可编辑作品</b><p>项目备份可再次导入图序；HTML工程包含正式文字、布局、照片和字体许可。</p></div><div class="panel-actions">'+button("backup","项目备份 · JSON","save","btn")+button("export-source","可编辑HTML · ZIP","folder","btn")+'</div>');
 }
@@ -230,9 +230,9 @@ async function renderFrame(pg,targetProject=project()){
   return {frame:fr,doc,root:doc.querySelector(".xhs-card"),remove:()=>fr.remove()};
  }catch(e){fr.remove();throw e;}
 }
-async function auditProposal(draft,pageIds){
- const report=[];
- for(const page of draft.pages.filter(page=>!pageIds||pageIds.includes(page.id))){const rendered=await renderFrame(page,draft);try{report.push({id:page.id,label:page.label,issues:auditPage(rendered.doc,page,draft)});}finally{rendered.remove();}}
+async function auditProposal(draft,pageIds,onProgress){
+ const report=[],pages=draft.pages.filter(page=>!pageIds||pageIds.includes(page.id));
+ for(const [index,page]of pages.entries()){onProgress?.({current:index+1,total:pages.length,pageId:page.id});const rendered=await renderFrame(page,draft);try{report.push({id:page.id,label:page.label,issues:auditPage(rendered.doc,page,draft)});}finally{rendered.remove();}}
  return report;
 }
 async function checkAll(){
@@ -429,7 +429,7 @@ async function boot(){
   if(!S.projects.length&&S.session.accessMode==='visitor'){S.projects=await legacyProjects('tuxu-studio-guest');for(const p of S.projects){delete p.cloudRevision;delete p._syncConflict;p._cloudDirty=true;}}
   if(!S.projects.length){const p={id:uid(),name:"从文案开始",pages:parseManuscript("让好内容，被看见\n把你的完整文案放在右侧，也可以上传本次图片。\n画面、分页和设计检查，交给 AI 自行完成。",{preserveText:true}),assets:[],history:[],redo:[],createdAt:Date.now(),updatedAt:Date.now()};S.projects=[p];}
   if(!project())S.activeId=S.projects[0].id;S.pageId=project().pages[0].id;render();Cloud.updateBadge();await persist({skipCloud:!project()._cloudDirty&&!!project().cloudRevision});Cloud.startPolling();
-  window.TuXu={getState:()=>clone({projects:S.projects,activeId:S.activeId,pageId:S.pageId,user:S.session.user,jobs:S.jobs}),auditCurrent:()=>auditPage($("#canvas-frame").contentDocument,current(),project()),version:"0.5.0"};
+  window.TuXu={getState:()=>clone({projects:S.projects,activeId:S.activeId,pageId:S.pageId,user:S.session.user,jobs:S.jobs}),auditCurrent:()=>auditPage($("#canvas-frame").contentDocument,current(),project()),version:"0.5.1"};
  }catch(e){$("#app").innerHTML='<div class="boot"><h1>工作台暂时未能打开</h1><p>'+esc(e.message)+'</p><button class="btn primary" onclick="location.reload()">重新打开</button></div>';}
 }
 boot();
