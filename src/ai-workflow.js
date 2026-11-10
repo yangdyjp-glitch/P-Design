@@ -1,6 +1,7 @@
 import {clone} from './engine.js';
 import {paginationIssue,projectPaginationMode} from './pagination-policy.js';
 import {specialistResultIssue} from './specialist-routing.js';
+import {tasteResultIssue} from './visual-design.js';
 
 export function canApplyAutomatic(job,project){
  return !!project&&job.projectId===project.id&&!project._cloudDirty&&!project._syncConflict&&project.cloudRevision===job.baseRevision;
@@ -13,6 +14,7 @@ export function designProposal(job,project){
  if(!project||job.projectId!==project.id)throw Error('原项目已删除，可从交付文件查看结果。');
  const result=job.result,draft=clone(project);
  if(job.visualDesignRequired&&(result.visualReview?.status!=='passed'||result.visualReview.independent!==true||result.visualReview.jobId!==job.id||result.visualReview.pages?.length!==result.pages?.length||result.pages.some(page=>!result.visualReview.pages.some(review=>review.pageId===page.id))))throw Error('独立视觉复核尚未通过，本次方案不能应用。');
+ if(job.tasteRequired){const issue=tasteResultIssue(result.visualDesign,result.usedSkills,result.pages);if(issue||result.visualReview?.taste?.version!==1)throw Error((issue||'Taste 独立审美复核尚未完成')+'，本次方案不能应用。');}
  if(job.specialistRoutingRequired){const issue=specialistResultIssue(result.visualDesign,result.usedSkills,result.pages,[...(project.assets||[]),...(result.assets||[])]);if(issue)throw Error(issue+'，本次方案不能应用。');}
  if(job.scope==='page'&&(result.replacePages||job.pageIds?.length!==1||result.pages?.length!==1||result.pages[0].id!==job.pageIds[0]))throw Error('单图方案超出了当前图的修改范围。');
  if(job.automatic&&job.scope!=='page'){

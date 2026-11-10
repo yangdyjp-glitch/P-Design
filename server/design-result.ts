@@ -3,7 +3,7 @@ import {styleIssue} from '../src/style-safety.js';
 import {imageModeIssue,requiresPhoto,requiredUploadIds} from '../src/preset-images.js';
 import {paginationIssue} from '../src/pagination-policy.js';
 import {revisionReviewIssue} from '../src/page-revision.js';
-import {VISUAL_SKILLS} from '../src/visual-design.js';
+import {requiredVisualSkills,tasteResultIssue} from '../src/visual-design.js';
 import {specialistResultIssue} from '../src/specialist-routing.js';
 
 export class DesignValidationError extends Error {
@@ -70,7 +70,8 @@ export function validateDesignResult(raw:any,job:{snapshot:string;skill_ids:stri
  if(snapshot.visualDesignPolicy?.version===1){
   const dispatch=snapshot.visualDispatch;
   if(!dispatch||dispatch.turnId!==job.turn_id||!Array.isArray(dispatch.plan?.pages)||dispatch.plan.pages.length!==pages.length||dispatch.plan.pages.some((planned:any,index:number)=>planned.id!==pages[index].id||JSON.stringify(planned.copyIds)!==JSON.stringify((pages[index].copy||allowed.get(planned.id)?.copy||[]).map((copy:any)=>copy.id))))reject('VISUAL_PLAN','本次成图尚未完成对应的构图调度登记');
-  if(!Array.isArray(raw.usedSkills)||VISUAL_SKILLS.some(id=>!snapshot.loadedSkills?.includes(id)||!raw.usedSkills.includes(id)))reject('VISUAL_SKILLS','视觉设计、海报构图和中文精修必须在本轮参与');
+  if(!Array.isArray(raw.usedSkills)||requiredVisualSkills(snapshot).some(id=>!snapshot.loadedSkills?.includes(id)||!raw.usedSkills.includes(id)))reject('VISUAL_SKILLS','本轮规定的视觉、构图、精修与审美方法必须实际参与');
+  if(snapshot.visualDesignPolicy.taste?.version===1){const issue=tasteResultIssue(dispatch,raw.usedSkills,pages);if(issue)reject('TASTE_METHODS',issue);}
   if(snapshot.visualDesignPolicy.specialistRouting?.version===1){const issue=specialistResultIssue(dispatch,raw.usedSkills,pages,[...(snapshot.assets||[]),...(job.generatedAssets||[])]);if(issue)reject('SPECIALIST_ROUTING',issue);}
  }
  const selected=automatic?(snapshot.loadedSkills||['xiaohongshu-design','xhs-design-polish']):JSON.parse(job.skill_ids);

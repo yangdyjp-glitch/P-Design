@@ -1,7 +1,7 @@
 {
   "deployedCommit": "38ac060abe604bb3a574bcff3e6ddc85f1d727e3",
   "siteProjectId": "appgprj_6aecb5faa0b881919c03675fe284bf42",
-  "sourceVersion": "0.7.0",
+  "sourceVersion": "0.7.1",
   "sourceBranch": "main",
   "railwayReleasePendingProjectBackup": false,
   "skills": [
@@ -31,6 +31,161 @@
     "deployment repository history"
   ],
   "files": [
+    {
+      "path": "design-skills/taste-skill/assets/layout/heroes.json",
+      "bytes": 37569,
+      "sha256": "ec31203b4857901641dc2c8229ab52bb3dcebd7cadeb9619939a49e76061523e"
+    },
+    {
+      "path": "design-skills/taste-skill/assets/layout/layout.css",
+      "bytes": 45504,
+      "sha256": "8ae1ad2d798118433554f067d8e012bbce5646c868d154a1087284c5d32f2ac3"
+    },
+    {
+      "path": "design-skills/taste-skill/assets/system.css",
+      "bytes": 102946,
+      "sha256": "2facb5c5537a3bd44514eacc98715b04f6f19ca9ace11a92d35903941511e71c"
+    },
+    {
+      "path": "design-skills/taste-skill/LICENSE",
+      "bytes": 1065,
+      "sha256": "4575a543ab88dad12ccea7d97e563d0bce5b448b06072e65d3264497dad326df"
+    },
+    {
+      "path": "design-skills/taste-skill/PROVENANCE.md",
+      "bytes": 986,
+      "sha256": "1437cfceeb3661118d1dc99c9f8f97eb6c94074aac48f7e269cb96a9eb05e1e3"
+    },
+    {
+      "path": "design-skills/taste-skill/references/backgrounds.md",
+      "bytes": 7998,
+      "sha256": "b8d593ffaadcc390503d86fc094ed3bf4e070c1ee7927c1e1c1251443409c9c1"
+    },
+    {
+      "path": "design-skills/taste-skill/references/cards.md",
+      "bytes": 24292,
+      "sha256": "f70d8c41c55ff7e777b5ce51cbe61fee05c024b268c744beb53528ec8a4869a1"
+    },
+    {
+      "path": "design-skills/taste-skill/references/copy-moves.md",
+      "bytes": 8056,
+      "sha256": "6e5c7eb52ab5cbe61c07eb936c3d17d4432f02dbae2da1f1bbab5e9aef7b2400"
+    },
+    {
+      "path": "design-skills/taste-skill/references/copy-registers.md",
+      "bytes": 9236,
+      "sha256": "8e2e6d5b9ef09e38bfdd2f1c9a32796bd91c1f3f99c6c51abbbe89d99119d6fd"
+    },
+    {
+      "path": "design-skills/taste-skill/references/copy-tells.md",
+      "bytes": 9612,
+      "sha256": "e113d4f788f64e44e92cefa0823be4cf0662f2806ed87f91aa52d9cf8877d6ed"
+    },
+    {
+      "path": "design-skills/taste-skill/references/copy-voice.md",
+      "bytes": 11902,
+      "sha256": "3a287b8f10384229aa52e6d75480fddc377aafd05f7d0ee9d1a180d2ebf44e8a"
+    },
+    {
+      "path": "design-skills/taste-skill/references/copy.md",
+      "bytes": 14747,
+      "sha256": "607520bc4213e06e6635f4fa44915d3fb5482b5b2e3779faa0a5c9d2abcc9e69"
+    },
+    {
+      "path": "design-skills/taste-skill/references/diagrams.md",
+      "bytes": 6860,
+      "sha256": "2aafd9ad74d2fc620174c23aa48f9ce6201ce33c1b441630973af9509a9b723e"
+    },
+    {
+      "path": "design-skills/taste-skill/references/effects-creative.md",
+      "bytes": 18582,
+      "sha256": "5d91932981577d300c8f1b2907811335777552eccb333b07c50ef5b1c000bbc9"
+    },
+    {
+      "path": "design-skills/taste-skill/references/effects-objects.md",
+      "bytes": 23169,
+      "sha256": "053eb08058dfa970cda3cb71ee469d14025fb86c4eb8d70b4a112ef47760c4cb"
+    },
+    {
+      "path": "design-skills/taste-skill/references/effects-usage.md",
+      "bytes": 13591,
+      "sha256": "4522bce7971e31e776c845b008b6f40997ab97a68d49cf2bb4493f72798a5342"
+    },
+    {
+      "path": "design-skills/taste-skill/references/gate.md",
+      "bytes": 13183,
+      "sha256": "14946f5ad6b4abdf6dad65a693b2eeb98912e8253b9c4f10da0840e4efafc651"
+    },
+    {
+      "path": "design-skills/taste-skill/references/icons.md",
+      "bytes": 6758,
+      "sha256": "d385f027d63d488a27ae63bef8bcff2cb4358e74cb0ad7454e4e9da6a49f8381"
+    },
+    {
+      "path": "design-skills/taste-skill/references/layout-v4.md",
+      "bytes": 23591,
+      "sha256": "6316217db46993977700cf4203cc29f96cad0d7bf3a97e877241b1be0901fd19"
+    },
+    {
+      "path": "design-skills/taste-skill/references/moments.md",
+      "bytes": 18173,
+      "sha256": "eee7b8e18aaa268ac6ea31b58d7444b164ff10b1cf0ccea93b02904b9a0dd9e7"
+    },
+    {
+      "path": "design-skills/taste-skill/references/motion.md",
+      "bytes": 19242,
+      "sha256": "d7bc6fe01cab8a1c1e921309291828c68f875a25907317279842cf306391c373"
+    },
+    {
+      "path": "design-skills/taste-skill/references/perf.md",
+      "bytes": 5707,
+      "sha256": "fcf55304221bd2b371ba3a80dd2e9efa1e176c104c1d28eac1dd266f804871c8"
+    },
+    {
+      "path": "design-skills/taste-skill/references/photos.md",
+      "bytes": 27704,
+      "sha256": "b115cafc205ee20f19e6e90d061d24d31460966f1bd4315fb3434ca2d560c33e"
+    },
+    {
+      "path": "design-skills/taste-skill/references/scenes.md",
+      "bytes": 8705,
+      "sha256": "3de1b89ecd2b9b9777b8b04f69c5e5a2fc0fb8dbff0f3feb06f2fe9e5b90599b"
+    },
+    {
+      "path": "design-skills/taste-skill/references/sections-library.md",
+      "bytes": 66041,
+      "sha256": "ce1c6bc27c41a3b49430a9ad3f06e02efd22471b869e4d3ea802a947ae6fb0c9"
+    },
+    {
+      "path": "design-skills/taste-skill/references/sections.md",
+      "bytes": 53916,
+      "sha256": "999cb82dba04d205052725e93a240fcb59be1c1d7ab31129a191eb6f4ee31e89"
+    },
+    {
+      "path": "design-skills/taste-skill/references/system.md",
+      "bytes": 16078,
+      "sha256": "f6bfbdb36b49c4584b4fd10ff24e9e97098bd93d09da3e08e8424500ee641d01"
+    },
+    {
+      "path": "design-skills/taste-skill/references/upstream-skill.md",
+      "bytes": 30970,
+      "sha256": "0c7a5852a5217be79cab422c6d58329b776f0c25bd6da8a7a01707ce75be6206"
+    },
+    {
+      "path": "design-skills/taste-skill/references/xhs-static-adapter.md",
+      "bytes": 2974,
+      "sha256": "86570d76fa48a8023230a4f98cc9ca13433d84b014a870d8a5c465eaaf3f38d8"
+    },
+    {
+      "path": "design-skills/taste-skill/SKILL.md",
+      "bytes": 2372,
+      "sha256": "27ef3527794cc1ca0be5e8f4abdc8a578c2851a007baa776f9398517b6939935"
+    },
+    {
+      "path": "docs/taste-skill.md",
+      "bytes": 3206,
+      "sha256": "98475e229a0d4bb7cbf9a1c47717576e5797223c019d89c8aae69a48ead7eab4"
+    },
     {
       "path": "design-skills/content-research-writer/PROVENANCE.md",
       "bytes": 409,
@@ -278,38 +433,38 @@
     },
     {
       "path": "docs/specialist-routing.md",
-      "bytes": 4438,
-      "sha256": "19aafa58eee5efc2ee515c3e61b54cc983661e3e66f2a385934730833fe8935c"
+      "bytes": 4725,
+      "sha256": "32c05085add87f3dcdba3dcc9b5f6344cba364fd7fb81f9481b4bd265baac159"
     },
     {
       "path": "src/specialist-routing.js",
-      "bytes": 9139,
-      "sha256": "f76bb7ee4672a4d0a0d2813cf70a7e392fe467a8a54487cb11f476272b601080"
+      "bytes": 9156,
+      "sha256": "e7a5f8f859f1c0cf4770e09810c02c6d8c2ec12a62a3440644c8a48572504b35"
     },
     {
       "path": "tests/specialist-routing.test.mjs",
-      "bytes": 7610,
-      "sha256": "b1117371c07969e24e984cd273ed8d2d5c23713d036b556aea82ea630c26110f"
+      "bytes": 7607,
+      "sha256": "ac7fc5a14e95566cf78be33f5527cd56c3f3f62901037a096965b2369321ea67"
     },
     {
       "path": "docs/visual-design.md",
-      "bytes": 6632,
-      "sha256": "e2721fa1ff31802371e6b0ce9227b90200b87858cd8002efa21b8a1be8d281b6"
+      "bytes": 6948,
+      "sha256": "ab646f92ef82967ef1fbef0660fbc651de8d075e22e8ba40af66951f9282fdee"
     },
     {
       "path": "server/visual-review.ts",
-      "bytes": 10551,
-      "sha256": "2feb83d8956779240e28072b5b77fcaf6845cacb4ddea72cbcd8cfcbaf6788fa"
+      "bytes": 11033,
+      "sha256": "c0dfc5dbbd1334a0a798bf9cdee15190255979794ed98d7f5b45db9ae87ea2e4"
     },
     {
       "path": "src/visual-design.js",
-      "bytes": 5315,
-      "sha256": "a42836c7fd012c89d46c3ee923d86aa438f9ced23f6589c342a0336792560580"
+      "bytes": 7184,
+      "sha256": "27b8665b40f0e59e01673b230ea6f477134687791159974f839d3ce4ed73868b"
     },
     {
       "path": "tests/fixtures/visual-design.mjs",
-      "bytes": 3768,
-      "sha256": "3787c4771e4267f7fb91dfe47cba69bbe205aebb8bb78765b2ccebf742df79ed"
+      "bytes": 4058,
+      "sha256": "1f5c1fc6133992c23aabf6cf2735a0f135a4d35e86667cac77b97e9a63667be6"
     },
     {
       "path": "tests/provider-read.test.mjs",
@@ -318,8 +473,8 @@
     },
     {
       "path": "tests/visual-design.test.mjs",
-      "bytes": 4157,
-      "sha256": "e806161ffa4494557fbf3f51477a58233b27e5b1bf4a2dd09b586c03d46e71a6"
+      "bytes": 6748,
+      "sha256": "5baba37c5e30921f7d50ed8519b7b9c1948ef152f37ae3fe7099e760bfc0ef1c"
     },
     {
       "path": "docs/performance.md",
@@ -504,7 +659,7 @@
     {
       "path": "tests/accounts.test.mjs",
       "bytes": 29203,
-      "sha256": "6bcbfb5b6ef7fc1a35da6028eec95d8b225747313cadd8b22f40aa7d0be2be70"
+      "sha256": "f8c58059259d5cb87ddb820f6126861efbc8ca8d5a17a75b60b35c5acb22d0d6"
     },
     {
       "path": "scripts/postgres-tunnel.mjs",
@@ -603,8 +758,8 @@
     },
     {
       "path": "tests/postgres.test.mjs",
-      "bytes": 14342,
-      "sha256": "addc71ca9a17cb3f6e0654d6f8bd89e2b4fc2eb4840b197c41fde31663e3d08a"
+      "bytes": 14406,
+      "sha256": "f513093fd25528428b0bac8d617595931f103094c161d67da23c1f606b1ddcfb"
     },
     {
       "path": "docs/style-presets.md",
@@ -683,13 +838,13 @@
     },
     {
       "path": "src/ai-workflow.js",
-      "bytes": 4375,
-      "sha256": "46c3c82091f88471620556ed3bd941eabb7105a120052a8199e01a7b9e6e6f89"
+      "bytes": 4678,
+      "sha256": "d6e07ddf117a943aadf62f05e5fdca763eea5f4ad59af032fa56ea3ce9396ab6"
     },
     {
       "path": "tests/automatic-workflow.test.mjs",
-      "bytes": 58853,
-      "sha256": "b321b6f88db854533e912c5ce2b982e7cdeb3c440ad456bccc4ec7665652d781"
+      "bytes": 61733,
+      "sha256": "90d0f7051fcf51b66484fd0d134f922f4d1246aebda767c24453995d83242ba9"
     },
     {
       "path": ".dockerignore",
@@ -4168,8 +4323,8 @@
     },
     {
       "path": "HANDOFF.md",
-      "bytes": 34863,
-      "sha256": "d439b77a0053e7c9e5fff1f64b443205680256d5cc58a8f191c0ff4b2184c196"
+      "bytes": 36309,
+      "sha256": "cb75fbf82d15c162209afa9ffffab6544ca74f2d6e8cc2e31cc6862ed0bfaea0"
     },
     {
       "path": "hooks/use-mobile.ts",
@@ -4219,12 +4374,12 @@
     {
       "path": "package-lock.json",
       "bytes": 515996,
-      "sha256": "ef7b81ce832a0103f351aa053dbeea6fb142433bc1cd1b09156a3a9c30aba496"
+      "sha256": "b262a693c6a263a9a8387201086d8f6801a9f9af44efa6a7dddcba0af3e189c7"
     },
     {
       "path": "package.json",
       "bytes": 2961,
-      "sha256": "b8923c86562c49a59424550249640b9517fdfe2c2e925f6a08d424b8a3e51906"
+      "sha256": "63772021420ce1f2c2b8ada76aa150d26dfb63529f9444077db0e4b2c88e894d"
     },
     {
       "path": "postcss.config.mjs",
@@ -4268,8 +4423,8 @@
     },
     {
       "path": "public/editor.js",
-      "bytes": 330781,
-      "sha256": "9b1b5afb9024de8662b2225899caa3162059342343b3ae1a3e35c8f922031969"
+      "bytes": 332219,
+      "sha256": "e369bd1204e2ef84bf16141c843147452308315b95ffd4d5c4419331263b4da4"
     },
     {
       "path": "public/editor.js.LEGAL.txt",
@@ -4288,13 +4443,13 @@
     },
     {
       "path": "QA.md",
-      "bytes": 53490,
-      "sha256": "3fa51d54e4fe31717eb36d0a9c31088c2ec06d65d747d15542e7867c0afdc9a2"
+      "bytes": 56102,
+      "sha256": "32d8a848938e5fabe040077884da74688b19c86141238a3c93ee202d5a481bd9"
     },
     {
       "path": "README.md",
-      "bytes": 7829,
-      "sha256": "2e586782b0ab28047c4e02686f6ea32fbf58003bec8f6cdfe8a9045139f7c722"
+      "bytes": 8227,
+      "sha256": "27598611c2ae85434cd02bc0c671e8ca5b91b5d65e1554f88889962811a522c7"
     },
     {
       "path": "scripts/api-local.mjs",
@@ -4368,8 +4523,8 @@
     },
     {
       "path": "scripts/pack-skills.mjs",
-      "bytes": 2278,
-      "sha256": "a45282027aaba16ffe04a848a9d448d8c4c072be06290287793f94973314649f"
+      "bytes": 2292,
+      "sha256": "91a3fa22d6bf8df65820eac2138f99f41ba55a626fdd44bfa2a6880b549b9c55"
     },
     {
       "path": "scripts/pnpm-install.mjs",
@@ -4443,8 +4598,8 @@
     },
     {
       "path": "scripts/start-railway.mjs",
-      "bytes": 7860,
-      "sha256": "9ac91ed96a71dbc0723b8a8c9752b6fd2b7a60ea3364d55ef73d3f7f5cb1ce89"
+      "bytes": 7878,
+      "sha256": "7aefd39e59931fbfad9ca5c5c2bd381620329eebb6951998010e64893fb86c01"
     },
     {
       "path": "scripts/start.mjs",
@@ -4478,8 +4633,8 @@
     },
     {
       "path": "server/agent.ts",
-      "bytes": 62395,
-      "sha256": "bdf522fb907869e6815be3ab16188a1f3a32080df83e93cb1baf0baadbc05bea"
+      "bytes": 65002,
+      "sha256": "76b26287e9f69e12cd8fd5f40db1a7af7b69d24db06dc7862f947d4dbdf71000"
     },
     {
       "path": "server/copy-integrity.ts",
@@ -4498,13 +4653,13 @@
     },
     {
       "path": "server/routes.ts",
-      "bytes": 19946,
-      "sha256": "fb9ae27be98a95ddf3cefffcd36e518ddb7b5737d3d4f8458ef1e1607e385735"
+      "bytes": 20071,
+      "sha256": "4b779109a7eda00eb73d2bc1a68f6f75b0353834b4af39ad7b4804b2bc04c5a9"
     },
     {
       "path": "server/skills.ts",
-      "bytes": 3600,
-      "sha256": "42087e0d7086d5e32fa05c688ca2356b5358ef3c2db47e517a21110e6e4f581c"
+      "bytes": 3763,
+      "sha256": "1cc026b1599cae593d8a05c0732fc22cc3d6fbd8dfedaa6b8abe1562f8f13f83"
     },
     {
       "path": "server/visitor-session.ts",
@@ -4519,12 +4674,12 @@
     {
       "path": "src/app.js",
       "bytes": 61293,
-      "sha256": "d8940b37141e1cbde20bae7365d3cd2bfc4adf1cd385352f72e410ef1d5ed319"
+      "sha256": "f1414ebd1dbd8480310a1c9248f5c7d94ab258b65ade14b62888474f416257e1"
     },
     {
       "path": "src/cloud.js",
-      "bytes": 29124,
-      "sha256": "8cdd74757053ae83dc9b49a628d9c2e5f48d784ff148e56f2e1b05750d2ee4b3"
+      "bytes": 29215,
+      "sha256": "13bfecc554e0664d07dedf815598eaef1fc225671e74cfc5051380f0b72eeb3e"
     },
     {
       "path": "src/engine.js",
@@ -4538,8 +4693,8 @@
     },
     {
       "path": "THIRD_PARTY.md",
-      "bytes": 2716,
-      "sha256": "9194728bf23bdee6781facbef100446c3113f03ccf7312a5a2c28697da47e77e"
+      "bytes": 3173,
+      "sha256": "17cc4c30f64737df13cb03173ceb61c095820ee2fac730bea8b0a62c8bd42e5a"
     },
     {
       "path": "tsconfig.json",
@@ -4573,8 +4728,8 @@
     },
     {
       "path": "server/design-result.ts",
-      "bytes": 8486,
-      "sha256": "9256d160223fc531dd36efd8b37d51aa59d3abe635560097dfe925a66f44f8fb"
+      "bytes": 8690,
+      "sha256": "b5b6a85b6e7913c813d2265616a144b77783f2e6d53d2a9429a604a927605f41"
     },
     {
       "path": "src/style-safety.js",

@@ -50,8 +50,8 @@ if (workerEnv.DATABASE_URL) await run('scripts/migrate-postgres.mjs');
 let configuredSkills;
 try{configuredSkills=JSON.parse(workerEnv.SKILL_FILES_JSON||'{}');if(!configuredSkills||Array.isArray(configuredSkills)||typeof configuredSkills!=='object')throw Error();}
 catch{throw new Error('SKILL_FILES_JSON must be a valid JSON object.');}
-const writingReady=['_runtime','xhs-writer','copywriting','copy-editing','humanizer-zh','content-research-writer','content-strategy','social'].every(id=>configuredSkills[id]?.fileId);
-if ((!workerEnv.SKILL_FILES_JSON||!writingReady) && workerEnv.OPENAI_API_KEY) {
+const resourcesReady=['_runtime','taste-skill','xhs-writer','copywriting','copy-editing','humanizer-zh','content-research-writer','content-strategy','social'].every(id=>configuredSkills[id]?.fileId);
+if ((!workerEnv.SKILL_FILES_JSON||!resourcesReady) && workerEnv.OPENAI_API_KEY) {
   workerEnv.SKILL_RELEASE_DIR = path.join(dataDir, 'skill-release');
   if(workerEnv.SKILL_FILES_JSON){await fs.mkdir(workerEnv.SKILL_RELEASE_DIR,{recursive:true});let cached={};try{cached=JSON.parse(await fs.readFile(path.join(workerEnv.SKILL_RELEASE_DIR,'uploaded.json'),'utf8'));}catch{}await fs.writeFile(path.join(workerEnv.SKILL_RELEASE_DIR,'uploaded.json'),JSON.stringify({...configuredSkills,...cached}));}
   await run('scripts/pack-skills.mjs');
@@ -89,7 +89,7 @@ const stateDir = path.join(dataDir, 'state');
 const wrangler = 'node_modules/wrangler/bin/wrangler.js';
 if (!workerEnv.DATABASE_URL) await run(wrangler, ['d1', 'migrations', 'apply', 'DB', '--local', '--config', configPath, '--persist-to', stateDir]);
 console.log('TuXu database: ' + (workerEnv.DATABASE_URL ? 'PostgreSQL (tuxu)' : 'local D1') + '; file storage ' + (persistent ? 'persistent volume' : 'ephemeral') + '.');
-console.log('TuXu '+accessMode+' workspace: ' + origin.origin + '; AI credential ' + (workerEnv.OPENAI_API_KEY ? 'configured' : 'missing') + '; skill resources ' + Object.keys(manifest).filter(x => x !== '_runtime').length + '/20.');
+console.log('TuXu '+accessMode+' workspace: ' + origin.origin + '; AI credential ' + (workerEnv.OPENAI_API_KEY ? 'configured' : 'missing') + '; skill resources ' + Object.keys(manifest).filter(x => x !== '_runtime').length + '/21.');
 if (!persistent) console.warn('No persistent file volume is configured. Export projects and results before redeployment; PostgreSQL account and project records remain persistent.');
 
 const child = spawn(process.execPath, [wrangler, 'dev', '--config', configPath, '--local', '--persist-to', stateDir, '--ip', bindIP, '--port', String(port), '--inspector-port', '0', '--log-level', logLevel], { cwd: root, env: workerEnv, stdio: ['ignore', 'inherit', 'inherit'] });

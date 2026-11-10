@@ -17,3 +17,5 @@
 
 0.7.0 新增 copywriting、copy-editing、content-strategy、social（Corey Haines / marketingskills，MIT，四个目录附上游 LICENSE），humanizer-zh（op7418/Humanizer-zh，MIT，保留原许可）。content-research-writer 的功能参考来自 ComposioHQ/awesome-claude-skills；核对时上游未声明许可，网站仅分发独立编写的集成规范，原技能仅按用户要求安装在用户本机。详见 `design-skills/writing-sources.json` 和 `design-skills/content-research-writer/PROVENANCE.md`。上游技能中的样例、问卷与营销约定不构成当前项目事实或额外权限。
 
+0.7.1 新增 Taste（Leonxlnx/taste-skill，版本 2.5.1，提交 f6b76575f949707b4e3c37cd86cb44b0b98643e8，MIT，Copyright © 2026 Leonxlnx）。网站保留上游完整说明、参考、相关布局与视觉系统资源及 LICENSE，另编写静态图文适配；不分发上游样例照片、着色器库和网站执行脚本。完整版本按用户要求安装于本机技能库。来源和适配范围见 `design-skills/taste-skill/PROVENANCE.md`。
+

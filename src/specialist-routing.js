@@ -12,7 +12,7 @@ export const SPECIALISTS=[
  {id:'xhs-images-design',needs:['illustration','narrative'],references:['references/style-presets.md'],generative:true,use:'手绘图解的布局与视觉组织；纯文字预案不新增插画'},
  {id:'xhs-writer',needs:['knowledge','narrative'],references:['references/xiaohongshu-viral-methodology.md'],writing:true,use:'已授权创作时策划内容；锁定原文时只参考阅读组织，不能改写'}
 ];
-export const specialistRoutingPolicy=()=>({version:1,maxLoaded:8,catalog:structuredClone(SPECIALISTS)});
+export const specialistRoutingPolicy=()=>({version:1,maxLoaded:9,catalog:structuredClone(SPECIALISTS)});
 const nonempty=(text,max=1000)=>typeof text==='string'&&text.trim().length>=8&&text.length<=max;
 const templates=['auto-redbook','xhs-note-creator','blcaptain-style-skill'];
 function localAdjustmentAllowed(snapshot){const request=String(snapshot.pageRevision?.request||'').trim();return snapshot.scope==='page'&&snapshot.pages?.[0]?.html?.trim()&&request.length>0&&request.length<=300&&/(标题|字号|字重|行距|字距|对齐|换行|一行|颜色|间距|图片|照片|裁切|title|font|spacing|align|crop|image|photo)/i.test(request)&&!/(易读|阅读|重排|重新设计|重新排版|优化排版|审美|构图|层级|分组|节奏|风格|整体|redesign|readab|composition|hierarchy|regroup|restyle)/i.test(request);}
@@ -22,7 +22,7 @@ export function validateSpecialistRouting(plan,snapshot){
  const fail=message=>{throw Error('专长调度未完成：'+message);},catalog=policy.catalog||SPECIALISTS,decisions=plan.specialists;
  if(!Array.isArray(decisions)||decisions.length!==catalog.length)fail('必须逐项考虑全部十个可选模块，记录选用、跳过或受限原因');
  const byId=new Map(),pageIds=new Set(plan.pages.map(page=>page.id)),registered=new Map(plan.skills.map(skill=>[skill.id,skill]));
- if((snapshot.loadedSkills||[]).length>policy.maxLoaded||registered.size>policy.maxLoaded)fail('每次最多载入八个模块，请复用适合本套内容的方法');
+ if((snapshot.loadedSkills||[]).length>policy.maxLoaded||registered.size>policy.maxLoaded)fail('每次最多载入'+policy.maxLoaded+'个模块，请复用适合本套内容的方法');
  for(const item of decisions){
   const spec=catalog.find(spec=>spec.id===item?.skillId);
   if(!spec||byId.has(item.skillId)||!['use','skip','restricted'].includes(item.status)||!['methods','execute','none'].includes(item.mode)||!Array.isArray(item.pageIds)||new Set(item.pageIds).size!==item.pageIds.length||item.pageIds.some(id=>!pageIds.has(id))||!nonempty(item.reason,600))fail('选择记录必须完整、唯一，且对应本次页面与具体原因');

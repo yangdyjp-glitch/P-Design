@@ -5,7 +5,7 @@ import {DatabaseSync} from 'node:sqlite';
 import {build} from 'esbuild';
 import path from 'node:path';
 import {createHash} from 'node:crypto';
-import {VISUAL_SKILLS,VISUAL_CHECKS,visualDesignPolicy,validateVisualPlan,validateVisualReview} from '../src/visual-design.js';
+import {VISUAL_SKILLS,LEGACY_VISUAL_SKILLS,VISUAL_CHECKS,visualDesignPolicy,validateVisualPlan,validateVisualReview} from '../src/visual-design.js';
 import {planFor,specialistPlanFor,reviewFor,responseFor,phonePNG} from './fixtures/visual-design.mjs';
 import {canApplyAutomatic,hasAuditErrors,automaticMessage,designProposal,jobApplied} from '../src/ai-workflow.js';
 import {parseManuscript} from '../src/engine.js';
@@ -23,8 +23,8 @@ const validResult={summary:'已设计',report:'已检查',usedSkills:['xiaohongs
 const manifest={status:'passed',pages:[{id:'reading-cover'}],issues:[],warnings:[],networkFailures:[]};
 
 test('automatic workflow makes every skill available and preserves legacy task routing',()=>{
- assert.equal(routeSkills('design',undefined,true).length,14);
- assert.equal(routeSkills('design').length,6);
+ assert.equal(routeSkills('design',undefined,true).length,15);
+ assert.equal(routeSkills('design').length,7);
  assert.deepEqual(routeSkills('write'),['xiaohongshu-design','xhs-writer']);
 });
 test('server rejects image-source violations and empty photographic sets before application',()=>{
@@ -180,7 +180,7 @@ test('all skills remain available while startup stays small and optional resourc
   h.db.exec("UPDATE jobs SET status='queued',session_id=NULL,environment_id=NULL");
   await startJob(h.read());assert.equal(h.starts.length,1);
   const body=h.starts[0],files=body.environment.files.filter(f=>f.type==='file_id');assert.equal(files.length,3);
-  const loader=body.agent.tools.find(t=>t.name==='load_design_resource');assert.equal(loader.parameters.properties.resourceId.enum.length,14);
+  const loader=body.agent.tools.find(t=>t.name==='load_design_resource');assert.equal(loader.parameters.properties.resourceId.enum.length,15);
   const input=JSON.parse(Buffer.from(body.environment.files.find(f=>f.path==='/workspace/input/project.json').data,'base64').toString());
   assert.equal(input._resources,undefined);assert.deepEqual(input.loadedSkills,['xiaohongshu-design','xhs-design-polish']);
   const setup=body.environment.setup_commands.map(step=>step.command).join('\n');assert.equal((setup.match(/playwright install/g)||[]).length,1);assert.match(setup,/playwright install --with-deps chromium/);assert.doesNotMatch(setup,/python -m playwright install/);
@@ -191,11 +191,11 @@ test('all skills remain available while startup stays small and optional resourc
   await advanceJob(h.read());assert.equal(h.attachments.length,1);assert.equal(h.events.at(-1).success,false);
  }finally{h.db.close();}
 });
-test('new manual visual jobs also expose all candidates while preloading only the four core modules',async()=>{
+test('new manual visual jobs also expose all candidates while preloading five required visual modules',async()=>{
  const h=await harness();try{
   const manifest=JSON.parse(globalThis.automaticHarness.env.SKILL_FILES_JSON);for(const id of skills.map(skill=>skill.id))manifest[id].bytes=10000;globalThis.automaticHarness.env.SKILL_FILES_JSON=JSON.stringify(manifest);
   const current={...source,visualDesignPolicy:visualDesignPolicy('polish')};delete current.workflow;h.db.prepare("UPDATE jobs SET status='queued',session_id=NULL,environment_id=NULL,kind='polish',snapshot=?").run(JSON.stringify(current));
-  await startJob(h.read());const body=h.starts[0],input=JSON.parse(Buffer.from(body.environment.files.find(file=>file.path==='/workspace/input/project.json').data,'base64').toString());assert.deepEqual(input.loadedSkills,VISUAL_SKILLS);assert.equal(body.environment.files.filter(file=>file.type==='file_id').length,5);assert.equal(body.agent.tools.find(tool=>tool.name==='load_design_resource').parameters.properties.resourceId.enum.length,14);
+  await startJob(h.read());const body=h.starts[0],input=JSON.parse(Buffer.from(body.environment.files.find(file=>file.path==='/workspace/input/project.json').data,'base64').toString());assert.deepEqual([...input.loadedSkills].sort(),[...VISUAL_SKILLS].sort());assert.equal(body.environment.files.filter(file=>file.type==='file_id').length,6);assert.equal(body.agent.tools.find(tool=>tool.name==='load_design_resource').parameters.properties.resourceId.enum.length,15);
   h.state.calls=[{type:'function_call',name:'load_design_resource',turn_id:'turn-1',call_id:'manual-specialist',arguments:JSON.stringify({resourceId:'skill/blcaptain-style-skill'})}];await advanceJob(h.read());assert.equal(h.attachments.length,1);assert(JSON.parse(h.read().snapshot).loadedSkills.includes('blcaptain-style-skill'));
  }finally{h.db.close();}
 });
@@ -400,28 +400,44 @@ async function visualFixture(h,{scope='project',turn='turn-2',proactive=false}={
  const sourceSHA256=createHash('sha256').update(JSON.stringify({html:raw.pages[0].html,css:raw.pages[0].css,settings:{}})).digest('hex');
  h.files['result-2']=JSON.stringify(raw);h.files['audit-2']=JSON.stringify({...manifest,pages:[{id,files:{phone:'phone.png'},visualSourceSHA256:sourceSHA256}]});h.files['phone']=phonePNG();h.state.extraArtifacts=[{id:'phone',path:'/workspace/outputs/phone.png',turn_id:turn,size_bytes:h.files.phone.length}];return {id,raw,snapshot};
 }
-test('new design and single-page startup always preload all four core skills while the remaining catalog stays on demand',async()=>{
+test('new design and single-page startup always preload five required visual modules while the remaining catalog stays on demand',async()=>{
  for(const scope of ['project','page']){const h=await harness();try{
   const manifest=JSON.parse(globalThis.automaticHarness.env.SKILL_FILES_JSON);for(const id of VISUAL_SKILLS)manifest[id].bytes=20000;globalThis.automaticHarness.env.SKILL_FILES_JSON=JSON.stringify(manifest);
   h.db.prepare("UPDATE jobs SET status='queued',session_id=NULL,environment_id=NULL,snapshot=?").run(JSON.stringify({...source,scope,visualDesignPolicy:visualDesignPolicy('design')}));await startJob(h.read());assert.equal(h.starts.length,1);
-  const input=JSON.parse(Buffer.from(h.starts[0].environment.files.find(f=>f.path==='/workspace/input/project.json').data,'base64'));assert.deepEqual([...input.loadedSkills].sort(),[...VISUAL_SKILLS].sort());assert(h.starts[0].agent.tools.some(t=>t.name==='submit_visual_plan'));assert.equal(h.starts[0].environment.files.filter(f=>f.type==='file_id').length,5);
+  const input=JSON.parse(Buffer.from(h.starts[0].environment.files.find(f=>f.path==='/workspace/input/project.json').data,'base64'));assert.deepEqual([...input.loadedSkills].sort(),[...VISUAL_SKILLS].sort());assert(h.starts[0].agent.tools.some(t=>t.name==='submit_visual_plan'));assert.equal(h.starts[0].environment.files.filter(f=>f.type==='file_id').length,6);
+ }finally{h.db.close();}}
+});
+test('new first and single-page jobs demand actual Taste references while old jobs retain their four-module contract',async()=>{
+ for(const modern of [true,false])for(const scope of ['project','page']){const h=await harness();try{
+  const policy=visualDesignPolicy('design');if(!modern){delete policy.taste;policy.requiredSkills=LEGACY_VISUAL_SKILLS;policy.specialistRouting.maxLoaded=8;}
+  const manifest=JSON.parse(globalThis.automaticHarness.env.SKILL_FILES_JSON);for(const id of VISUAL_SKILLS)manifest[id].bytes=20000;globalThis.automaticHarness.env.SKILL_FILES_JSON=JSON.stringify(manifest);
+  h.db.prepare("UPDATE jobs SET status='queued',session_id=NULL,environment_id=NULL,snapshot=?").run(JSON.stringify({...source,scope,visualDesignPolicy:policy}));await startJob(h.read());assert.equal(h.starts.length,1);
+  const body=h.starts[0],input=JSON.parse(Buffer.from(body.environment.files.find(f=>f.path==='/workspace/input/project.json').data,'base64'));assert.deepEqual([...input.loadedSkills].sort(),[...(modern?VISUAL_SKILLS:LEGACY_VISUAL_SKILLS)].sort());assert.equal(body.agent.instructions.includes('DEFAULT TASTE PARTICIPATION'),modern);assert(body.agent.instructions.includes('at most '+(modern?9:8)+' modules'));if(modern){assert.match(body.agent.instructions,/references\/xhs-static-adapter\.md/);assert.match(body.agent.instructions,/METHODS MODE for static editable/);}
+ }finally{h.db.close();}}
+});
+test('on-demand loading allows a ninth module only under the new frozen budget and never a tenth',async()=>{
+ for(const modern of [true,false]){const h=await harness();try{
+  const policy=visualDesignPolicy('design');if(!modern){delete policy.taste;policy.requiredSkills=LEGACY_VISUAL_SKILLS;policy.specialistRouting.maxLoaded=8;}
+  const candidates=skills.filter(skill=>skill.group!=='文案优化').map(skill=>skill.id),loaded=candidates.slice(0,8),remaining=candidates.slice(8,10),resources=Object.fromEntries(remaining.map(id=>['skill/'+id,{kind:'skill',id,loaded:false,file_id:'shared-'+id,path:'/workspace/bundles/'+id+'.zip'}]));h.db.prepare('UPDATE jobs SET snapshot=?').run(JSON.stringify({...source,loadedSkills:loaded,visualDesignPolicy:policy,_resources:resources}));
+  for(const [index,id]of remaining.entries()){h.state.calls=[{type:'function_call',name:'load_design_resource',turn_id:'turn-1',call_id:'budget-'+index,arguments:JSON.stringify({resourceId:'skill/'+id})}];await advanceJob(h.read());assert.equal(h.events.at(-1).success,modern&&index===0);}
+  assert.equal(h.attachments.length,modern?1:0);assert.equal(JSON.parse(h.read().snapshot).loadedSkills.length,modern?9:8);
  }finally{h.db.close();}}
 });
 test('proactive routing loads a real optional resource, binds its method to the page and reaches independent review',async()=>{
- for(const scope of ['project','page']){const h=await harness();try{const {id}=await visualFixture(h,{scope,proactive:true});assert.equal(h.attachments.length,1);const snapshot=JSON.parse(h.read().snapshot);assert(snapshot.loadedSkills.includes('xhs-note-creator'));assert.equal(snapshot.visualDispatch.plan.specialists.length,10);assert(snapshot.visualDispatch.skills.some(skill=>skill.id==='xhs-note-creator'&&skill.loaded));await advanceJob(h.read());assert.equal(h.reviews.length,1);h.state.visualResponse=responseFor(reviewFor([id]));await advanceJob(h.read());assert.equal(h.read().status,'completed');const result=JSON.parse(h.read().result);assert.equal(result.usedSkills.length,5);assert.equal(result.visualDesign.plan.specialists.filter(item=>item.status==='use').length,1);assert(!h.deleted.includes('/files/shared-note-file'));}finally{h.db.close();}}
+ for(const scope of ['project','page']){const h=await harness();try{const {id}=await visualFixture(h,{scope,proactive:true});assert.equal(h.attachments.length,1);const snapshot=JSON.parse(h.read().snapshot);assert(snapshot.loadedSkills.includes('xhs-note-creator'));assert.equal(snapshot.visualDispatch.plan.specialists.length,10);assert(snapshot.visualDispatch.skills.some(skill=>skill.id==='xhs-note-creator'&&skill.loaded));await advanceJob(h.read());assert.equal(h.reviews.length,1);h.state.visualResponse=responseFor(reviewFor([id]));await advanceJob(h.read());assert.equal(h.read().status,'completed');const result=JSON.parse(h.read().result);assert.equal(result.usedSkills.length,6);assert.equal(result.visualDesign.plan.specialists.filter(item=>item.status==='use').length,1);assert(!h.deleted.includes('/files/shared-note-file'));}finally{h.db.close();}}
 });
 test('a selected specialist cannot disappear from the final used-skills report after composition acceptance',async()=>{
  const h=await harness();try{const {raw}=await visualFixture(h,{proactive:true});h.files['result-2']=JSON.stringify({...raw,usedSkills:VISUAL_SKILLS});await advanceJob(h.read());assert.equal(h.reviews.length,0);assert.equal(h.read().status,'running');assert(JSON.parse(h.read().result).repairing);assert.match(h.events.at(-1).input[0].content[0].text,/专长未实际载入|专长/);}finally{h.db.close();}
 });
-test('missing composition registration cannot be replaced by claiming four skills or a fabricated reviewer pass',async()=>{
+test('missing composition registration cannot be replaced by five required visual modules or a fabricated reviewer pass',async()=>{
  const h=await harness();try{
   h.db.prepare('UPDATE jobs SET snapshot=?').run(JSON.stringify({...source,loadedSkills:VISUAL_SKILLS,visualDesignPolicy:visualDesignPolicy('design')}));h.files['result-1']=JSON.stringify({...validResult,usedSkills:VISUAL_SKILLS,visualReview:{status:'passed',independent:true}});await advanceJob(h.read());assert.equal(h.read().status,'running');assert.equal(h.reviews.length,0);assert(JSON.parse(h.read().result).repairing);assert.match(h.events.at(-1).input[0].content[0].text,/构图调度/);
  }finally{h.db.close();}
 });
 test('the reviewer receives actual images and constraints in a separate call, without designer self-approval or tools',async()=>{
  const h=await harness();try{
-  const {id,raw}=await visualFixture(h);h.files['result-2']=JSON.stringify({...raw,report:'DESIGNER_SELF_APPROVAL_TOKEN',visualReview:{status:'passed'}});await advanceJob(h.read());assert.equal(h.read().status,'running');assert.equal(h.storedFiles.length,0);assert.equal(h.reviews.length,1);const request=h.reviews[0];assert(request.background);assert.equal(request.tools,undefined);assert.equal(request.text.format.type,'json_schema');assert(request.input[0].content.some(c=>c.type==='input_image'&&c.image_url.startsWith('data:image/png;base64,')));assert(!JSON.stringify(request.input).includes('DESIGNER_SELF_APPROVAL_TOKEN'));
-  await advanceJob(h.read());assert.equal(h.reviews.length,1);assert.equal(h.read().status,'running');h.state.visualResponse=responseFor(reviewFor([id]));await advanceJob(h.read());const result=JSON.parse(h.read().result);assert.equal(h.read().status,'completed');assert.equal(result.visualReview.status,'passed');assert.equal(result.visualReview.independent,true);assert.equal(result.visualReview.jobId,'job-test');assert.equal(result.visualDesign.skills.length,4);assert.equal(result.visualReview.images.length,1);assert.equal(result.visualReview.images[0].sha256.length,64);assert(h.deleted.includes('/responses/response-visual-1'));assert(h.deleted.includes('/agents/sessions/session-test'));
+  const {id,raw}=await visualFixture(h);h.files['result-2']=JSON.stringify({...raw,report:'DESIGNER_SELF_APPROVAL_TOKEN',visualReview:{status:'passed'}});await advanceJob(h.read());assert.equal(h.read().status,'running');assert.equal(h.storedFiles.length,0);assert.equal(h.reviews.length,1);const request=h.reviews[0];assert(request.background);assert.equal(request.tools,undefined);assert.equal(request.text.format.type,'json_schema');assert(request.input[0].content.some(c=>c.type==='input_image'&&c.image_url.startsWith('data:image/png;base64,')));assert(!JSON.stringify(request.input).includes('DESIGNER_SELF_APPROVAL_TOKEN'));assert.match(request.instructions,/<Taste-static-methods>/);assert.match(request.instructions,/静态/);
+  await advanceJob(h.read());assert.equal(h.reviews.length,1);assert.equal(h.read().status,'running');h.state.visualResponse=responseFor(reviewFor([id]));await advanceJob(h.read());const result=JSON.parse(h.read().result);assert.equal(h.read().status,'completed');assert.equal(result.visualReview.status,'passed');assert.equal(result.visualReview.independent,true);assert.equal(result.visualReview.jobId,'job-test');assert.deepEqual(result.visualReview.taste,{version:1,mode:'methods'});assert.equal(result.visualDesign.skills.length,5);assert.equal(result.visualReview.images.length,1);assert.equal(result.visualReview.images[0].sha256.length,64);assert(h.deleted.includes('/responses/response-visual-1'));assert(h.deleted.includes('/agents/sessions/session-test'));
  }finally{h.db.close();}
 });
 test('scoped review schema limits page identifiers without restricting prose or suppressing page-level rejection',async()=>{
