@@ -1,0 +1,12 @@
+{
+  "checkedAt": "2026-11-10",
+  "adaptation": "Website instructions take precedence: infer ordinary writing decisions, preserve source facts and explicit page boundaries, use only relevant methods, and wait for user confirmation before visual design. Upstream examples are not project facts.",
+  "skills": [
+    {"id":"copywriting","source":"https://github.com/coreyhaines31/marketingskills/tree/main/skills/copywriting","license":"MIT","distribution":"Upstream instructions and references, with upstream LICENSE included."},
+    {"id":"copy-editing","source":"https://github.com/coreyhaines31/marketingskills/tree/main/skills/copy-editing","license":"MIT","distribution":"Upstream instructions and references, with upstream LICENSE included."},
+    {"id":"content-strategy","source":"https://github.com/coreyhaines31/marketingskills/tree/main/skills/content-strategy","license":"MIT","distribution":"Upstream instructions and references, with upstream LICENSE included."},
+    {"id":"social","source":"https://github.com/coreyhaines31/marketingskills/tree/main/skills/social","license":"MIT","distribution":"Upstream instructions and references, with upstream LICENSE included."},
+    {"id":"humanizer-zh","source":"https://github.com/op7418/Humanizer-zh","license":"MIT","distribution":"Upstream instructions and license."},
+    {"id":"content-research-writer","source":"https://github.com/ComposioHQ/awesome-claude-skills/tree/master/content-research-writer","license":"No declared upstream license at check time","distribution":"Independently written website integration only; upstream skill installed locally, not redistributed by the website. See content-research-writer/PROVENANCE.md."}
+  ]
+}

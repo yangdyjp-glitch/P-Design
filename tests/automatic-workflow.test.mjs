@@ -17,7 +17,7 @@ const {skills,routeSkills}=await bundle('server/skills.ts');
 const {imageAllowed,repairAllowed,renderAudit,automaticPages,automaticAssets}=await bundle('server/automatic-workflow.ts');
 const blocks=[{id:'c1',text:'周末阅读'},{id:'c2',text:'给自己 10 分钟。'},{id:'c3',text:'翻开一本喜欢的书。'}];
 const source={workflow:'automatic',pages:[{id:'source-page',copy:blocks}],assets:[]};
-const job={kind:'design',snapshot:JSON.stringify(source),skill_ids:JSON.stringify(skills.map(s=>s.id))};
+const job={kind:'design',snapshot:JSON.stringify(source),skill_ids:JSON.stringify(routeSkills('design',undefined,true))};
 const markup=copy=>'<section class="xhs-card">'+copy.map(c=>'<p data-copy="'+c.id+'">'+c.text+'</p>').join('')+'</section>';
 const validResult={summary:'已设计',report:'已检查',usedSkills:['xiaohongshu-design','xhs-design-polish'],pages:[{id:'reading-cover',html:markup(blocks),css:'.xhs-card > p {font:40px "TY Sans";}',photoAssetId:null}]};
 const manifest={status:'passed',pages:[{id:'reading-cover'}],issues:[],warnings:[],networkFailures:[]};

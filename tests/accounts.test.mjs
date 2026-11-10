@@ -12,6 +12,8 @@ import {postgresOptions} from '../db/postgres-options.mjs';
 import {pbkdf2Sync,randomBytes} from 'node:crypto';
 import os from 'node:os';
 import {importLocalD1} from '../db/import-local-d1.mjs';
+import {copyHash} from '../src/copy-workflow.js';
+import {parseManuscript} from '../src/engine.js';
 const salt=randomBytes(16),testBootstrap=['pbkdf2-sha256',600000,salt.toString('base64url'),pbkdf2Sync('test-admin-password',salt,600000,32,'sha256').toString('base64url')].join('$');
 
 const plugin={name:'account-fixture',setup(build){
@@ -45,6 +47,36 @@ async function database(postgres){
 
 test('password hashes use independent salts and reject incorrect and malformed input',async()=>{
  const one=await api.passwordHash('a-test-password'),two=await api.passwordHash('a-test-password');assert.notEqual(one,two);assert(!one.includes('a-test-password'));assert(await api.passwordMatches('a-test-password',one));assert(!await api.passwordMatches('wrong-password',one));assert(!await api.passwordMatches('a'.repeat(129),one));assert(!await api.passwordMatches('a-test-password','broken'));
+});
+
+for(const postgres of [false,true])test((postgres?'PostgreSQL':'SQLite')+': copy confirmation gates images and design, preserves pages and cannot cross accounts',async()=>{
+ const {db,close}=await database(postgres),objects=new Map();Object.assign(api.env,{ACCESS_MODE:'accounts',APP_ORIGIN:'https://example.test',OPENAI_API_KEY:'test-only-no-provider-calls',AI_ENABLED:'true',SKILL_FILES_JSON:JSON.stringify(Object.fromEntries([...api.skills.map(skill=>skill.id),'_runtime'].map(id=>[id,{fileId:'test-'+id}]))),BUCKET:{async put(key,value){objects.set(key,Uint8Array.from(value));},async get(key){return objects.has(key)?{body:objects.get(key)}:null;},async delete(key){objects.delete(key);}}});
+ async function call(endpoint,{method='GET',body,user,headers={}}={}){const response=await api.request(new Request('http://127.0.0.1:8787/api/'+endpoint,{method,headers:{Origin:'https://example.test','Content-Type':'application/json',...(user?{Cookie:user.cookie,'X-Tuxu-Account':user.id}:{}),...headers},body:body===undefined?undefined:body instanceof Uint8Array?body:JSON.stringify(body)}),db,postgres);return {status:response.status,headers:response.headers,value:await response.json()};}
+ async function login(username,password){const r=await call('auth/login',{method:'POST',body:{username,password}});assert.equal(r.status,200);return {id:r.value.user.id,cookie:r.headers.get('set-cookie').split(';')[0]};}
+ const source='（1P）周末阅读小组\n周六14点至16点共读，每组最多8人。\n（2P）参与方式\n每次30元。首次可旁听，需预约。不承诺学习成绩。',text='周末共读两小时\n周六14点至16点，每组最多8人。\n\n---\n\n怎样参与\n每次30元。首次可旁听，需预约。不承诺学习成绩。',png=Uint8Array.from(Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+a/m8AAAAASUVORK5CYII=','base64'));
+ try{
+  const a=await login('admin','test-admin-password');await call('accounts',{method:'POST',user:a,body:{username:'copy_other',name:'另一个账户',password:'test-copy-password'}});const b=await login('copy_other','test-copy-password');
+  const capabilities=(await call('session',{user:a})).value.capabilities;assert.equal(capabilities.skills.length,20);assert.equal(capabilities.copyOptimization.considered,6);
+  let project={id:'copy-project',name:'文案准备',pages:parseManuscript(source,{preserveText:true}),assets:[],copyFlow:{version:1,phase:'copy',sourceText:source,draftText:'',jobId:null,proposalJobId:null,confirmation:null}},revision=0;
+  async function save(next=project){const saved=await call('projects/'+project.id,{method:'PUT',user:a,body:{project:next,revision}});assert.equal(saved.status,200,JSON.stringify(saved.value));revision=saved.value.revision;project=(await call('projects',{user:a})).value.projects.find(p=>p.id===project.id);return saved;}
+  await save();const forged={...project,copyFlow:{...project.copyFlow,phase:'design',confirmation:{jobId:'fake',confirmedAt:Date.now()}}};await save(forged);assert.equal(project.copyFlow.phase,'copy');assert.equal(project.copyFlow.confirmation,null);
+  assert.equal((await call('projects/'+project.id,{method:'PUT',user:a,body:{project:{...project,copyFlow:undefined},revision}})).status,400);
+  assert.equal((await call('assets?projectId='+project.id+'&id=too-early',{method:'POST',user:a,body:png,headers:{'Content-Type':'image/png'}})).status,409);
+  const designBody=()=>({projectId:project.id,revision,requestId:'early-design',kind:'design',workflow:'automatic',prompt:'设计文案',pageIds:project.pages.map(p=>p.id)});assert.equal((await call('jobs',{method:'POST',user:a,body:designBody()})).status,409);
+  assert.equal((await call('jobs',{method:'POST',user:b,body:{...designBody(),kind:'copy',requestId:'outside'}})).status,404);
+  const created=await call('jobs',{method:'POST',user:a,body:{...designBody(),kind:'copy',requestId:'copy-request'}});assert.equal(created.status,201,JSON.stringify(created.value));const job=created.value.job;assert.equal(job.kind,'copy');assert.equal(job.copyOptimizationRequired,true);assert.equal(job.skillIds.length,7);const snapshot=JSON.parse((await db.prepare('SELECT snapshot FROM jobs WHERE id=?').bind(job.id).first()).snapshot);assert.equal(snapshot.copyOptimizationPolicy.paginationMode,'fixed');assert.equal(snapshot.copyOptimizationPolicy.sourcePages,2);assert.deepEqual(snapshot.assets,[]);
+  assert.equal((await call('jobs',{method:'POST',user:a,body:{...designBody(),kind:'copy',requestId:'copy-request'}})).value.job.id,job.id);
+  const confirm=(textValue=text,user=a)=>call('projects/'+project.id+'/confirm-copy',{method:'POST',user,body:{revision,jobId:job.id,text:textValue}});assert.equal((await confirm()).status,409);
+  const result={summary:'优化稿',manuscript:text,usedSkills:['xhs-writer','copywriting','copy-editing'],pages:[],copyReview:{version:1,status:'passed',independent:true,jobId:job.id,sourceHash:await copyHash(source),manuscriptHash:await copyHash(text)}};await db.prepare("UPDATE jobs SET status='completed',result=? WHERE id=?").bind(JSON.stringify(result),job.id).run();
+  assert.equal((await call('projects/'+project.id,{method:'PUT',user:b,body:{project:{...project,copyFlow:{...project.copyFlow,phase:'copy'}},revision:0}})).status,200);assert.equal((await confirm(text,b)).status,409);
+  assert.equal((await confirm('把两页错误地合为一页')).status,400);
+  await save({...project,copyFlow:{...project.copyFlow,sourceText:source+'\n新条件'}});assert.equal((await confirm()).status,409);await save({...project,copyFlow:{...project.copyFlow,sourceText:source}});
+  const edited=text.replace('怎样参与','参与方式与预约');const confirmed=await confirm(edited);assert.equal(confirmed.status,200,JSON.stringify(confirmed.value));project=confirmed.value.project;revision=confirmed.value.revision;assert.equal(project.copyFlow.phase,'assets');assert.equal(project.copyFlow.confirmation.manuallyEdited,true);assert.equal(project.pages.length,2);assert.equal(project.paginationMode,'fixed');
+  const asset=await call('assets?projectId='+project.id+'&id=after-confirm',{method:'POST',user:a,body:png,headers:{'Content-Type':'image/png'}});assert.equal(asset.status,200);await save({...project,assets:[asset.value],stylePresetId:'preset-1',copyFlow:{...project.copyFlow,phase:'copy',confirmation:null}});assert.equal(project.assets.length,1);assert.equal(project.stylePresetId,'preset-1');assert.equal(project.copyFlow.phase,'copy');
+  const reconfirmed=await confirm(edited);assert.equal(reconfirmed.status,200);project=reconfirmed.value.project;revision=reconfirmed.value.revision;assert.equal(project.assets[0].id,'after-confirm');assert.equal(project.stylePresetId,'preset-1');
+  await save({...project,copyFlow:{...project.copyFlow,phase:'design',confirmation:{fake:true}}});assert.equal(project.copyFlow.confirmation.jobId,job.id);const design=await call('jobs',{method:'POST',user:a,body:{...designBody(),requestId:'confirmed-design'}});assert.equal(design.status,201,JSON.stringify(design.value));const designSnapshot=JSON.parse((await db.prepare('SELECT snapshot FROM jobs WHERE id=?').bind(design.value.job.id).first()).snapshot);assert.equal(designSnapshot.paginationMode,'fixed');assert.equal(designSnapshot.pages.length,2);assert.equal(designSnapshot.imageMode,'upload');assert.equal(designSnapshot.visualDesignPolicy.specialistRouting.catalog.length,10);assert.equal(design.value.job.skillIds.length,14);await call('jobs/'+design.value.job.id+'/cancel',{method:'POST',user:a,body:{}});
+  const legacy={id:'existing-work',name:'既有项目',pages:parseManuscript('既有项目\n无需重新优化',{preserveText:true}),assets:[]};assert.equal((await call('projects/'+legacy.id,{method:'PUT',user:a,body:{project:legacy,revision:0}})).status,200);const old=await call('jobs',{method:'POST',user:a,body:{projectId:legacy.id,revision:1,requestId:'existing-job',kind:'design',prompt:'继续既有设计',pageIds:[legacy.pages[0].id]}});assert.equal(old.status,201);await call('jobs/'+old.value.job.id+'/cancel',{method:'POST',user:a,body:{}});
+ }finally{await close();}
 });
 
 test('moving a local D1 workspace to PostgreSQL retains account hashes and sessions',async()=>{

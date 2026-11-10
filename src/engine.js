@@ -178,6 +178,9 @@ export function validateProject(value){
  });
  const imported={...p,id:uid(),name:String(p.name||"导入的作品").slice(0,100),paginationMode:validatePaginationMode(p.paginationMode),stylePresetId:resolveStylePreset(p.stylePresetId)?.id||null,allowWebImages:p.allowWebImages===true,history:[],redo:[],createdAt:Date.now(),updatedAt:Date.now()};
  imported.allowWebImages=webImagesForMode(projectImageMode(imported),p.allowWebImages);
+ // A backup is an editable new project, not proof of a server-issued approval.
+ if(imported.copyFlow?.phase==='copy')imported.copyFlow={version:1,phase:'copy',sourceText:String(imported.copyFlow.sourceText||'').slice(0,60000),draftText:String(imported.copyFlow.draftText||'').slice(0,60000),jobId:null,proposalJobId:null,confirmation:null};
+ else delete imported.copyFlow;
  for(const key of ['cloudRevision','_cloudDirty','_editVersion','_syncConflict','_lastSyncedAt','_aiState','lastAIJobId','aiCheck'])delete imported[key];
  for(const page of imported.pages){delete page.lastAIJobId;delete page.aiCheck;}
  return imported;

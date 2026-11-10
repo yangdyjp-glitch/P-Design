@@ -3,11 +3,12 @@ import {toBlob} from "html-to-image";
 import JSZip from "jszip";
 import {createCloud} from "./cloud.js";
 import {createAccounts} from "./accounts.js";
-import {STYLE_PRESETS,resolveStylePreset,validateStylePresetId} from "./style-presets.js";
+import {createCopyWizard} from './copy-wizard.js';
+import {STYLE_PRESETS,resolveStylePreset} from "./style-presets.js";
 import {projectImageMode,webImagesForMode,assetsForMode} from "./preset-images.js";
 import {auditImagePolicy,uploadCoverageIssue} from "./image-policy.js";
 import {uid,clean,escape as esc,clone,LAYOUTS,PALETTES,parseManuscript,pageMarkup,frameDocument,applyFontScale,auditPage,routeSkills,quickAdjustment,validateProject,clamp} from "./engine.js";
-import {manuscriptPaginationMode,projectPaginationMode} from './pagination-policy.js';
+import {projectPaginationMode} from './pagination-policy.js';
 import {removeLocalProject,reconcileProjects} from './project-management.js';
 const $=(s,r=document)=>r.querySelector(s),$$=(s,r=document)=>[...r.querySelectorAll(s)];
 const S={projects:[],activeId:null,pageId:null,tab:"copy",selectedCopy:null,baseCSS:"",db:null,zoom:1,editing:null,audit:null,busy:false};
@@ -78,13 +79,13 @@ function render(){
  (S.projects.length?projectRows():'<p class="project-list-empty">还没有项目</p>')+'</div>'+
  '<div class="sidebar-bottom"><div class="storage-card"><div class="row">'+icon("leaf")+'<b style="font-size:11px">留住每一次好设计</b></div><p>'+(visitor?'无需登录即可使用 AI。换设备前下载备份，带走可编辑作品。':'登录后项目自动同步到云端。下载备份，也能带走可编辑作品。')+'</p>'+(p?button("backup","备份当前项目","download","btn small full"):'')+'</div><div class="sidebar-footer"><span>图序工作台 · AI 版</span><button data-action="settings" aria-label="工作台说明">'+icon("settings")+'</button></div></div></aside>'+
  '<div class="workspace"><header class="topbar"><div class="breadcrumbs"><span class="mobile-title">图序</span><span>工作空间</span><span>/</span><b>小红书图文</b></div><div class="top-actions">'+button("mobile-menu","菜单","grid","btn small mobile-menu-button")+'<span class="save-label"><i class="dot"></i><span id="save-status">'+(S.session?.user?(p?(p._cloudDirty?"正在同步云端…":"已保存到云端"):"工作空间已就绪"):"已保存到此浏览器")+'</span></span>'+button("account",visitor?"访客空间":S.session?.user?"我的账户":"登录云端","settings","btn flat small")+'</div></header>'+
- (p&&page?'<section class="project-header between"><div><div class="project-heading"><h1>'+esc(p.name)+'</h1><button class="icon-btn" aria-label="项目与版本" data-action="more">'+icon("down")+'</button><span class="pill">AI 自动设计</span></div><div class="project-description"><span id="page-total">'+p.pages.length+'</span> 个画面 · '+esc(resolveStylePreset(p.stylePresetId)?.name||'AI 自行设计')+' · '+(projectPaginationMode(p)==='fixed'?'保留原分页':'AI 自行分页')+' · 高清导出 2160 × 2880</div></div><div class="project-toolbar">'+
+ (CopyWizard.isPreparing(p)?CopyWizard.view(p):p&&page?'<section class="project-header between"><div><div class="project-heading"><h1>'+esc(p.name)+'</h1><button class="icon-btn" aria-label="项目与版本" data-action="more">'+icon("down")+'</button><span class="pill">AI 自动设计</span></div><div class="project-description"><span id="page-total">'+p.pages.length+'</span> 个画面 · '+esc(resolveStylePreset(p.stylePresetId)?.name||'AI 自行设计')+' · '+(projectPaginationMode(p)==='fixed'?'保留原分页':'AI 自行分页')+' · 高清导出 2160 × 2880</div></div><div class="project-toolbar">'+
  button("overview","预览","eye","btn")+button("export","下载作品","download","btn")+button("ai-design","AI 设计整套","leaf","btn primary")+
  '</div></section><div class="stage-layout"><aside class="page-rail"><div class="rail-label"><span>画面</span><span>'+p.pages.length+'</span></div><div id="page-list">'+p.pages.map((pg,i)=>'<button class="page-item '+(pg.id===page.id?"active":"")+'" data-action="select-page" data-id="'+pg.id+'" title="'+esc(pg.label)+'"><span class="thumb"><iframe tabindex="-1" title="第'+(i+1)+'页缩略预览" data-thumb="'+pg.id+'"></iframe></span><span class="page-index">'+String(i+1).padStart(2,"0")+'</span></button>').join("")+'</div></aside>'+
  '<main class="canvas-workspace"><div class="canvas-bar"><div class="row"><span>画面 '+String(activePageIndex()+1).padStart(2,"0")+'</span><span style="color:#b7c0ac">/</span><span>'+esc(page.label.slice(0,18))+'</span></div><div class="row"><span>'+icon("lock")+' 原文保真排版</span></div></div><div class="canvas-area"><div class="canvas-holder"><iframe id="canvas-frame" title="当前页面可编辑预览"></iframe><div class="canvas-loading">正在呈现画面…</div></div></div><div class="view-hint">点击画面中的文字，可定位到右侧文案</div><div class="canvas-footer"><div class="zoom-control"><button data-action="zoom-out" aria-label="缩小">−</button><span id="zoom-label">适应</span><button data-action="zoom-in" aria-label="放大">＋</button><button data-action="fit" title="适应画布" aria-label="适应画布">'+icon("expand")+'</button></div>'+button("phone","手机预览","phone","btn small")+'</div></main>'+
  '<aside class="inspector"><div class="copy-panel-head"><b>文案</b><span>你负责内容，AI 负责画面</span></div><div class="inspector-body" id="inspector-body"></div><div class="assistant automatic-assistant"><label class="assistant-title" for="design-notes">本图补充要求 <span class="muted">第 '+String(activePageIndex()+1).padStart(2,"0")+' 张</span></label><textarea id="design-notes" rows="2" maxlength="5000" aria-label="给本图的补充要求" aria-describedby="page-notes-help" placeholder="例如：本图的照片完整显示，不要裁切。">'+esc(page.requirements||'')+'</textarea><p class="page-notes-help" id="page-notes-help">只修改当前这张图，其他图保持不变。</p>'+button("ai-page","发送并修改本图","arrow","btn primary full")+'<div class="automatic-state"><span class="ai-state-dot"></span><p id="automatic-state" aria-live="polite"></p></div><details class="page-revision-feedback" id="page-revision-feedback" hidden></details><div class="assistant-footnote">AI 逐项复核本图要求 · Ctrl + Enter 发送</div></div></aside></div>':emptyWorkspace())+'</div></div>';
  mountThumbnails();
- if(page){renderInspector();updatePreview({updateThumbnail:false});fitCanvas();}Cloud.updateBadge();
+ if(page&&!CopyWizard.isPreparing(p)){renderInspector();updatePreview({updateThumbnail:false});fitCanvas();}if(CopyWizard.isPreparing(p))CopyWizard.afterRender();Cloud.updateBadge();
 }
 function loadThumbnail(pg,fr,force=false){
  if(!pg||!fr||!fr.isConnected||fr.dataset.loaded&&!force)return;
@@ -149,10 +150,10 @@ function modal(title,body,footer="",wide=false){
 }
 function closeModal(){const d=$("dialog");if(d){d.close();d.remove();}}
 function webPhotoChoice(id,checked=false){return '<label class="web-photo-choice" for="'+id+'"><input id="'+id+'" type="checkbox" '+(checked?'checked':'')+'><span><b>让 AI 从网上找图</b><small>不上传也可使用，优先实景照片。网络配图可灵活裁切。</small></span></label>';}
-function stylePresetChoices(){
- return '<fieldset class="style-presets"><legend>整套初始方向 <span class="muted">选填</span></legend><div class="preset-intro"><p>'+ (STYLE_PRESETS.some(preset=>resolveStylePreset(preset.id))?'三种排版原则，AI 按实际素材与内容安排画面。':'预留三套固定风格，设定后可一键选用。')+'</p><label class="preset-auto"><input type="radio" name="style-preset" value="" checked><span>AI 自行判断</span></label></div><div class="preset-grid">'+STYLE_PRESETS.map((preset,index)=>{
+function stylePresetChoices(selected=''){
+ return '<fieldset class="style-presets"><legend>整套初始方向 <span class="muted">选填</span></legend><div class="preset-intro"><p>'+ (STYLE_PRESETS.some(preset=>resolveStylePreset(preset.id))?'三种排版原则，AI 按实际素材与内容安排画面。':'预留三套固定风格，设定后可一键选用。')+'</p><label class="preset-auto"><input type="radio" name="style-preset" value="" '+(!selected?'checked':'')+'><span>AI 自行判断</span></label></div><div class="preset-grid">'+STYLE_PRESETS.map((preset,index)=>{
   const content='<span class="preset-top"><span class="preset-number">'+String(index+1).padStart(2,'0')+'</span><span class="preset-status">'+(resolveStylePreset(preset.id)?'已预设':'待设定')+'</span></span><span class="preset-name">'+esc(preset.name).split(' · ').join('<br>')+'</span><span class="preset-summary">'+esc(preset.summary||'风格将逐一设定')+'</span>';
-  return resolveStylePreset(preset.id)?'<label class="preset-card preset-ready"><input type="radio" name="style-preset" value="'+preset.id+'"><span class="preset-content">'+content+'</span></label>':'<button type="button" class="preset-card preset-pending" data-action="preset-details" data-id="'+preset.id+'" aria-expanded="false" aria-controls="preset-detail">'+content+'</button>';
+  return resolveStylePreset(preset.id)?'<label class="preset-card preset-ready"><input type="radio" name="style-preset" value="'+preset.id+'" '+(selected===preset.id?'checked':'')+'><span class="preset-content">'+content+'</span></label>':'<button type="button" class="preset-card preset-pending" data-action="preset-details" data-id="'+preset.id+'" aria-expanded="false" aria-controls="preset-detail">'+content+'</button>';
  }).join('')+'</div><div class="preset-detail" id="preset-detail" role="region" aria-live="polite" hidden></div><p class="preset-help">三种模式统一使用途洋 LOGO 蓝，分别保留原图适配、实景主导、文字主导的构图与检查重点。</p></fieldset>';
 }
 function showPresetDetails(control){
@@ -171,20 +172,18 @@ function showSelectedPreset(){
  const mode=preset?.imageMode||'auto',upload=$('.new-asset-input'),crop=$('.new-image-options .photo-upload-rule'),web=$('.new-image-options .web-photo-choice'),help=$('#new-image-help'),webInput=$('#new-web-images');
  if(upload)upload.hidden=!['auto','upload'].includes(mode);if(crop)crop.hidden=!['auto','upload'].includes(mode);if(web)web.hidden=mode!=='auto';
  if(webInput){if(mode!=='auto'){if(webInput.dataset.manualChoice===undefined)webInput.dataset.manualChoice=String(webInput.checked);webInput.checked=mode==='web';}else if(webInput.dataset.manualChoice!==undefined){webInput.checked=webInput.dataset.manualChoice==='true';delete webInput.dataset.manualChoice;}}
- if(help){help.hidden=mode==='auto';help.textContent=mode==='upload'?'上传 1–8 张，整套设计会全部使用，AI 自行安排到合适的页面。':mode==='web'?'AI 将联网搜索实景照片并保留来源，无需上传图片。':'纯文字排版，只用文字、色块和线条组织内容。';}
+ if(help){help.hidden=mode==='auto';help.textContent=(mode==='upload'?'上传 1–8 张，整套设计会全部使用，AI 自行安排到合适的页面。':mode==='web'?'AI 将联网搜索实景照片并保留来源，无需上传图片。':'纯文字排版，只用文字、色块和线条组织内容。')+(['web','none'].includes(mode)&&project()?.assets.length?' 已上传的图片会保留，本预案不使用。':'');}
  const uploadLabel=$('label[for="new-photos"]');if(uploadLabel)uploadLabel.innerHTML=icon('image')+(mode==='upload'?'上传图片（必填）':'添加图片（选填）');
  const taskHelp=$('#new-task-help');if(taskHelp)taskHelp.textContent=mode==='auto'?'AI 会自行择用设计技能；必要时生成示意素材。每轮最多自动修正一次，用量计入每日任务额度。':'AI 会按所选预案安排画面并自动检查。每轮最多自动修正一次，用量计入每日任务额度。';
 }
 function newProjectDialog(){
- modal("把文案交给 AI",'<form id="new-project-form"><div class="form-field"><label for="new-copy">原始文案</label><textarea class="import-text" id="new-copy" maxlength="60000" placeholder="粘贴完整文案。已明确分页则保留原分页，未分页由 AI 安排；文字、数字与顺序会保留。" required></textarea><p class="small-note">用（1P）、P1、第1页或单独一行 --- 标记分页。图片适配页面，不会为了放图自行增页。</p></div>'+
- '<div class="new-image-options"><div class="new-asset-input"><label class="btn" for="new-photos">'+icon("image")+'添加图片（选填）</label><input id="new-photos" type="file" accept="image/png,image/jpeg,image/webp" multiple hidden><span id="new-photo-count" class="small-note">最多 8 张，AI 自行判断用途与摆放</span></div><p class="photo-upload-rule">'+icon("lock")+'上传图片最多裁剪 20%，至少保留 80% 的原图画面。</p>'+webPhotoChoice('new-web-images')+'<p id="new-image-help" class="small-note" aria-live="polite" hidden></p></div>'+
- stylePresetChoices()+'<div class="form-field"><label for="new-brief">本次补充 <span class="muted">选填</span></label><textarea id="new-brief" rows="2" maxlength="6000" placeholder="有希望保留的品牌要求或表达重点，可以写在这里。"></textarea><p class="small-note">仅用于本次整套图文，单张调整仍在右侧填写。</p></div><div class="project-summary">'+icon("lock")+' 保留原文 · AI 设计 · 自动检查</div><p class="small-note" id="new-task-help">AI 会自行择用设计技能；必要时生成示意素材。每轮最多自动修正一次，用量计入每日任务额度。</p></form>',button("close","取消",null,"btn")+'<button class="btn primary" type="submit" form="new-project-form">'+icon("leaf")+'开始 AI 设计</button>');
+ CopyWizard.newDraft();
 }
 function projectSettings(){
  modal("项目设置",'<div class="form-field"><label for="project-name">项目名称</label><input id="project-name" maxlength="100" value="'+esc(project().name)+'"></div><div class="between"><span class="small-note">创建于 '+formatDate(project().createdAt)+'</span>'+button("delete-project","删除项目","trash","btn flat small delete-link",'data-id="'+esc(project().id)+'"')+'</div>',button("close","取消",null,"btn")+button("save-project-name","保存名称","check","btn primary"));Cloud.updateBadge();
 }
 function showAssets(){
- const p=project();if(!p)return toast('请先新建图文，再添加图片。');const mode=projectImageMode(p),uploads=['auto','upload'].includes(mode);
+ const p=project();if(!p)return toast('请先新建图文，再添加图片。');if(p.copyFlow?.phase==='copy')return toast('请先优化并确认文案，再添加图片。');const mode=projectImageMode(p),uploads=['auto','upload'].includes(mode);
  modal("项目素材",(uploads?'<div class="file-drop" data-action="upload">'+icon("upload")+'<br>添加照片或图片<br><span class="tiny muted">JPG、PNG、WebP · 每张不超过 12 MB</span></div><p class="photo-upload-rule">'+icon("lock")+'上传图片最多裁剪 20%，至少保留 80% 的原图画面。</p>':'<p class="small-note">'+(mode==='web'?'本项目使用联网配图，AI 会搜索实景照片并保留来源。':'本项目使用纯文字排版，无需图片。')+'</p>')+(mode==='auto'?webPhotoChoice('project-web-images',p.allowWebImages===true):'')+(mode!=='none'?'<div class="gallery-large" style="margin-top:20px">'+p.assets.map(a=>'<figure><img src="'+esc(a.url)+'" alt="'+esc(a.name)+'"><figcaption>'+esc(a.name)+(a.source==='web'?' · 网络配图':a.generated?' · AI 生成示意素材':' · 上传图片')+(a.source==='web'&&/^https:\/\//.test(a.sourceUrl||'')?' · <a href="'+esc(a.sourceUrl)+'" target="_blank" rel="noopener noreferrer">查看来源</a>':'')+'</figcaption></figure>').join("")+'</div>':'')+'<p class="small-note">'+(mode==='upload'?'整套设计会使用全部上传图片，由 AI 分配到合适页面，并检查是否漏图；单图修改仅处理当前页。':'AI 按本项目预案判断图片用途与摆放，并自动检查来源及裁剪比例。')+'</p>');
 }
 function showMore(){modal("项目与版本",'<div class="mobile-actions">'+button("project-settings","修改项目名称",null,"btn full")+button("history","查看版本记录","history","btn full")+button("undo","撤销上一次修改","undo","btn full",!project().history?.length?"disabled":"")+button("backup","备份当前项目","save","btn full")+button("skills","AI 的设计能力","leaf","btn full")+'</div>');}
@@ -197,7 +196,7 @@ function showHistory(){
  modal("版本记录",'<div class="project-summary">'+icon("history")+'保留最近25次操作，可撤销或恢复。<span style="margin-left:auto">'+hist.length+' 条</span></div>'+
  (hist.length?hist.slice().reverse().map(h=>'<div class="version-item"><div>'+esc(h.label)+'<small>'+formatDate(h.at)+'</small></div>'+button("restore-history","恢复",null,"btn small",'data-id="'+h.id+'"')+'</div>').join(""):'<div class="empty">还没有修改记录。<br>修改文案、构图或照片后，记录会出现在这里。</div>'));
 }
-function showSettings(){modal("关于图序工作台",'<div class="settings-item"><b>你负责内容，AI 负责画面</b><p>已明确分页的文案保留原页数和每页内容，让图片适配页面；未分页才由 AI 安排。AI 自行设计画面、安排照片、选择技能并执行检查，通过后自动呈现。</p></div><div class="settings-item"><b>每个账户，独立创作</b><p>文案、素材、项目和设计记录按账户隔离。管理员可以创建账户，使用者在自己的工作空间里继续编辑。</p></div><div class="settings-item"><b>带走可编辑作品</b><p>可下载高清图片、可编辑 HTML 和项目备份。</p></div><p class="small-note">版本 0.6.1 · 独立账户工作空间</p>');}
+function showSettings(){modal("关于图序工作台",'<div class="settings-item"><b>你负责内容，AI 负责画面</b><p>已明确分页的文案保留原页数和每页内容，让图片适配页面；未分页才由 AI 安排。AI 自行设计画面、安排照片、选择技能并执行检查，通过后自动呈现。</p></div><div class="settings-item"><b>每个账户，独立创作</b><p>文案、素材、项目和设计记录按账户隔离。管理员可以创建账户，使用者在自己的工作空间里继续编辑。</p></div><div class="settings-item"><b>带走可编辑作品</b><p>可下载高清图片、可编辑 HTML 和项目备份。</p></div><p class="small-note">版本 0.7.0 · 独立账户工作空间</p>');}
 function showExport(){
  modal("导出你的作品",'<div class="project-summary"><b>'+project().pages.length+'</b><div>个画面已准备就绪<br><span class="tiny muted">2160 × 2880 · 高清 PNG</span></div></div><div class="settings-item"><b>导出整套高清图</b><p>每页生成一张PNG，并打包成ZIP。导出前会自动检查缺字、越界与图片加载。</p></div><div class="panel-actions">'+button("export-all","整套PNG · ZIP","download","btn primary")+button("export-one","仅导出当前页",null,"btn")+'</div><div class="inspector-divider"></div><div class="settings-item"><b>保留可编辑作品</b><p>项目备份可再次导入图序；HTML工程包含正式文字、布局、照片和字体许可。</p></div><div class="panel-actions">'+button("backup","项目备份 · JSON","save","btn")+button("export-source","可编辑HTML · ZIP","folder","btn")+'</div>');
 }
@@ -385,7 +384,7 @@ async function exportSource(){
 document.addEventListener("click",e=>{
  if(S.authLocked)return;
  const b=e.target.closest("[data-action]");if(!b||b.disabled)return;
- const fn=actions[b.dataset.action];if(fn&&!S.busy)Promise.resolve(fn(b)).catch(err=>toast(err.message));
+ const fn=actions[b.dataset.action]||CopyWizard.actions[b.dataset.action];if(fn&&!S.busy)Promise.resolve(fn(b)).catch(err=>toast(err.message));
 });
 async function readImageFiles(input){
  const files=[...input];if(files.length>8)throw Error("每次最多添加8张图片。");
@@ -396,19 +395,9 @@ async function readImageFiles(input){
   images.push({id:uid(),name:file.name,url,source:'upload',generated:false});
  }return images;
 }
-document.addEventListener("submit",async e=>{
- if(e.target.id==="new-project-form"){
-  e.preventDefault();const submit=e.submitter;if(submit)submit.disabled=true;
-  try{
-   const text=$("#new-copy").value,brief=$("#new-brief").value.slice(0,6000),stylePresetId=validateStylePresetId($('[name="style-preset"]:checked')?.value),mode=projectImageMode({stylePresetId}),allowWebImages=webImagesForMode(mode,$("#new-web-images").checked),pages=parseManuscript(text,{preserveText:true});
-   if(mode==='upload'&&!$("#new-photos").files.length)throw Error('请先上传至少一张图片，再使用预案一。');
-   const assets=['auto','upload'].includes(mode)?await readImageFiles($("#new-photos").files):[];
-   const p={id:uid(),name:(pages[0].copy[0]?.text||"新的图文").slice(0,80),paginationMode:manuscriptPaginationMode(text),brief,stylePresetId,allowWebImages,pages,assets,history:[],redo:[],createdAt:Date.now(),updatedAt:Date.now()};
-   S.projects.unshift(p);S.activeId=p.id;S.pageId=p.pages[0].id;S.tab="copy";S.zoom=1;S.audit=null;closeModal();render();scheduleSave();await Cloud.startDesign();
-  }catch(err){toast(err.message);if(submit?.isConnected)submit.disabled=false;}
- }
-});
+document.addEventListener('submit',event=>{if(['copy-source-form','copy-confirm-form','copy-assets-form'].includes(event.target.id))CopyWizard.submit(event);});
 document.addEventListener("input",e=>{
+ if(CopyWizard.input(e))return;
  const el=e.target;
  if(el.matches("[data-copy-field]")){
   const pg=current(),c=pg.copy.find(x=>x.id===el.dataset.copyField);if(!c)return;
@@ -426,7 +415,7 @@ document.addEventListener("input",e=>{
  }
 });
 document.addEventListener("focusout",e=>{if(e.target.matches("[data-copy-field],[data-setting]"))S.editing=null;});
-document.addEventListener("change",e=>{if(e.target.name==='style-preset'){showSelectedPreset();}else if(e.target.id==="new-photos"){const label=$("#new-photo-count");if(label)label.textContent=e.target.files.length?"已选 "+e.target.files.length+" 张图片":"最多 8 张，AI 自行判断用途与摆放";}else if(e.target.id==='project-web-images'){project().allowWebImages=e.target.checked;scheduleSave();toast(e.target.checked?'已允许 AI 联网寻找实景配图，下次设计时生效。':'已关闭联网搜图，下次设计仅使用现有素材。');}});
+document.addEventListener("change",e=>{if(CopyWizard.changed(e))return;if(e.target.name==='style-preset'){showSelectedPreset();}else if(e.target.id==="new-photos"){const label=$("#new-photo-count");if(label)label.textContent=e.target.files.length?"已选 "+e.target.files.length+" 张图片":"最多 8 张，AI 自行判断用途与摆放";}else if(e.target.id==='project-web-images'){project().allowWebImages=e.target.checked;scheduleSave();toast(e.target.checked?'已允许 AI 联网寻找实景配图，下次设计时生效。':'已关闭联网搜图，下次设计仅使用现有素材。');}});
 $("#file-images").addEventListener("change",async e=>{
  try{
   const files=[...e.target.files];if(!files.length)return;if(files.length+project().assets.length>100)throw Error("项目素材已满，请另建项目。");if(projectImageMode(project())==='upload'&&files.length+assetsForMode(project().assets,'upload').length>8)throw Error('预案一每个项目最多上传 8 张图片，整套设计会全部使用。');
@@ -453,7 +442,8 @@ document.addEventListener("keydown",e=>{
 window.addEventListener("resize",fitCanvas);
 window.addEventListener("beforeunload",()=>{clearTimeout(saveTimer);if(S.db)persist();});
 function freezeWorkspace(){S.authLocked=true;clearTimeout(saveTimer);clearTimeout(previewTimer);thumbnailObserver?.disconnect();previewLoadToken++;Cloud.dispose();closeModal();S.db?.close();S.db=null;S.projects=[];S.jobs=[];S.activeId=null;S.pageId=null;dataURLCache.clear();delete window.TuXu;$("#file-images").value='';$("#file-project").value='';$("#app").innerHTML='<div class="boot"><p>正在更新登录状态…</p></div>';}
-const Cloud=createCloud({S,project,current,modal,closeModal,toast,render,remember,persist,button,baseCSS:()=>S.baseCSS,auditProposal,onAuthLost:()=>Accounts.onAuthLost()});
+const Cloud=createCloud({S,project,current,modal,closeModal,toast,render,remember,persist,button,baseCSS:()=>S.baseCSS,auditProposal,onAuthLost:()=>Accounts.onAuthLost(),onCopyResult:job=>CopyWizard.receive(job),onCopyUpdate:()=>CopyWizard.sync(),onOpenCopy:job=>CopyWizard.open(job)});
+const CopyWizard=createCopyWizard({S,project,render,scheduleSave,persist,toast,closeModal,button,stylePresetChoices,showSelectedPreset,readImageFiles,cloud:()=>Cloud});
 const Accounts=createAccounts({S,request:Cloud.request,modal,toast,freeze:freezeWorkspace,persist});
 async function legacyProjects(name="tuxu-studio"){return new Promise(resolve=>{const r=indexedDB.open(name,1);r.onupgradeneeded=()=>{r.transaction.abort();resolve([]);};r.onerror=()=>resolve([]);r.onsuccess=()=>{try{const q=r.result.transaction("workspace").objectStore("workspace").get("state");q.onsuccess=()=>{resolve(q.result?.projects||[]);r.result.close();};q.onerror=()=>resolve([]);}catch{resolve([]);}};});}
 async function boot(){
@@ -473,7 +463,7 @@ async function boot(){
   if(!restored&&!S.projects.length&&S.session.isAdmin&&S.session.accessMode!=='accounts')S.projects=await legacyProjects();
   if(!restored&&!S.projects.length&&S.session.accessMode==='visitor'){S.projects=await legacyProjects('tuxu-studio-guest');for(const p of S.projects){delete p.cloudRevision;delete p._syncConflict;p._cloudDirty=true;}}
   if(!project())S.activeId=S.projects[0]?.id||null;S.pageId=current()?.id||null;render();Cloud.updateBadge();const active=project();await persist({skipCloud:!active||!active._cloudDirty&&!!active.cloudRevision});Cloud.startPolling();
-  window.TuXu={getState:()=>clone({projects:S.projects,activeId:S.activeId,pageId:S.pageId,user:S.session.user,jobs:S.jobs}),auditCurrent:()=>project()?auditPage($("#canvas-frame").contentDocument,current(),project()):[],version:"0.6.1"};
+  window.TuXu={getState:()=>clone({projects:S.projects,activeId:S.activeId,pageId:S.pageId,user:S.session.user,jobs:S.jobs}),auditCurrent:()=>project()?auditPage($("#canvas-frame").contentDocument,current(),project()):[],version:"0.7.0"};
  }catch(e){$("#app").innerHTML='<div class="boot"><h1>工作台暂时未能打开</h1><p>'+esc(e.message)+'</p><button class="btn primary" onclick="location.reload()">重新打开</button></div>';}
 }
 boot();

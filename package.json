@@ -1,6 +1,6 @@
 {
   "name": "tuxu-design-studio",
-  "version": "0.6.1",
+  "version": "0.7.0",
   "private": true,
   "engines": {
     "node": ">=22.13.0"
@@ -15,6 +15,7 @@
     "test:accounts": "node --test tests/accounts.test.mjs",
     "test:design-result": "node --test tests/design-result.test.mjs",
     "test:automatic": "node --test tests/automatic-workflow.test.mjs",
+    "test:copy": "node --test tests/copy-workflow.test.mjs",
     "test:images": "node --test tests/image-policy.test.mjs",
     "test:presets": "node --test tests/style-presets.test.mjs tests/preset-images.test.mjs",
     "test:database": "node --test tests/postgres.test.mjs tests/postgres-runtime.test.mjs",

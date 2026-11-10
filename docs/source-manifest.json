@@ -1,7 +1,7 @@
 {
   "deployedCommit": "38ac060abe604bb3a574bcff3e6ddc85f1d727e3",
   "siteProjectId": "appgprj_6aecb5faa0b881919c03675fe284bf42",
-  "sourceVersion": "0.6.1",
+  "sourceVersion": "0.7.0",
   "sourceBranch": "main",
   "railwayReleasePendingProjectBackup": false,
   "skills": [
@@ -31,6 +31,251 @@
     "deployment repository history"
   ],
   "files": [
+    {
+      "path": "design-skills/content-research-writer/PROVENANCE.md",
+      "bytes": 409,
+      "sha256": "2fb6cf0e51bffe1cce6d85c9f544844114d34a8e761fb4678c083d2b02ce7b07"
+    },
+    {
+      "path": "design-skills/content-research-writer/SKILL.md",
+      "bytes": 1687,
+      "sha256": "febcb95d8446317bad229b04aa42e842268420e51f81250f902327e78b234d5f"
+    },
+    {
+      "path": "design-skills/content-strategy/evals/evals.json",
+      "bytes": 10190,
+      "sha256": "10167e7125ee77cbabe4f03953750dd99ea147f7461027fdbb0cf8e089e5506d"
+    },
+    {
+      "path": "design-skills/content-strategy/LICENSE",
+      "bytes": 1069,
+      "sha256": "b70d71e24e40fce5da8f4b6f9cd862096a048e433db7f3c8cac5e348e6d34591"
+    },
+    {
+      "path": "design-skills/content-strategy/references/content-distribution.md",
+      "bytes": 5576,
+      "sha256": "1861a1aab0627ab29c279000879a9889242da1ba85e677acdc759c66a6241778"
+    },
+    {
+      "path": "design-skills/content-strategy/references/headless-cms.md",
+      "bytes": 8583,
+      "sha256": "efc796ae9596d1efcb876683db2d9b7c10c83e76e1cb69e527097907d5b4fc3f"
+    },
+    {
+      "path": "design-skills/content-strategy/SKILL.md",
+      "bytes": 19040,
+      "sha256": "6bc1c8df711a6c9466e312dca9c99a895bd76989b7a52d0f39dca340db3bc5f5"
+    },
+    {
+      "path": "design-skills/copy-editing/evals/evals.json",
+      "bytes": 11880,
+      "sha256": "cc18c9f51094058759267d465cfcc50da65f248f66b923326781aa642d622ca7"
+    },
+    {
+      "path": "design-skills/copy-editing/LICENSE",
+      "bytes": 1069,
+      "sha256": "b70d71e24e40fce5da8f4b6f9cd862096a048e433db7f3c8cac5e348e6d34591"
+    },
+    {
+      "path": "design-skills/copy-editing/references/checklist.md",
+      "bytes": 4505,
+      "sha256": "4cf94c922286223681fc53721fcc65ae7299f1e36e797e7397d369d674580c60"
+    },
+    {
+      "path": "design-skills/copy-editing/references/content-refresh.md",
+      "bytes": 4662,
+      "sha256": "ba73cdf278fe6b552eee27eb1452494f11f9d17ef67d720657e0982f76fb961b"
+    },
+    {
+      "path": "design-skills/copy-editing/references/plain-english-alternatives.md",
+      "bytes": 8258,
+      "sha256": "df4f820d4c63ae8a517c64a243c101658352cd07d002355bf3c97de0a00f3775"
+    },
+    {
+      "path": "design-skills/copy-editing/SKILL.md",
+      "bytes": 17963,
+      "sha256": "ef6bf9e792edac9ff524576a7eea6980fd13e605e5561736b045136341cde63e"
+    },
+    {
+      "path": "design-skills/copywriting/evals/evals.json",
+      "bytes": 12995,
+      "sha256": "ccec86052a0edd8646d0e50e63c08e0e971f443d8f6e9178843a1629f79efdb0"
+    },
+    {
+      "path": "design-skills/copywriting/LICENSE",
+      "bytes": 1069,
+      "sha256": "b70d71e24e40fce5da8f4b6f9cd862096a048e433db7f3c8cac5e348e6d34591"
+    },
+    {
+      "path": "design-skills/copywriting/references/ai-tells.md",
+      "bytes": 20804,
+      "sha256": "b98c3a19b3a75c714d69e80a0076e4c07244b0e833c2ce81ff2631224fb7f7b2"
+    },
+    {
+      "path": "design-skills/copywriting/references/copy-frameworks.md",
+      "bytes": 14409,
+      "sha256": "4db06c481a904be3e4571ad8f671532c97ec186ddf0fb8aee3e3a56ef8e3d441"
+    },
+    {
+      "path": "design-skills/copywriting/references/natural-transitions.md",
+      "bytes": 5561,
+      "sha256": "9bd61b0de5be2c4de4ce130c68236b4f290b12737823827a458bb2b4c8584683"
+    },
+    {
+      "path": "design-skills/copywriting/SKILL.md",
+      "bytes": 15044,
+      "sha256": "1db2f6e51f0492f5efc646b74576721852720dec388e58d0facd2b790c01bb4e"
+    },
+    {
+      "path": "design-skills/humanizer-zh/.gitignore",
+      "bytes": 128,
+      "sha256": "60e2fa4bf2647667b82c5351d453847ae233821ff6af15846b19f40a0c1a45d0"
+    },
+    {
+      "path": "design-skills/humanizer-zh/CHANGELOG.md",
+      "bytes": 1482,
+      "sha256": "254ac282ea3a224237d7778d1704165f5dd51db29839de6431569435561fd0fe"
+    },
+    {
+      "path": "design-skills/humanizer-zh/LICENSE",
+      "bytes": 1063,
+      "sha256": "aa00e74769e1b9d8e7fa7094dbfcca9b129a0ded6dce1cf4da050b99146d2fa7"
+    },
+    {
+      "path": "design-skills/humanizer-zh/README.md",
+      "bytes": 6459,
+      "sha256": "c4f42c5f590b2845608c3913754e0339db0783481efb6d5ec90144fb721bd1d4"
+    },
+    {
+      "path": "design-skills/humanizer-zh/SKILL.md",
+      "bytes": 20527,
+      "sha256": "95627fd4437d886f98032ccc62d79136e6310f1fc04e354bb86431795ff206df"
+    },
+    {
+      "path": "design-skills/humanizer-zh/tests/check_structure.py",
+      "bytes": 1373,
+      "sha256": "82ba1f91aab7a70abf039e79009fb1b77c036aa892925e5e3df5c2550d20230a"
+    },
+    {
+      "path": "design-skills/humanizer-zh/tests/fixtures/cases.json",
+      "bytes": 5297,
+      "sha256": "6a62586ee93dd9695976cd45271036f2a92be4f74e1b3b9b6c21a411c8497c0e"
+    },
+    {
+      "path": "design-skills/humanizer-zh/tests/fixtures/structure.md",
+      "bytes": 852,
+      "sha256": "d2d0c2740d28c44b7aac88e81aed8d50dc6ad90cc08f93a5a00c6ada1d6368e2"
+    },
+    {
+      "path": "design-skills/humanizer-zh/tests/README.md",
+      "bytes": 2292,
+      "sha256": "ece3c1f808c4ef2ad8ac7ccb0977138cbc6f842455c725703b5bf780ae3cc36c"
+    },
+    {
+      "path": "design-skills/social/evals/evals.json",
+      "bytes": 17109,
+      "sha256": "4d7a21a7675efc30d24ee276a6d38f004d483d4142e2a49c944aa355ed2ba686"
+    },
+    {
+      "path": "design-skills/social/LICENSE",
+      "bytes": 1069,
+      "sha256": "b70d71e24e40fce5da8f4b6f9cd862096a048e433db7f3c8cac5e348e6d34591"
+    },
+    {
+      "path": "design-skills/social/references/carousel-frameworks.md",
+      "bytes": 11124,
+      "sha256": "e703aa530ec9f68cdf5b58e8e0d4d1a5cc3f22b9e2d3e3222f16a9763d423247"
+    },
+    {
+      "path": "design-skills/social/references/listening-sources-template.md",
+      "bytes": 3479,
+      "sha256": "c68bc6f57b0a48c432b1ce72c9324d41a04d0e7784d0bab91afb4a6065a43e38"
+    },
+    {
+      "path": "design-skills/social/references/listening.md",
+      "bytes": 13474,
+      "sha256": "52cf68aaaa57a69b69b3587ffd9b848a6f1ca7e0d51378f566339ad7f2b730e0"
+    },
+    {
+      "path": "design-skills/social/references/platform-limits.md",
+      "bytes": 2830,
+      "sha256": "6ecc6b40ff82b95c48906341f7d3c58337671d4d94f624c858764f1ed5a77c3c"
+    },
+    {
+      "path": "design-skills/social/references/platforms.md",
+      "bytes": 8434,
+      "sha256": "bb8c2f466184518a1290edbea99eef6b7dcad8e1f8091453d4dc5a21831b66b9"
+    },
+    {
+      "path": "design-skills/social/references/post-templates.md",
+      "bytes": 4016,
+      "sha256": "9cca4680c95801daedfd8acadf9089d0083784c2567784888807569896f71d9b"
+    },
+    {
+      "path": "design-skills/social/references/reverse-engineering.md",
+      "bytes": 5551,
+      "sha256": "c27bef59d463b3b11331c1770f4a23e9e6bbce7d7c8db1e7f7f4f14ba206243f"
+    },
+    {
+      "path": "design-skills/social/references/ship-post.md",
+      "bytes": 6355,
+      "sha256": "b9c60b300bc72d2540aef367bb1588b0e955dc1423303c5265b27a3dfb75f9b6"
+    },
+    {
+      "path": "design-skills/social/references/short-form-video.md",
+      "bytes": 10546,
+      "sha256": "04b567900eaac90833f3abf370a3e1c4d650f83a0672108e07a7f01bde3a64ad"
+    },
+    {
+      "path": "design-skills/social/references/x-algorithm.md",
+      "bytes": 7113,
+      "sha256": "943b2c5a819aad53ebf62a1652adc47956d6fdf738e18cd98eeb609819a66180"
+    },
+    {
+      "path": "design-skills/social/SKILL.md",
+      "bytes": 18369,
+      "sha256": "2e259195e4e72e475609feebaae810a386f4e2896a1889af62f7f158a8fecd79"
+    },
+    {
+      "path": "design-skills/writing-sources.json",
+      "bytes": 1701,
+      "sha256": "e0a6c385b50ab58742f13547a1017635cd5c2e1a4f89fb0e447a82b448664358"
+    },
+    {
+      "path": "docs/copy-workflow.md",
+      "bytes": 6501,
+      "sha256": "276fb4a702ee566c904bd4441e96e0484b68aac89ca7715faec1aacb3af5c024"
+    },
+    {
+      "path": "public/copy.css",
+      "bytes": 3203,
+      "sha256": "a05b1e2525022715b3a3f13e40c743f960e4362c9c1b796ff4eddc6f662ae721"
+    },
+    {
+      "path": "server/copy-agent.ts",
+      "bytes": 21954,
+      "sha256": "3f2ffb7a10bdb7d6686a6108b4c97059aca982e87a2fcbb5fc41a98802a2d5e9"
+    },
+    {
+      "path": "server/copy-workflow.ts",
+      "bytes": 5008,
+      "sha256": "70d34103bb4800f473ecfce1537eb747a55fa6be1a177697ae4c431aca87e79b"
+    },
+    {
+      "path": "src/copy-wizard.js",
+      "bytes": 15154,
+      "sha256": "a8c8cf2d4a86e5acbd052d336bf1bd2e28fbaf3ccf8dbde498e4a32ea049ab0b"
+    },
+    {
+      "path": "src/copy-workflow.js",
+      "bytes": 8391,
+      "sha256": "f9f748f042650212c859eeb16968cd705345eb2698d1e14ef274fe28c04bee99"
+    },
+    {
+      "path": "tests/copy-workflow.test.mjs",
+      "bytes": 26187,
+      "sha256": "81d23cffa38a2e170bb7608d62e2634e321128ccb9897f5cfc01104ffb9a1bf7"
+    },
     {
       "path": "docs/specialist-routing.md",
       "bytes": 4438,
@@ -203,8 +448,8 @@
     },
     {
       "path": "src/job-progress.js",
-      "bytes": 4018,
-      "sha256": "fa90c98570043da042471a877bfb24816853b55294bb4e23527bfbed0b8c7b05"
+      "bytes": 4993,
+      "sha256": "3248258b34f45a22647d4ea3db6cb66d0f18ac8fa30f1dd8408f15ef8f549b50"
     },
     {
       "path": "tests/job-progress.test.mjs",
@@ -253,13 +498,13 @@
     },
     {
       "path": "src/accounts.js",
-      "bytes": 10066,
-      "sha256": "9c0635e88a9b6f63bcaaa0287b9b82183d2251820d6ec969eed368d58dc335da"
+      "bytes": 10111,
+      "sha256": "b1986b0e36eddc070ec395aff97892d98c86e6acab47ff98622f293337f5a238"
     },
     {
       "path": "tests/accounts.test.mjs",
-      "bytes": 20941,
-      "sha256": "d035a79e9f08e6645860498061209a1f558dc4120e716558782fc111fdbb7198"
+      "bytes": 29203,
+      "sha256": "6bcbfb5b6ef7fc1a35da6028eec95d8b225747313cadd8b22f40aa7d0be2be70"
     },
     {
       "path": "scripts/postgres-tunnel.mjs",
@@ -443,8 +688,8 @@
     },
     {
       "path": "tests/automatic-workflow.test.mjs",
-      "bytes": 58836,
-      "sha256": "dba992d525b4205055a096ade8ac3a44cfffe0eb3e5ded4bf6046da0ed9defa6"
+      "bytes": 58853,
+      "sha256": "b321b6f88db854533e912c5ce2b982e7cdeb3c440ad456bccc4ec7665652d781"
     },
     {
       "path": ".dockerignore",
@@ -503,8 +748,8 @@
     },
     {
       "path": "app/layout.tsx",
-      "bytes": 649,
-      "sha256": "4238160b6795ec6f0b829b21942084958ed5869d10968bab8e751b7898f822ac"
+      "bytes": 691,
+      "sha256": "caed5ec4aaa536b26d7880db5c24a6fd11e57310d13e05805a859b3109b63834"
     },
     {
       "path": "app/page.tsx",
@@ -3923,8 +4168,8 @@
     },
     {
       "path": "HANDOFF.md",
-      "bytes": 33386,
-      "sha256": "4b4c639f98c5464350f19585ad32f6ad4aaa455e8b2b472ab27146a059021589"
+      "bytes": 34863,
+      "sha256": "d439b77a0053e7c9e5fff1f64b443205680256d5cc58a8f191c0ff4b2184c196"
     },
     {
       "path": "hooks/use-mobile.ts",
@@ -3974,12 +4219,12 @@
     {
       "path": "package-lock.json",
       "bytes": 515996,
-      "sha256": "259e5f1abb9d8c300f0e5b3ca55869946ddb362a8ba125f4c73d1f493732a992"
+      "sha256": "ef7b81ce832a0103f351aa053dbeea6fb142433bc1cd1b09156a3a9c30aba496"
     },
     {
       "path": "package.json",
-      "bytes": 2900,
-      "sha256": "73763745ef5ee26a928e281adb953dafd4bc092dd0649e53dc2de98e18eecede"
+      "bytes": 2961,
+      "sha256": "b8923c86562c49a59424550249640b9517fdfe2c2e925f6a08d424b8a3e51906"
     },
     {
       "path": "postcss.config.mjs",
@@ -4023,8 +4268,8 @@
     },
     {
       "path": "public/editor.js",
-      "bytes": 311747,
-      "sha256": "6294972bb2ec3050d8b5510cbb552da410adc03725aee4418e6212df1271132f"
+      "bytes": 330781,
+      "sha256": "9b1b5afb9024de8662b2225899caa3162059342343b3ae1a3e35c8f922031969"
     },
     {
       "path": "public/editor.js.LEGAL.txt",
@@ -4043,13 +4288,13 @@
     },
     {
       "path": "QA.md",
-      "bytes": 50682,
-      "sha256": "0aae1d0c820f80df859958aa7619d4dee60062f6e9bcfa6de2fa30a161d0965d"
+      "bytes": 53490,
+      "sha256": "3fa51d54e4fe31717eb36d0a9c31088c2ec06d65d747d15542e7867c0afdc9a2"
     },
     {
       "path": "README.md",
-      "bytes": 7323,
-      "sha256": "235f7a20abe508037ccab88c9bfb86e63aeb860ff3007487739cb99bb8938407"
+      "bytes": 7829,
+      "sha256": "2e586782b0ab28047c4e02686f6ea32fbf58003bec8f6cdfe8a9045139f7c722"
     },
     {
       "path": "scripts/api-local.mjs",
@@ -4123,8 +4368,8 @@
     },
     {
       "path": "scripts/pack-skills.mjs",
-      "bytes": 2180,
-      "sha256": "20055dddac3c18aefbc469e6a1d7c3abc860fe919eba2e4628b1e10034db9256"
+      "bytes": 2278,
+      "sha256": "a45282027aaba16ffe04a848a9d448d8c4c072be06290287793f94973314649f"
     },
     {
       "path": "scripts/pnpm-install.mjs",
@@ -4198,8 +4443,8 @@
     },
     {
       "path": "scripts/start-railway.mjs",
-      "bytes": 7047,
-      "sha256": "5eaa196e3c334ea889fb27fe61f166c7606ac70635830630f23ab6cfb42df740"
+      "bytes": 7860,
+      "sha256": "9ac91ed96a71dbc0723b8a8c9752b6fd2b7a60ea3364d55ef73d3f7f5cb1ce89"
     },
     {
       "path": "scripts/start.mjs",
@@ -4233,8 +4478,8 @@
     },
     {
       "path": "server/agent.ts",
-      "bytes": 62178,
-      "sha256": "f3045558727f2d3e5611aec91d4829db13b6ea14dabbd23297937c53297ae3a2"
+      "bytes": 62395,
+      "sha256": "bdf522fb907869e6815be3ab16188a1f3a32080df83e93cb1baf0baadbc05bea"
     },
     {
       "path": "server/copy-integrity.ts",
@@ -4253,13 +4498,13 @@
     },
     {
       "path": "server/routes.ts",
-      "bytes": 18805,
-      "sha256": "da04beb38d69b44a3c32d3a895094be35fd2606ac3d5b6b7b189c2cbd2142a18"
+      "bytes": 19946,
+      "sha256": "fb9ae27be98a95ddf3cefffcd36e518ddb7b5737d3d4f8458ef1e1607e385735"
     },
     {
       "path": "server/skills.ts",
-      "bytes": 2639,
-      "sha256": "20e3cc87ba41a1d139ae631ca422af41b4bff6b6b6222f3e4a02d4a2a1e2e707"
+      "bytes": 3600,
+      "sha256": "42087e0d7086d5e32fa05c688ca2356b5358ef3c2db47e517a21110e6e4f581c"
     },
     {
       "path": "server/visitor-session.ts",
@@ -4268,23 +4513,23 @@
     },
     {
       "path": "server/webhooks.ts",
-      "bytes": 2940,
-      "sha256": "f97a48ab8292138eafaa302e1855f619fdfb3e413c44acf0bfbdd32e09e2334d"
+      "bytes": 3049,
+      "sha256": "fadaeddd2f975d9b1f278d8754fb19674dd3130791903161bb3b578a42f32b20"
     },
     {
       "path": "src/app.js",
-      "bytes": 63349,
-      "sha256": "b0dacd659133916d68652c19a87130669fdb5abadad949fc5a79bbeb61716ed9"
+      "bytes": 61293,
+      "sha256": "d8940b37141e1cbde20bae7365d3cd2bfc4adf1cd385352f72e410ef1d5ed319"
     },
     {
       "path": "src/cloud.js",
-      "bytes": 26344,
-      "sha256": "6c1649456fbb6b7d8d59b1f210f96bc9ab195acf63205a7dc88a9b2bdf5e1229"
+      "bytes": 29124,
+      "sha256": "8cdd74757053ae83dc9b49a628d9c2e5f48d784ff148e56f2e1b05750d2ee4b3"
     },
     {
       "path": "src/engine.js",
-      "bytes": 18053,
-      "sha256": "7c67bbe31278554d9c6f009980abdd6a40cd95b81b52c056c55bbda39034c22b"
+      "bytes": 18427,
+      "sha256": "8a74bf20f42a99a21be6ca11da9ef5841dfa1c539bb797556f73527fcef05fae"
     },
     {
       "path": "tests/visitor-session.test.mjs",
@@ -4293,8 +4538,8 @@
     },
     {
       "path": "THIRD_PARTY.md",
-      "bytes": 2099,
-      "sha256": "53860d8b886bc0b3213af871a82d34f86c95970ad82d8cd17e4018667d343b9c"
+      "bytes": 2716,
+      "sha256": "9194728bf23bdee6781facbef100446c3113f03ccf7312a5a2c28697da47e77e"
     },
     {
       "path": "tsconfig.json",
