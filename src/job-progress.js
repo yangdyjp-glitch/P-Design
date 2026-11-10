@@ -36,7 +36,7 @@ export function jobProgress(job,project){
  }else if(job.result?.repairing||job.repairOf){
   stage='correcting';action='自动修正版面';detail='正在根据检查发现的问题修正版面。';
  }else if(job.visualStage==='composing'){
-  stage='composing';action='规划视觉构图';detail='正在结合核心视觉技能，比较本次内容适合的构图与阅读顺序。';
+  stage='composing';action='规划视觉构图';detail=job.specialistRoutingRequired?'正在匹配适合各页的专长技能，比较构图与阅读顺序。':'正在结合核心视觉技能，比较本次内容适合的构图与阅读顺序。';
  }else{
   stage='designing';action=job.kind==='write'?'整理文案':job.kind==='reference'?'分析参考图':job.kind==='image'?'制作视觉素材':pageOnly?'调整版式':'设计整套画面';
   detail=job.kind==='write'?'正在根据素材整理文案。':job.kind==='reference'?'正在分析本次参考图片。':job.kind==='image'?'正在制作本次视觉素材。':pageOnly?'正在调整本图的文字层级、图文位置和版式。':job.paginationMode==='fixed'?'正在保留原分页，安排图文位置和整套版式。':'正在安排文案分页、图文位置和整套版式。';

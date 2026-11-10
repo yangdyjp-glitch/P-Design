@@ -1,7 +1,7 @@
 {
   "deployedCommit": "38ac060abe604bb3a574bcff3e6ddc85f1d727e3",
   "siteProjectId": "appgprj_6aecb5faa0b881919c03675fe284bf42",
-  "sourceVersion": "0.6.0",
+  "sourceVersion": "0.6.1",
   "sourceBranch": "main",
   "railwayReleasePendingProjectBackup": false,
   "skills": [
@@ -32,9 +32,24 @@
   ],
   "files": [
     {
+      "path": "docs/specialist-routing.md",
+      "bytes": 4438,
+      "sha256": "19aafa58eee5efc2ee515c3e61b54cc983661e3e66f2a385934730833fe8935c"
+    },
+    {
+      "path": "src/specialist-routing.js",
+      "bytes": 9139,
+      "sha256": "f76bb7ee4672a4d0a0d2813cf70a7e392fe467a8a54487cb11f476272b601080"
+    },
+    {
+      "path": "tests/specialist-routing.test.mjs",
+      "bytes": 7610,
+      "sha256": "b1117371c07969e24e984cd273ed8d2d5c23713d036b556aea82ea630c26110f"
+    },
+    {
       "path": "docs/visual-design.md",
-      "bytes": 6421,
-      "sha256": "016c766937fa6a2d025bdd1b7367a0822c9406d2026ecc34add7172c39e1685b"
+      "bytes": 6632,
+      "sha256": "e2721fa1ff31802371e6b0ce9227b90200b87858cd8002efa21b8a1be8d281b6"
     },
     {
       "path": "server/visual-review.ts",
@@ -43,13 +58,13 @@
     },
     {
       "path": "src/visual-design.js",
-      "bytes": 5113,
-      "sha256": "93bee6ae37718f7114061a84a631031d37b50e450b41a1109f135ea17f5d9278"
+      "bytes": 5315,
+      "sha256": "a42836c7fd012c89d46c3ee923d86aa438f9ced23f6589c342a0336792560580"
     },
     {
       "path": "tests/fixtures/visual-design.mjs",
-      "bytes": 2734,
-      "sha256": "f2ee02538053b0a7f84e5c06b8bca4e92fa7a8086c003de3a2b58375ccdd9c77"
+      "bytes": 3768,
+      "sha256": "3787c4771e4267f7fb91dfe47cba69bbe205aebb8bb78765b2ccebf742df79ed"
     },
     {
       "path": "tests/provider-read.test.mjs",
@@ -188,8 +203,8 @@
     },
     {
       "path": "src/job-progress.js",
-      "bytes": 3913,
-      "sha256": "cf2df00b5de15920a21bc7af392a2116c717d68c6ad349afe38517cdee309992"
+      "bytes": 4018,
+      "sha256": "fa90c98570043da042471a877bfb24816853b55294bb4e23527bfbed0b8c7b05"
     },
     {
       "path": "tests/job-progress.test.mjs",
@@ -243,8 +258,8 @@
     },
     {
       "path": "tests/accounts.test.mjs",
-      "bytes": 19373,
-      "sha256": "56fc8bd3e0467f6dfa0737d6e4eaaf37ab14fbca247ced8d347cf0057fc980c9"
+      "bytes": 20941,
+      "sha256": "d035a79e9f08e6645860498061209a1f558dc4120e716558782fc111fdbb7198"
     },
     {
       "path": "scripts/postgres-tunnel.mjs",
@@ -423,13 +438,13 @@
     },
     {
       "path": "src/ai-workflow.js",
-      "bytes": 4079,
-      "sha256": "3a2f9aad981803a241a88313c769ae8192bbe27c0e09eabf6ef5af212facafdc"
+      "bytes": 4375,
+      "sha256": "46c3c82091f88471620556ed3bd941eabb7105a120052a8199e01a7b9e6e6f89"
     },
     {
       "path": "tests/automatic-workflow.test.mjs",
-      "bytes": 55275,
-      "sha256": "64d4a812e881fce24ffd5b58c964813f91464f231f4255e61512558276fa54ae"
+      "bytes": 58836,
+      "sha256": "dba992d525b4205055a096ade8ac3a44cfffe0eb3e5ded4bf6046da0ed9defa6"
     },
     {
       "path": ".dockerignore",
@@ -3908,8 +3923,8 @@
     },
     {
       "path": "HANDOFF.md",
-      "bytes": 32271,
-      "sha256": "d0267aa0645680ec69b87bf8937cf333d733d26cd48da6e2270d083ac163ac7b"
+      "bytes": 33386,
+      "sha256": "4b4c639f98c5464350f19585ad32f6ad4aaa455e8b2b472ab27146a059021589"
     },
     {
       "path": "hooks/use-mobile.ts",
@@ -3959,12 +3974,12 @@
     {
       "path": "package-lock.json",
       "bytes": 515996,
-      "sha256": "6608466e933540192311a941fcf6d1d855131e7e18bfebddd92b65e1937d009d"
+      "sha256": "259e5f1abb9d8c300f0e5b3ca55869946ddb362a8ba125f4c73d1f493732a992"
     },
     {
       "path": "package.json",
       "bytes": 2900,
-      "sha256": "53c4edb4c38948512d8caf82832c7f8156101703606c2d729eb606b2b5696dda"
+      "sha256": "73763745ef5ee26a928e281adb953dafd4bc092dd0649e53dc2de98e18eecede"
     },
     {
       "path": "postcss.config.mjs",
@@ -4008,8 +4023,8 @@
     },
     {
       "path": "public/editor.js",
-      "bytes": 305082,
-      "sha256": "81c99b707dc72c4988cf9e0e5a214ce7f7fdd0a3b6541232d011f028d2a471cd"
+      "bytes": 311747,
+      "sha256": "6294972bb2ec3050d8b5510cbb552da410adc03725aee4418e6212df1271132f"
     },
     {
       "path": "public/editor.js.LEGAL.txt",
@@ -4028,13 +4043,13 @@
     },
     {
       "path": "QA.md",
-      "bytes": 47675,
-      "sha256": "b05d3a671b88d5b286765bc364e9c0dc5d56d971a9d671521cd18bdd76cbd15c"
+      "bytes": 50682,
+      "sha256": "0aae1d0c820f80df859958aa7619d4dee60062f6e9bcfa6de2fa30a161d0965d"
     },
     {
       "path": "README.md",
-      "bytes": 7271,
-      "sha256": "765f2d2a7a8ba0b83d06545472f73bcdb64309a2ad378382d8af4a4136bfae75"
+      "bytes": 7323,
+      "sha256": "235f7a20abe508037ccab88c9bfb86e63aeb860ff3007487739cb99bb8938407"
     },
     {
       "path": "scripts/api-local.mjs",
@@ -4218,8 +4233,8 @@
     },
     {
       "path": "server/agent.ts",
-      "bytes": 56946,
-      "sha256": "a75e66ee472271de3611ee54e6dba581c1329d4ead121e6c78a6c7db045bc779"
+      "bytes": 62178,
+      "sha256": "f3045558727f2d3e5611aec91d4829db13b6ea14dabbd23297937c53297ae3a2"
     },
     {
       "path": "server/copy-integrity.ts",
@@ -4238,8 +4253,8 @@
     },
     {
       "path": "server/routes.ts",
-      "bytes": 18629,
-      "sha256": "cc584effae0f0777aa0068579bd4c63cb54c608b0509df2f00c2ffe43397dfce"
+      "bytes": 18805,
+      "sha256": "da04beb38d69b44a3c32d3a895094be35fd2606ac3d5b6b7b189c2cbd2142a18"
     },
     {
       "path": "server/skills.ts",
@@ -4259,12 +4274,12 @@
     {
       "path": "src/app.js",
       "bytes": 63349,
-      "sha256": "487ae7af51570d874b38ed4d8b75a8ebaff1e1f6c4b8e70573981e91ca217266"
+      "sha256": "b0dacd659133916d68652c19a87130669fdb5abadad949fc5a79bbeb61716ed9"
     },
     {
       "path": "src/cloud.js",
-      "bytes": 24797,
-      "sha256": "5026eb3fd549a59827d77ee9c108ae64ffea21691f71cebb536ba59210069e83"
+      "bytes": 26344,
+      "sha256": "6c1649456fbb6b7d8d59b1f210f96bc9ab195acf63205a7dc88a9b2bdf5e1229"
     },
     {
       "path": "src/engine.js",
@@ -4313,8 +4328,8 @@
     },
     {
       "path": "server/design-result.ts",
-      "bytes": 8186,
-      "sha256": "ac655eb5046313157a8c8574ed51be5eb1dcb594975548b8492f397757eac48d"
+      "bytes": 8486,
+      "sha256": "9256d160223fc531dd36efd8b37d51aa59d3abe635560097dfe925a66f44f8fb"
     },
     {
       "path": "src/style-safety.js",

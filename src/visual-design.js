@@ -1,10 +1,11 @@
 import {paginationIssue} from './pagination-policy.js';
+import {specialistRoutingPolicy,validateSpecialistRouting} from './specialist-routing.js';
 
 export const VISUAL_SKILLS=['xiaohongshu-design','victor-design','xhs-poster-composition','xhs-design-polish'];
 export const VISUAL_CHECKS=['composition','hierarchy','typography','image_text','spacing','scope'];
 export function visualDesignPolicy(kind,parent){
  if(parent)return parent.visualDesignPolicy||null;
- return ['design','revise','cover','polish','template'].includes(kind)?{version:1,requiredSkills:[...VISUAL_SKILLS],independentReview:true}:null;
+ return ['design','revise','cover','polish','template'].includes(kind)?{version:1,requiredSkills:[...VISUAL_SKILLS],independentReview:true,specialistRouting:specialistRoutingPolicy()}:null;
 }
 const text=(value,max=2000)=>typeof value==='string'&&value.trim().length>0&&value.length<=max;
 export function validateVisualPlan(value,snapshot){
@@ -13,7 +14,7 @@ export function validateVisualPlan(value,snapshot){
  const seenSkills=new Set(),loaded=new Set(snapshot.loadedSkills||[]);
  for(const skill of value.skills){
   if(!loaded.has(skill.id)||seenSkills.has(skill.id)||!/^[a-z0-9-]{1,80}$/.test(skill.id))fail('记录的视觉技能必须实际载入，且不能重复');seenSkills.add(skill.id);
-  if(!Array.isArray(skill.sources)||!skill.sources.includes('/workspace/skills/'+skill.id+'/SKILL.md')||skill.sources.length>12||skill.sources.some(path=>!text(path,240)||!path.startsWith('/workspace/skills/'+skill.id+'/')||path.includes('..')||path.includes('\\')||!path.endsWith('.md')))fail('技能来源应包含本次模块的实际 SKILL.md 和相关说明文件');
+  if(!Array.isArray(skill.sources)||!skill.sources.includes('/workspace/skills/'+skill.id+'/SKILL.md')||skill.sources.length>12||skill.sources.some(path=>!text(path,240)||!path.startsWith('/workspace/skills/'+skill.id+'/')||path.includes('..')||path.includes('\\')||!/\.(md|css|html|json)$/.test(path)))fail('技能来源应包含本次模块的实际 SKILL.md 和相关说明或模板文件');
  }
  if(VISUAL_SKILLS.some(id=>!seenSkills.has(id)))fail('主流程、Victor、海报构图和中文精修缺一不可');
  if(value.pages.some(page=>/^(?:cover|封面|开篇封面)(?:页|\s|$)/i.test(page.role||''))&&!seenSkills.has('xhs-cover-lab'))fail('封面页还需载入并记录封面实验室技能');
@@ -28,6 +29,7 @@ export function validateVisualPlan(value,snapshot){
  }
  const pages=value.pages.map(page=>({id:page.id,copy:page.copyIds.map(id=>copyById.get(id))})),issue=paginationIssue(snapshot.pages,pages,snapshot.scope==='page'||snapshot.paginationMode==='fixed'?'fixed':'auto');if(issue)fail(issue);
  const returned=value.pages.flatMap(page=>page.copyIds);if(returned.length!==allCopy.length||returned.some((id,index)=>id!==allCopy[index]))fail('不能借构图改变原文、顺序或页界');
+ validateSpecialistRouting(value,snapshot);
  return structuredClone(value);
 }
 export function validateVisualReview(value,pageIds){
