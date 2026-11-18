@@ -1,332 +1,273 @@
-# P-Design / 图序：跨电脑交接
+# P-Design / 图序：新电脑 Codex 交接
 
-更新日期：2026-11-10。本文记录版本及接续方法；后续修改应同步更新本文的部署记录和限制。
+更新日期：2026-11-18。适用对象：在另一台电脑上接续开发、同步 GitHub 并更新现有线上网站的 Codex。
 
-**0.7.1：Taste 默认参与视觉设计与独立审美复核。** 从 Leonxlnx/taste-skill 固定安装上游 2.5.1，完整版保留在本机；网站分发实际参考与静态平面适配。整套首轮、单图重排、窄范围微调、封面与精修均增加 Taste，和原四个核心共同必用，逐页登记具体方法与内容原因。独立看图另行收到适配规范，不接收设计者自评。新任务总载入最多九个，旧任务与修正保留四模块/八模块约定。共 21 个网站模块，视觉 15 个、写作 7 个，共用 xhs-writer。无需新密钥、数据库迁移或用户视觉参数；入口、适配和可信边界见 [Taste 说明](docs/taste-skill.md)。本机小红书主流程与精修也主动关联 Taste，新电脑的 Codex 完整版需另行安装，网站能力随仓库提供。
+**用户指定顺序：先把 GitHub 仓库完整克隆到新电脑，核对文件齐全，再修改本地代码、验证、推送，并核验线上更新。** 不先重建一个项目，不仅下载交接文件或几个源码，不从线上网页反推源码。
 
-175 项自动检查通过，隔离真实单图使用七个模块，Taste 方法登记、独立看图、网页检查和自动保存均通过，零修正。原文、两页顺序和另一页逐字段保留；17 项实际结果及资源留存检查通过。真实耗时 385851ms，属于单次样例，不保证固定速度或审美偏好。当前发布目标为 Railway 的 main；验证证据位于忽略的 `qa/railway/taste/`，接续时核对 `/api/health` 的提交、21/21 技能和实际运行能力，不能只以本地安装判断线上已生效。
+本文件是当前操作入口。旧交接内容保存在 [历史快照](docs/handoff-history-20261110.md)，主要供追溯；其中早期 Sites 地址、14 技能、旧登录和启动说明不能作为当前部署步骤。若后续代码发生变化，以新电脑取得的最新源码及实时健康接口为准。
 
-**0.7.0：先优化并确认文案，再配图设计。** 新建时只输入原稿，AI 实际调度写作技能，提供可编辑优化稿和短变化说明，并独立审校五项。用户确认后再上传图片、联网配图与选择原有预案。明确分页逐页优化；未分页可提议结构，确认后固定页数，设计不能再为图片增页。返回文案保留素材和预案，旧项目直接编辑。补齐六个写作模块，共 20 个；写作 7 个与视觉 14 个共用 `xhs-writer`。底层强制主动评估、实际加载与具体手法登记，写作专长不会授权视觉任务改写确认稿。手动编辑由用户确认采用，不能称为编辑后再次独立审校。接口、可信边界和换机接续见 [文案流程说明](docs/copy-workflow.md)，无新密钥或数据库迁移。
+## 1. 当前项目和同步目标
 
-171 项自动检查覆盖原流程与新增文案约定。隔离短稿真实优化 138253ms、四技能与独立文字审校通过；确认及手动补充后真实设计 603588ms，六视觉技能、一次修正、独立看图与自动应用通过。图片/预案在返回与刷新后保留，纯文字模式没有把已存照片送入模型。实际用时不能当作固定提速结论；25 项资源清理/保留核对及发布记录见 [QA.md](QA.md)。
-
-**0.6.1：设计专长主动选择。** 四个核心模块之外，AI 必须逐项匹配十个可选模块，新设计与整体重排每页采用适合的专长。封面、设计参考、流程/对比/层级及文字阅读任务有对应规则；实际载入模块、参考文件、逐页手法与最终报告需一致。最多载入八个；只有有明确依据的局部单图微调可以沿用已有构图。只读“专长技能选择”展示采用或跳过的原因，方法参考不代表执行整套生图。沿用原文、分页、途洋蓝、来源、裁剪及独立复核边界，无新密钥、迁移或人工视觉参数。新约定只应用于新任务，接续见 [主动选择说明](docs/specialist-routing.md)。
-
-隔离双页真实测试使用七个模块并通过独立看图、网页自动应用及保存，原文、两页与两张完整原图保留，零返工。936119ms 的实际耗时包含更多参考读取与应用，不作为提速结论；轻微断行建议、自动检查和发布核验见 [QA.md](QA.md)。
-
-**0.6.0：全局视觉技能、构图调度与独立审美复核。** 新整套设计与单图修改均强制载入小红书主流程、Victor、海报构图与中文精修四个完整技能，其余模块按需使用。AI 逐页比较三种构图并向服务端登记具体手法和原因，实际渲染后由独立请求看图复核六项视觉问题；该请求不接收设计者自评。实质问题进入既有的一次自动修正，仍不通过则不应用。原文、分页、蓝色、照片规则和单图范围优先；现有作品不自动重排。保留性能优化，无迁移、新密钥或人工视觉控件。新增独立调用会增加时间及用量，且 AI 审美可能误判。接续与可信边界见 [视觉设计说明](docs/visual-design.md)。
-
-本轮已通过 134 项自动检查，隔离环境的真实单页完成独立看图、网页自动应用和保存，另一页逐字段保留；双页实测的复核拒绝/通过与交付中断分别记录，没有将未应用的样例称为成功。短暂 GET 连接失败可有界恢复，实际单页已发生一次并恢复。详情与资源清理核验见 [QA.md](QA.md)；Railway 发布仍须核对实时提交和原项目留存。
-
-**0.5.7：工作台载入与 AI 交付减负。** 首屏合并为一个按账户隔离的 `/api/workspace`，历史已完成任务按需读取详情，画面样式并行下载。切页只更新当前画面，缩略图按可见范围载入；切换项目不再给未修改项目制造云端写入，旧项目的待保存内容仍同步。修正旧 TTF 地址替换失败，新增带哈希的常用字符预览字体与缓存，完整字体保留用于生僻字、正式导出及离线工程。AI 环境只预装一套 Node 浏览器，单页未引用图片按需上传；新任务不重复交付字体及字体 ZIP，文件最多两路、限定总字节并行获取。原设计质量、14 技能、文案/分页/图片/账户检查均保留，无数据库迁移或新密钥。实测与限制见 [性能说明](docs/performance.md)。
-
-**0.5.6：单图修改按当前要求逐项复核。** 本轮只读核对发现两次第 03 张请求均正确传达，改动偏向字号、行距与断行；后续整套生成仍保留最后单图的 HTML/CSS，不能归因为结果被覆盖。第 05 张在核查时没有保存要求或对应单图任务，截图仅有占位示例。新增版本化 `pageRevision` 约定，当前请求优先于旧局部要求和普通构图偏好，原文、蓝色、来源与分页边界仍有效。AI 提交逐项改动及证据，实际渲染保存前后 PNG、字号/位置和像素差异；未满足或冒称改动进入原有一次修正，仍不通过则不应用。右侧记录本图上次发送的要求与改动；已经满足时明确未修改。逐项达成判断由同一设计 AI 自检，像素差异只证明发生视觉变化，不证明审美必然改善。没有新密钥、数据库迁移或人工视觉参数。详见 [单图要求](docs/page-notes.md)。
-
-**0.5.5：我的项目可以直接删除。** 桌面每个项目右侧提供垃圾桶，手机从「菜单 → 我的项目」进入。确认窗口锁定所选项目，可先下载该项目备份；删除当前项目切到相邻项目，删除最后一个后显示新建/导入空工作区。保存与删除串行，阻止旧自动保存重新创建；云端刷新清理已删缓存，未同步编辑保留供备份。服务端继续按账户归属删除项目、素材并停止未完成任务，旧设计记录及交付文件沿用原留存规则。没有新增数据库迁移或付费 AI 调用。入口和验证见 [项目删除说明](docs/project-deletion.md)。
-
-**0.5.4：明确分页保持原分页，让图片适配页面。** 带页码或 `---` 的输入保存固定分页，页数、ID、顺序和每页文案归属都不能改变；只有未分页输入才允许 AI 自行安排。三个预案版本为 7 / 4 / 4，取消无条件增页建议。托管真实 DOM、服务端与网页应用均检查原页归属，自动修正不放宽。旧项目、旧备份缺少模式时保留当前页面，已有成图不自动合并或恢复历史结构；详见 [分页规则与接续](docs/pagination-policy.md)。没有新增人工视觉开关、密钥或数据库迁移。
-
-**0.5.3：三个预案统一途洋 LOGO 蓝。** 主色集中为 `PRESET_THEME.primary=#021539`，以浅底、浅蓝与白字配合，三个预案仍分别按原图、实景与文字组织构图。该深蓝来自用户上传 LOGO 实拍的近似取色，不是官方 VI 色号；标准值只需在同一常量替换。该次预案版本为 6 / 3 / 3，主题随任务及结果保存，旧修正沿用旧快照；详见 [预案规则](docs/style-presets.md)。新设计采用新主题，现有作品保留。
-
-**0.5.2：预案一整套设计使用全部上传图片。** 任务保存必用图片清单，AI 按原图与内容分配页面，真实渲染、服务端校验及网页应用前逐张核对；缺文件提前报错，漏图进入原有的一次自动修正。最多 8 张，保留原图 80% 裁剪保护、单图范围与旧任务的原始约定。旧作品不自动重排，重新执行整套设计才使用新版预案（版本 5）。实现与验证入口见 [上传图片覆盖检查](docs/upload-coverage.md)。
-
-**0.5.1：任务按钮显示目标页码和实际阶段。** 用「第 2 张 · 调整版式／搜索实景配图」替代统一的「AI 处理中」；真实网页逐页检查时显示「整套 · 检查 2/6 张」，随后显示保存画面。设计记录与详情同步，跨页/跨项目不误指当前图，保存成功后恢复发送。没有新增模型调用或数据库迁移；接续入口与验证边界见 [任务进度说明](docs/job-progress.md)。
-
-**0.5.0：用户已要求登录与独立账户，取代 Railway 的匿名访客入口。** 登录页为 `/login`，管理员账户名 `admin`，按用户指定的初始密码创建；管理员可新建、启停普通账户。项目、素材、任务、下载、个人额度及本机缓存按账户隔离，管理员不直接读取其他人的作品。账号与会话保存在现有数据库，启动自动迁移，原 Sites 身份与当前 PostgreSQL TLS 配置保留。完整使用、隔离边界和开发方法见 [账户说明](docs/accounts.md)。发布需核对 Railway 部署、`/api/health` 的 `accessMode=accounts` 与真实登录；证据位于忽略的 `qa/railway/accounts/`。
-
-历史阶段曾按用户要求先开放 Railway 访客 AI，启动命令、环境变量、自动技能上传与持久化前提见 [docs/railway.md](docs/railway.md)。其中匿名入口已由 0.5.0 替换，原 Sites 部署记录仍单独保留。
-
-Railway 随后已配置密钥，公网文案生成及实际文件下载验证通过，14 个技能就绪。后续排版失败排查发现正常 CSS 子选择器与标准 SVG 命名空间被误拦；修复入口是 `server/design-result.ts`、`src/style-safety.js`，验证方法和发布前备份要求见上述 Railway 说明及 [QA.md](QA.md)。发布仍需单独核验，不把本地修复或提交视为已上线。
-
-最新 0.3 自动工作流已合入 `main`，开发来源为 `feat/ai-first-workflow-20261106`：保留右侧文案，AI 自行择用 14 个模块、安排分页和画面并自动检查，合格且版本一致后自动呈现。技能按需加载，避免整批 ZIP 超出启动限制；见 [自动设计接续说明](docs/automatic-workflow.md)。2026-11-07 用户已确认没有需要保留的云端项目，发布前的数据保留限制已解除；已合入先前的排版兼容性修复并开始 Railway 发布，实际就绪状态需按上述说明核验。下表是原 Sites 的历史生产基线，不能当成 0.3 已部署记录。
-
-## 1. 先看这里
-
-0.4.3 按用户进一步要求区分三种排版原则：预案一由原图比例、主体与细节决定图框和独立文字区；预案二依据真实搜索照片的主体与留白形成大幅实景、偏轴图文或可读标题叠放；预案三按原文语义和文字密度建立整张文字主视觉，不留照片占位。对应规则版本为 4、2、2，保留来源、原文、上传图 80% 与单图边界。AI 记录实际看图与选版理由，再按各自重点检查；没有新增人工视觉设置。规则与后续修改入口见 [预案规则](docs/style-presets.md)，本轮本机真实验证证据存于忽略目录 `qa/railway/preset-layouts/`，生产状态仍需单独核验。
-
-0.4.2 按用户明确要求将 [三个预案](docs/style-presets.md) 分成上传配图、联网实景配图、纯文字无图。图片入口自动联动，来源规则同时用于任务输入、工具权限、结果校验、网页应用及导出。预案一保留暖白/深墨/苔绿与实景编辑的视觉方向，版本为 3；预案二、三来源规则版本为 1。默认自动设计仍可用。本轮在独立工作副本 `feat/preset-one-editorial-20261108` 修改，并合并已进入 main 的 PostgreSQL 适配，保留该存储升级。实际验证产物位于忽略的 `qa/railway/preset-one/`。
-
-Supabase 接入代码起于 `feat/supabase-storage-20261108`，已合入 main。Railway 配置 `DATABASE_URL` 时使用 PostgreSQL，启动创建 `tuxu` schema，并只将卷内旧 D1 数据导入空目标；图片、结果和访客签名秘密继续保存在卷中。Railway 的 workerd 请求通过容器内回环端口连接，由 Node 按配置完成远端 TLS；原 Sites 保留 D1。详见 [Supabase 接续说明](docs/supabase.md)。当前 64 项测试及本地完整 PostgreSQL 启动流程的 13 项 API 检查通过；真实 Supabase 接通与部署状态必须另查 `/api/health` 的 `databaseProvider`、`databaseConnected` 与 `storagePersistent`，不能把源码完成视为已上线。
-
-0.4.1 增加三个固定风格预案入口，位于新建图文的「整套初始方向」，当时均待设定。后续逐一修改 `src/style-presets.js` 对应条目。选择随项目保存，服务端解析可信规则并将版本固定在任务快照，自动修正沿用同一版本。原文、素材、裁剪和单图范围规则优先。开发来源为 `feat/style-preset-entries-20261108`，发布目标仍为 Railway 的 main；实际部署核验记录位于忽略的 `qa/railway/style-presets/`。
-
-0.4 图片规则已从 `feat/photo-rules-and-search-20261108` 合入 `main` 发布：上传图保留至少 80% 的原图面积，搜图由项目开关明确授权，网络配图优先实景并保存真实来源。裁剪检查同时用于 AI 渲染记录、网页应用和导出；搜图采用可恢复的真实下载和环境附件流程。启动时自动应用 `0002_whole_pandemic.sql`，不增加密钥。本次沿用既有 Railway 发布目标；实际就绪需核对部署、公网资源与接口，证据保存在忽略的 `qa/railway/photo-rules/`。详细语义、来源边界和接续入口见 [docs/photo-policy.md](docs/photo-policy.md)。
-
-0.3.1 逐图修改已从 `fix/page-design-notes-20261108` 合入 `main` 发布：右侧要求改为每张图自己的 `requirements`，新增就近发送按钮与 Ctrl / ⌘ + Enter；单图任务、结果校验、检查、自动修正和应用均限制在目标页。顶部仍可设计整套。2026-11-08 用户确认没有需要保留的项目并授权发布，本次发布的数据保留限制已解除。接续细节见 [docs/page-notes.md](docs/page-notes.md)；实际部署以 Railway 状态、公网资源及接口核验为准，证据保存在忽略的 `qa/railway/`。
-
-这是一个制作小红书封面与图文组图的网站，名称为「图序 · AI 小红书设计工作台」。用户在网页提交文案、照片与要求，服务端调用 AI 和完整设计技能，结果可预览、编辑、下载。
-
-**换电脑后，克隆本仓库，先读本文，再按第 3 节启动。** 生产密钥、云端项目和素材不随 Git 转移；修改源码不需要把它们下载到电脑。2026-11-08 已核验 Railway 修复版本 `41236e33909acd3a4a274bcbff20d440f4c0ac37`：真实 PostgreSQL 查询成功、`tuxu` schema 可用、文件卷标记为 true，独立访客的项目与图片读写、版本保护及隔离均通过。跨部署留存和清理结果保存于执行电脑忽略的 `qa/railway/supabase/retention.json`，部署前仍应检查实时健康状态与最新记录。只有测试本地真实 AI 时，才需要单独准备本机凭证与技能文件清单。
-
-| 项目 | 交接基线 |
+| 项目 | 当前基线 |
 | --- | --- |
-| GitHub 仓库 | https://github.com/yangdyjp-glitch/P-Design |
-| 开发分支 | `main` |
-| 线上网址 | https://tuxu-design-studio-20261106.phd-yang.chatgpt.site/ |
-| 网站版本 | `0.2.0` |
-| Sites 项目 ID | `appgprj_6aecb5faa0b881919c03675fe284bf42` |
-| 最近核验的生产源码提交 | `38ac060abe604bb3a574bcff3e6ddc85f1d727e3` |
-| GitHub 首次源码导出提交 | `6f912b1d923757b6c4229c8b95104a3d54393104`；后续以 `main` 最新提交为准 |
-| 网站访问范围 | 所有者私有；尚未改成公开或邀请他人 |
-| 本地开发地址 | `http://127.0.0.1:5173` |
+| 项目 | 图序 · AI 小红书设计工作台 |
+| GitHub | https://github.com/yangdyjp-glitch/P-Design.git |
+| 开发与发布分支 | `main` |
+| 当前线上网站 | https://p-design.up.railway.app/ |
+| 健康接口 | https://p-design.up.railway.app/api/health |
+| 应用版本 | `0.7.1`，取自 `package.json` |
+| 2026-11-18 文档更新前核对的线上提交 | `991fdb65d43d51df04d46a821d30bd017514fff2` |
+| 当时实际状态 | `accounts` 登录、AI 开启、21/21 技能就绪、PostgreSQL 连通、数据库与文件卷均持久化 |
+| Railway 项目 | `ad138118-c799-439e-93be-deca8106e9b2` |
+| Railway 服务 | `7c2a4681-4f85-4e0f-b388-496ef831038b` |
+| Railway 环境 | `1633ecfa-10c8-45a3-ac40-523cc8938c58` |
 
-最近核验成功的生产版本 ID：
+上面的提交是核查时的基线，不是要求新电脑回退到该提交。交接文档及后续代码推送也会产生新提交，接续时始终获取 `origin/main` 的最新状态，再比较线上实际 `release`。
 
-```text
-appgprj_6aecb5faa0b881919c03675fe284bf42~appgver_4cc3db99fef48191a2c046f739c0ece8
-```
+同步关系：**GitHub main → 新电脑本地修改与验证 → GitHub main → 现有 Railway 服务部署。** 项目数据与照片继续保存在现有 PostgreSQL 和文件卷中，代码同步与业务数据迁移是两件事。
 
-部署 ID：`appgdep_6aecdc5b9de4819194b34b2e8b69bb42`。以上是交接记录，接续发布前应通过 Sites 工具读取现状。
+原 `tuxu-design-studio-20261106.phd-yang.chatgpt.site` 是历史 Sites 站点。此次接续默认更新上述 Railway 网站，不另建网站、不切换原 Sites 的访问范围，也不替换生产数据库或卷。
 
-**Sites 需单独发布；Railway 的 main 推送可能触发自动部署。** 当前改版已获发布授权并合入 main。下文涉及原 Sites 生产站点的发布操作应与 Railway 区分；后续发布仍应先处理需要保留的云端项目。
+## 2. 第一步：完整下载 GitHub 仓库
 
-## 2. 产品要求与完成范围
+先识别新电脑操作系统、可用目录、Git 和 Node。下面目录与环境变量命令使用 Windows PowerShell；其他系统使用等价语法，不沿用旧电脑的盘符、用户名、代理或 Codex 插件绝对路径。
 
-必须保留的要求：
-
-- 面向小红书用图，适用于不同产品、机构和主题。EJU、留学课程等只是历史案例，不得重新写成通用规则或默认文案。
-- 所有新视觉任务使用小红书主流程、Victor、海报构图、中文精修与 Taste 静态方法，再主动匹配十个可选专长；新设计和整体重排逐页采用合适方法、登记构图并由独立请求看图复核。新任务最多载入九个模块，不把 15 个全部串行执行。
-- 已确定的原文默认锁定，保留正文、数字与标点。文案创作是单独授权的任务。
-- 已明确分页的文案保持原分页，让图片适配页面，不能为了放图自行增页；不能保持总页数却跨页移动文案。三个预案及自动修正同样执行。
-- 真实照片由用户提供。AI 素材标记为示意素材，不冒充真实教师、课堂或成果。
-- 普通使用者从网站直接使用 AI 与技能，无须在自己电脑安装 Codex 技能或提供网站运营者的密钥。
-- 保留右侧文案编辑、云端保存、版本冲突保护、桌面和手机入口。0.3 自动设计与检查通过后直接呈现，视觉参数由 AI 判断。
-
-已实现：
-
-- Sites 按 ChatGPT 用户 ID、Railway 按登录账户 ID 隔离云端项目、图片、AI 任务及交付文件；历史访客数据保留原归属。
-- 0.3 主界面统一为自动设计；后台保留旧版设计、局部改稿、参考分析、封面、排版复核、文案创作、图像素材与模板接口。
-- 21 个技能包按需传入 OpenAI 托管环境。写作环境不安装字体或浏览器；视觉阶段仍执行 Python、Node 和浏览器渲染。研究写作采用独立适配规范，Taste 采用静态方法适配，均保留实际来源与许可边界。
-- 原文校验、HTML/CSS 清理、项目版本检查、任务幂等、取消及基础额度控制。
-- 自动分页与照片安排、版本恢复、自动检查、2160×2880 PNG、ZIP、可编辑 HTML 及项目文件导入导出。人工排版和裁切控件已移除。
-
-尚未完成或启用：
-
-- 原 Sites 的公开访问或邀请设置仍未启用；Railway 提供登录入口，普通账户由管理员创建。
-- 关闭网页后的可靠后台任务推进。签名回调代码已实现，但未配置生产回调秘密与公开可达的回调链路。当前处理任务应保持网页打开，重新进入可继续处理、查看结果。
-- 收费、订阅、团队协作和按金额计费的预算上限。
-- 小红书账号登录、自动发帖、评论等运营功能。
-- 全部技能、风格、模板组合的穷举验证。已完成验证的范围见 [QA.md](QA.md)。
-
-## 3. 新电脑：首次运行
-
-安装 Git、Node.js 和 npm。项目要求 Node `>=22.13.0`；原机验证版本为 Node `24.15.0`、npm `11.12.1`。保留 `package-lock.json`，使用锁定依赖，不要因换电脑直接升级整套框架。
-
-以下命令在仓库根目录执行，适用于 PowerShell。已有仓库时，先检查未提交修改，再拉取最新代码，不要强制覆盖本地工作。
+在用户选定的父目录执行，目标 `P-Design` 文件夹应尚不存在：
 
 ```powershell
-git clone https://github.com/yangdyjp-glitch/P-Design.git
+git clone --recurse-submodules https://github.com/yangdyjp-glitch/P-Design.git P-Design
 cd P-Design
 git switch main
+git fetch origin --prune --tags
+git pull --ff-only origin main
+git submodule update --init --recursive
+```
+
+这里要使用完整 Git 克隆：不加 `--depth`、`--filter`、`--sparse`，不以下载 ZIP、复制几个文件或旧机缓存代替。默认取得完整历史和远端分支引用，并检出 main 的全部受版本控制文件。核查时仓库没有子模块或 Git LFS 配置；如果最新版本新增了它们，继续取得对应真实内容，不能只保留指针。
+
+若新电脑已有同名目录，先确认其仓库来源及未提交修改，再决定复用或另选空目录；不要为方便克隆而删除或覆盖已有工作。
+
+下载完成后核对：
+
+```powershell
+git remote -v
+git status --short --branch
+git rev-parse --is-shallow-repository
+git rev-parse HEAD
+git rev-parse origin/main
+git ls-files --deleted
+git fsck --full
+```
+
+要求：origin 指向本仓库；分支为 main；没有浅克隆、稀疏检出或缺失受控文件；刚克隆时 HEAD 与 origin/main 一致，工作区干净，Git 完整性检查无损坏。核对 `src/`、`server/`、`app/`、`worker/`、`db/`、`drizzle/`、`postgres/`、`scripts/`、`vendor/`、`public/`、`design-skills/` 和根目录配置已完整取得，尤其是中文字体、技能参考与第三方许可。
+
+随后才阅读当前 `HANDOFF.md`、适用的 `AGENTS.md`、`README.md`、`package.json` 和所涉功能文档，再开始本地修改。
+
+“完整仓库”包括 Git 跟踪的全部项目内容，不包括被忽略的密钥、`node_modules/`、构建结果、数据库、私有照片、用户作品和旧机测试缓存。这些缺失不代表克隆不完整，恢复方式见第 8 节。
+
+## 3. 建立独立本地环境
+
+项目要求 Node `>=22.13.0`，旧机验证过 Node `24.15.0` / npm `11.12.1`。优先采用兼容的 Node 24 环境，保留 `package-lock.json`。不要因为换电脑就更新框架、模型或全部依赖。
+
+在仓库根目录安装并建立基线：
+
+```powershell
 npm ci
 npx tsc --noEmit
+node --test tests/*.test.mjs
 npm run build
 ```
 
-**首次初始化本地空数据库**：构建完成后，依次执行现有两条迁移。它们仅操作本机 `.wrangler/state`，不要添加 `--remote`。
+当前没有 `npm test` 脚本，完整自动检查使用上面的 `node --test`。`npm run build` 会先执行 `build:editor`，从 `src/` 重新生成 `public/editor.js`。不要直接编辑生成文件代替源文件。先查看构建是否改变受控产物，再决定随本轮提交的内容。
+
+### 推荐：先运行与线上一致的账户模式，不调用真实 AI
+
+以下变量仅设置在本终端；不连接生产数据库，不需要 API 密钥：
 
 ```powershell
-node --import ./scripts/sites-env.mjs ./node_modules/wrangler/bin/wrangler.js d1 execute DB --local --config dist/server/wrangler.json --persist-to .wrangler/state --file drizzle/0000_peaceful_sleeper.sql
-node --import ./scripts/sites-env.mjs ./node_modules/wrangler/bin/wrangler.js d1 execute DB --local --config dist/server/wrangler.json --persist-to .wrangler/state --file drizzle/0001_clammy_moondragon.sql
-npm run dev
+$env:TUXU_RUNTIME = 'railway'
+$env:PORT = '5177'
+$env:APP_ORIGIN = 'http://127.0.0.1:5177'
+$env:TUXU_BIND_IP = '127.0.0.1'
+$env:TUXU_DATA_DIR = Join-Path (Get-Location).Path '.wrangler/handoff-local'
+$env:DATABASE_URL = ''
+$env:DATABASE_CA_CERT = ''
+$env:RAILWAY_VOLUME_MOUNT_PATH = ''
+$env:TUXU_LOCAL_VISITOR_QA = 'false'
+$env:OPENAI_API_KEY = ''
+$env:SKILL_FILES_JSON = '{}'
+$env:AI_ENABLED = 'false'
+npm run start:railway
 ```
 
-打开 `http://127.0.0.1:5173`。本地登录模拟入口为 `/signin-with-chatgpt?return_to=/`，仅对本地回环地址生效。开发账号为 `seedy@sites.test`，不代表生产账号。
+打开 `http://127.0.0.1:5177/`。启动流程会自动应用全部本地 `drizzle/` 迁移，采用本地 D1 和文件存储，提供账户登录页。新空库管理员用户名为 `admin`，本地初始化约定可查 `server/account-bootstrap.ts` 和 `tests/accounts.test.mjs`；线上使用已有账户与当前密码，不从本地初始化推断线上密码，也不重置线上账户。
 
-已有本地数据库不要重复执行建表 SQL。后续数据库变更通过 `npm run db:generate` 新增迁移；已应用迁移保持不变。
+本阶段健康接口应为 `status=ok`、`accessMode=accounts`、`databaseProvider=d1`；AI 关闭、技能未载入、文件存储非生产持久卷均属预期。它用于本地界面和账户功能，不是生产配置缺失。
 
-只改样式、编辑器或检查构建时，可以暂不配置 API 密钥。云端 AI 资源状态未就绪属于预期，不能据此宣称真实 AI 已验证。
+Windows 重建前先停止本轮占用 `dist/` 的预览服务，避免文件锁；不要结束其他任务或用户的全部 Node 进程。
 
-日常启动：`npm run dev`。修改 `src/` 后执行 `npm run build:editor` 重新生成 `public/editor.js`；`npm run build` 会自动执行这一步。
+### 可选：开发热更新路径
+
+`npm run dev` 沿用原 Sites/Vite 开发模拟，通常在 `127.0.0.1:5173`，与 Railway 账户模式不同。本次换机优先使用上面的账户模式；只有专门需要热更新时再准备该开发路径的独立 `.wrangler/state` 数据库。首次空库应依次应用 `drizzle/` 的全部迁移（核查时为 0000 至 0003），不照旧说明只建前两份，也不对已有库重复执行建表 SQL。原构建配置没有指定迁移目录，不能假定在该配置下直接执行 `d1 migrations apply` 就会发现根目录的 `drizzle/`。
+
+此路径的本地模拟登录为 `/signin-with-chatgpt?return_to=/`。其开发身份不能用于生产认证验收；测试真实账户交互时用前面的本地 Railway 模式。
 
 ## 4. 新电脑：本地真实 AI
 
-### 4.1 凭证与资源
+只有调整 AI 执行、技能路由或需要真实生成验收时才配置本地 AI。普通文档、界面和离线逻辑修改先完成不依赖密钥的部分；真实模型任务会产生实际用量。
 
-- 从 `.env.example` 建立被 Git 忽略的 `.env.local`，在安全的本地编辑器中配置 `OPENAI_API_KEY`。不要把实际密钥贴进聊天、写入命令参数、提交到 Git 或放进前端变量。
-- `vite.config.ts` 在开发时读取 `.env.local` 和 `outputs/skill-release/uploaded.json`。仅设置系统环境变量不等于这两个文件已经准备好。
-- 生产密钥已保存在 Sites 服务端；GitHub 克隆不会得到它，也不需要为了换电脑重置生产密钥。
-- 本地真实 AI 需要有权访问 Agents 托管环境及当前模型的 OpenAI 项目。测试会产生实际 API 用量。
-- 技能文件 ID 需要与使用的 OpenAI 项目匹配。可通过安全渠道迁移同项目的 `uploaded.json`，或在需要时重新打包、上传。
+1. 在本机安全编辑器中由 `.env.example` 建立被忽略的 `.env.local`，配置已授权的 `OPENAI_API_KEY`。该本地文件不填写生产 `DATABASE_URL` 或生产卷路径。生产密钥继续保存在 Railway Variables，不能因换机把空模板覆盖到线上。
+2. 复用同一 OpenAI 项目且仍有效的 `outputs/skill-release/uploaded.json`，可通过安全渠道迁移；没有该记录才重新打包、上传。文件 ID 与 API 项目必须匹配。
+3. 网站运行所需的 21 个技能资源已在仓库 `design-skills/` 中，不依赖旧电脑个人的 Codex 技能目录。打包得到 21 份技能与 1 份共享字体，共 22 份资源。
 
-只有准备好本机凭证，且确实需要重新建立或更新技能资源时，执行：
+在新的终端执行，避免第 3 节设置的空密钥覆盖 `.env.local`。若当前进程存在旧的 `OPENAI_API_KEY`，仅从本终端移除该变量，不显示其值：
 
 ```powershell
-node scripts/pack-skills.mjs
-node scripts/upload-skills.mjs
+Remove-Item -LiteralPath Env:OPENAI_API_KEY -ErrorAction SilentlyContinue
+node --env-file=.env.local scripts/pack-skills.mjs
+node --env-file=.env.local scripts/upload-skills.mjs
 ```
 
-打包来源默认是仓库内 `design-skills/`，无需依赖原电脑的个人技能目录。输出为 21 个技能 ZIP 加 1 个共享字体 `_runtime.zip`，共 22 个资源。上传记录在 `outputs/skill-release/uploaded.json`，重复上传会按包哈希跳过已记录的匹配资源。Railway 发现旧清单缺新增写作技能或 Taste 时自动补齐，使用现有卷内缓存。
+如果已有匹配的完整上传清单，无须执行上述打包上传。不要将 `.env.local`、ZIP 或 `uploaded.json` 提交到公开仓库。
 
-修改网页界面不需要重传全部技能。修改技能内容后，才需要重新打包、上传，并在部署时安全更新 `SKILL_FILES_JSON`。上传记录属于运行配置，不提交到公开仓库。
-
-### 4.2 开发转发服务是当前必需步骤
-
-当前 `vite.config.ts` 将开发 AI 地址固定为 `http://127.0.0.1:8789`。因此，本地真实 AI 测试需要在另一个终端保持下面的服务运行，即使本机可以直接联网：
+继续使用本地账户模式时，在该新终端设置本地参数、启用 AI 并载入上传清单：
 
 ```powershell
-node scripts/dev-ai-proxy.mjs
+$env:PORT = '5177'
+$env:APP_ORIGIN = 'http://127.0.0.1:5177'
+$env:TUXU_BIND_IP = '127.0.0.1'
+$env:TUXU_DATA_DIR = Join-Path (Get-Location).Path '.wrangler/handoff-local'
+$env:DATABASE_URL = ''
+$env:RAILWAY_VOLUME_MOUNT_PATH = ''
+$env:TUXU_LOCAL_VISITOR_QA = 'false'
+$env:AI_ENABLED = 'true'
+$env:SKILL_FILES_JSON = [System.IO.File]::ReadAllText((Join-Path (Get-Location).Path 'outputs/skill-release/uploaded.json'))
+node --env-file=.env.local --input-type=module -e "delete process.env.DATABASE_URL; delete process.env.DATABASE_CA_CERT; await import('./scripts/start-railway.mjs');"
 ```
 
-如电脑必须通过系统代理联网，按实际环境设置该终端的 `HTTPS_PROXY` 和 Node 的代理支持，再启动服务。不要把原电脑的代理地址写死到仓库。生产站点直接调用服务端 API，不依赖此本机转发服务。
+构建后的账户模式默认直连 OpenAI。只有本机网络确实需要转发时，另开终端运行 `node --env-file=.env.local scripts/dev-ai-proxy.mjs`，并在本地启动进程设 `DEV_OPENAI_BASE_URL=http://127.0.0.1:8789`。它仅用于回环地址，不写入生产配置。代理地址按新电脑实际环境设置，不复制旧机固定代理端口。
 
-完成凭证、技能清单及转发服务配置后，重新启动 `npm run dev`，再检查网页技能状态与真实任务。将开发转发地址改成可选配置，是可独立安排的后续改进，目前尚未修改。
+`npm run dev` 的 Vite 路径目前把 AI 开发地址固定为 `127.0.0.1:8789`，使用该路径时必须启动上述转发服务，并使用默认位置的上传清单。两种本地启动路径不要混为一谈。
 
-## 5. 架构与改动入口
+验证真实任务时创建独立本地项目，核对真实结果、独立复核、自动应用及保存，随后清理本轮临时资源；不以线上用户作品做试验，不因本地缺少旧机 `qa/` 产物而假定功能损坏。
+
+## 5. 必须延续的产品规则
+
+- 面向通用小红书用图，EJU、留学课程等是历史内容案例，不能写入通用默认产品规则。
+- 新建顺序为：只输入原稿 → AI 文案优化与独立审校 → 用户可编辑并确认 → 上传图片/选择预案 → AI 设计与自动检查。确认稿与人工编辑状态均需保留。
+- 设计阶段锁定已确认原文、数字、标点和文案块 ID；已明确分页保留原页数、顺序及每页归属，让图片适配页面，不能为放图增页或跨页搬文案。
+- 右侧文案和每张图的补充要求保留。单图请求只修改目标页，其他页不变；逐项说明实际改动，不把几乎未变的结果冒称完成。
+- 预案一使用用户上传图，整套使用全部必用上传图；预案二搜索真实场景照片并保留来源；预案三完全无图，按内容重新组织文字构图。三者排版原则不同，主题色均为 `#021539`。
+- 上传图应用时至少保留 80% 原图面积，明确要求完整显示则保留 100%；只有服务端标记的搜索照片不受该上传裁剪限制。不能伪造真实教师、课堂、资历或成果。
+- 新视觉任务默认使用 `xiaohongshu-design`、`victor-design`、`xhs-poster-composition`、`xhs-design-polish` 和 `taste-skill`；逐页记录真实来源、具体手法和内容原因，主动匹配十个可选专长。新任务最多载入九个，旧任务与修正继承原快照。
+- Taste 等网站方法须适配静态小红书图片。方法参考不等于执行整个上游流程，不因原技能样例增加文案、照片配额、动效或其他产品规则。
+- 实际渲染、独立审美复核和网页应用检查均保留。独立请求看实际成图，不接受设计者自评代替；共享既有一次自动修正预算，不能无限返工。
+- 保留账户隔离、管理员建账号、云端版本冲突保护、项目删除、备份和高清/可编辑导出。尽量由 AI 判断画面，不重新增加大量用户视觉参数。
+
+目前网站共 21 个模块：视觉可用 15 个、写作可用 7 个，共用 `xhs-writer`。其中六个新增写作模块为 `copywriting`、`copy-editing`、`humanizer-zh`、`content-research-writer`、`content-strategy`、`social`。新电脑 Codex 中能看到的其他个人技能不会自动成为网站能力；新增网站技能还需注册、打包、路由、实际应用与复核。
+
+技能和字体许可见 [THIRD_PARTY.md](THIRD_PARTY.md)；研究写作采用独立适配规范，Taste 网站分发适用资料，不能把仓库适配包称为全部上游工具的完整执行。维护者若要在 Codex 对话中直接使用本机完整版技能，可另行安装；网站用户无需安装。
+
+## 6. 源码与文档入口
+
+| 范围 | 入口 |
+| --- | --- |
+| 页面、编辑器和账户界面 | `app/`、`src/app.js`、`src/accounts.js`、`public/*.css` |
+| 文案准备与确认 | `src/copy-workflow.js`、`src/copy-wizard.js`、`server/copy-workflow.ts`、`server/copy-agent.ts` |
+| 云端保存、任务、单图应用 | `src/cloud.js`、`src/ai-workflow.js`、`src/page-revision.js`、`src/job-progress.js` |
+| 预案、分页、图片规则 | `src/style-presets.js`、`src/preset-images.js`、`src/pagination-policy.js`、`src/image-policy.js` |
+| 视觉策略和主动专长选择 | `src/visual-design.js`、`src/specialist-routing.js`、`server/skills.ts` |
+| AI 执行、实际渲染及独立看图 | `server/agent.ts`、`server/visual-review.ts`、`server/image-check-runner.mjs` |
+| 原文和结果校验 | `server/copy-integrity.ts`、`server/design-result.ts`、`src/style-safety.js` |
+| 接口、认证与隔离 | `server/routes.ts`、`server/core.ts`、`server/accounts.ts`、`worker/` |
+| 数据库与迁移 | `db/`、`drizzle/`、`postgres/`、`scripts/migrate-postgres.mjs` |
+| Railway 启动与本地配置 | `scripts/start-railway.mjs`、`scripts/start.mjs`、`vite.config.ts` |
+| 技能与中文字体 | `design-skills/`、`public/assets/fonts/`、打包/上传脚本 |
+| 真实验证范围 | `QA.md`、`tests/` |
+| 当前功能说明 | `docs/copy-workflow.md`、`docs/taste-skill.md`、`docs/visual-design.md`、`docs/specialist-routing.md` |
+| 生产连接与存储 | `docs/railway.md`、`docs/supabase.md`、`docs/accounts.md` |
+
+结构为 React / Vinext / Vite 与 Worker 接口。当前 Railway 由 Node 启动 Wrangler Worker 运行环境，结构化数据在 PostgreSQL 的 `tuxu` schema，照片/交付文件在现有卷；AI 执行、脚本和浏览器渲染位于托管环境。不要把它改成只上传静态页面的项目。
+
+`public/editor.js` 是生成文件。`docs/source-manifest.json` 是公开源码资源清单，涉及已登记文件时按实际字节数与 SHA-256 更新；其中历史 `deployedCommit` 不是 Railway 当前版本，线上以 `/api/health.release` 为准。旧机仓库外的辅助脚本不是新电脑的依赖。
+
+## 7. 每次修改：本地与线上同步闭环
+
+### 修改前先同步
+
+```powershell
+git status --short --branch
+git fetch origin --prune --tags
+git pull --ff-only origin main
+```
+
+只有确认工作区及当前分支适合时才直接快进更新。有本机修改或远端分叉时先保留并整合，不使用强制覆盖、清空目录或强推来消除差异。多台电脑交替工作时，上一台先提交并推送，下一台先拉取；不并行改同一份未同步源码。
+
+### 本地完成并验证
+
+按用户当前需求修改源文件与适用技能，执行相关测试、`npx tsc --noEmit`、`npm run build` 和 `git diff --check`。界面改动检查实际页面；AI 行为改动按需要在隔离本地环境进行真实任务验收。文档修改不默认启动付费模型测试。
+
+2026-11-10 的应用基线曾通过 175 项自动检查及真实单图验收，详情在 `QA.md`；这些历史结果不等于新电脑已经完成本轮验证。
+
+### 推送 GitHub，再确认 Railway 发布
+
+检查将提交的文件、维护必要文档及资源清单，选择本轮文件提交：
+
+```powershell
+git diff --stat
+git add -- <本轮确认要提交的文件>
+git diff --cached --check
+git commit -m "说明本轮改动"
+git push origin main
+```
+
+`<本轮确认要提交的文件>` 必须替换为真实文件列表，不能照抄占位符执行。不要无检查地把密钥、数据库、私有作品或测试缓存加入提交。推送需要本机已有仓库写入权限；通过正常 GitHub 登录授权，不把令牌拼进远端 URL。
+
+现有 main 推送会触发 Railway 自动部署。核对第 1 节的原服务与环境，不另建站点。构建命令为 `npm run build`，启动命令为 `npm run start:railway`；端口与域名目标保持匹配，沿用既有生产 Variables、数据库和卷。改源码不需要重新填写生产密钥。
+
+必须等部署成功并实际访问网站。GitHub 推送成功、Railway 构建成功和线上可访问是不同检查点；短暂启动或网络问题先查部署及运行日志，不盲目改数据库、账户和存储配置。
+
+```powershell
+$localCommit = (git rev-parse HEAD).Trim()
+$remoteCommit = (git rev-parse origin/main).Trim()
+$health = Invoke-RestMethod 'https://p-design.up.railway.app/api/health'
+$health | Select-Object status,accessMode,ai,skillsReady,skillsTotal,databaseProvider,databaseConnected,databasePersistent,storagePersistent,release
+if ($localCommit -ne $remoteCommit) { throw '本地提交与 origin/main 尚未一致。' }
+if ($health.release -ne $localCommit) { throw '线上尚未运行本次提交，请继续核对部署。' }
+```
+
+验收当前功能时，期望账户模式、AI 可用、21/21 技能、PostgreSQL 连通且数据库和文件卷持久化；若本轮有意调整模块数量，按实际新注册表核对。正常登录后检查相关界面和保存，确认原有项目及照片仍可读取。不得仅凭 `ai=true` 声称真实模型任务已测试。
+
+最终向用户报告：本轮改动、实际检查、推送提交、部署结果、线上 `release` 是否匹配，以及仍未完成的内容。只更新了本地或 GitHub 时明确说明，不能称为线上已更新。
+
+若需要回滚，使用原服务的既有部署记录或可审阅的 Git 回退提交；代码回滚不应重置生产业务数据。后续修改继续遵循先拉取、后验证、再推送和核验的顺序。
+
+## 8. 不随仓库迁移的内容与已知限制
+
+| 内容 | 新电脑处理方式 |
+| --- | --- |
+| `node_modules/`、`dist/`、本地运行缓存 | 由依赖安装、构建和首次启动生成 |
+| API 密钥、数据库 URL、会话秘密 | 生产保留原 Variables；本地需要时由用户安全配置，不能写入公开交接文件 |
+| `outputs/skill-release/uploaded.json` | 同一 API 项目安全迁移，或按第 4 节重新生成 |
+| 云端账户、项目与任务 | 留在现有数据库，通过现有网站和账户访问 |
+| 照片、私有作品、结果文件 | 留在现有卷；需要本地项目时由用户导出备份后导入隔离本地环境 |
+| `.tuxu.json` 项目备份 | 单独安全传输，不加入公开 Git 仓库 |
+| 旧机 `qa/`、`outputs/`、仓库外 helper | 不作为开箱前提；公开验证结论见 `QA.md`，所需测试在新机重新执行 |
+| 旧机个人 Codex skills、插件与登录 | 按新机实际需要安装/登录，不复制整个用户配置目录代替仓库部署 |
+
+账号与云端数据不因换电脑而重建。`server/legacy-photos.json` 在公开仓库为空属于预期，不用私有照片补进 Git。保留现有生产连接，不把生产数据库当作本地测试库，也不以代码同步为由清空或迁移用户资料。
+
+目前仍依赖网页轮询推进任务，签名回调代码存在但不能仅据此宣称已启用可靠后台收尾。每账户每日 10 次、全站每日 60 次等限制仍以源码为准；文案与设计分别计任务。所有风格和技能组合未穷举验证，模型审美也可能误判。不要因为接手机器就重做这些功能或宣称新增了它们。
+
+## 9. 可直接交给新电脑 Codex 的接续指令
 
 ```text
-浏览器编辑器
-  → /api/* 服务端：身份、权限、项目、素材、AI 任务
-  → D1：项目、任务、版本与设置
-  → R2：图片与任务交付文件
-  → OpenAI 托管环境：完整技能、执行脚本、浏览器渲染
-  → 服务端工具：图像生成
-  → 预览、校验、应用结果、导出
-```
+继续维护 P-Design / 图序项目，GitHub 仓库：
+https://github.com/yangdyjp-glitch/P-Design.git
 
-| 文件 / 目录 | 用途及注意点 |
-| --- | --- |
-| `app/page.tsx`、`app/Editor.tsx` | 网页入口；编辑器脚本在 React 挂载后加载，避免界面被 hydration 覆盖 |
-| `src/app.js` | 编辑器交互、项目、文案、照片、撤销和导出 |
-| `src/style-presets.js` | 三个固定风格预案及可信解析；目前均待设定，按用户确认逐一完善 |
-| `src/engine.js` | 文案拆分、页面渲染、HTML/CSS 清理、排版检查；保留 `data-copy` 文案块标记 |
-| `src/pagination-policy.js` | 明确分页识别、任务分页快照与逐页内容归属检查 |
-| `src/project-management.js`、`public/projects.css` | 项目删除后的选择、缓存合并、空工作区及手机项目管理 |
-| `src/cloud.js` | 登录状态、云端同步、技能库、AI 表单、轮询、结果预览和应用 |
-| `server/accounts.ts`、`src/accounts.js`、`public/accounts.css` | Railway 账户认证、管理、跨标签页退出及登录页面 |
-| `public/app.css`、`public/ai.css` | 编辑器与 AI 界面样式 |
-| `public/editor.js` | 从 `src/` 生成的文件；应修改源文件后重建 |
-| `public/assets/fonts/` | 中文字体及许可，网页和托管渲染共用 |
-| `server/routes.ts` | API 路由与业务入口 |
-| `server/core.ts` | 身份、资源所有权、跨站写入限制、文件检查和服务端 API 访问 |
-| `server/agent.ts` | 托管环境、任务推进、技能文件、命令执行、交付收集及图像工具 |
-| `server/visual-review.ts`、`src/visual-design.js` | 全局视觉技能策略、构图登记、独立看图与实际成图绑定 |
-| `server/copy-integrity.ts` | 原文块 ID、数量、正文与数字校验 |
-| `server/skills.ts` | 14 个技能注册及任务路由 |
-| `server/webhooks.ts`、`worker/index.ts` | 回调签名、重放处理及 Worker 入口；回调尚未在生产启用 |
-| `db/schema.ts`、`drizzle/` | D1 数据模型与迁移 |
-| `design-skills/` | 完整技能说明、脚本、模板、参考、字体及各自许可 |
-| `scripts/pack-skills.mjs`、`scripts/upload-skills.mjs` | 技能打包与 Files API 上传 |
-| `.openai/hosting.json`、`vite.config.ts` | 原站点身份、DB/BUCKET 绑定与开发配置；保留 Sites 集成 |
-| `QA.md`、`UPGRADE.md`、`THIRD_PARTY.md` | 已验证范围、升级说明和第三方来源 |
+先在这台电脑完整克隆仓库，包含全部受版本控制的源码、技能、字体、脚本、迁移与许可；不要浅克隆、部分下载、只读交接文件就重建项目。若本地已有目录，先检查并保留其中未提交修改。完整下载和文件核对完成后，阅读最新 HANDOFF.md、适用的 AGENTS.md 及相关功能文档，报告本地目录、分支、HEAD 和线上 /api/health.release 的基线。
 
-框架为 React / Vinext / Vite，服务端部署到 Cloudflare Workers。不要直接改成普通静态站，否则服务端身份、D1、R2 和 AI 路由会丢失。Worker 本身不运行本机 Python、Node 子进程或浏览器；这些任务在 OpenAI 托管环境中执行。
+按我接下来的需求继续调整。先建立独立本地环境，保留文案优化与确认、三种不同构图预案、主题蓝、原文及原分页、上传图裁剪保护、单页边界、账户隔离、主动技能应用和独立审美复核。网站默认更新现有 Railway 服务 https://p-design.up.railway.app/。
 
-### 已接入的 14 个技能
-
-| 分组 | 技能目录 ID |
-| --- | --- |
-| 设计主流程 | `xiaohongshu-design`、`victor-design` |
-| 参考与封面判断 | `xhs-reference-contract`、`xhs-cover-lab` |
-| 构图与精修 | `xhs-poster-composition`、`xhs-design-polish` |
-| 生成式封面、插画、信息图 | `baoyu-cover-image`、`baoyu-xhs-images`、`baoyu-infographic`、`xhs-images-design` |
-| 模板与文字卡片 | `auto-redbook`、`xhs-note-creator`、`blcaptain-style-skill` |
-| 文案策划 | `xhs-writer` |
-
-网站能力来自服务端技能资源及执行代码，不依赖访客电脑上的 Codex 技能安装状态。维护者需要安装 Sites 插件才能按现有托管流程发布；发布时先读新电脑上实际安装版本的 `sites:sites` 技能，插件路径不要沿用原机绝对路径。
-
-## 6. 生产配置与数据
-
-`.openai/hosting.json` 的现有配置：
-
-```json
-{
-  "project_id": "appgprj_6aecb5faa0b881919c03675fe284bf42",
-  "d1": "DB",
-  "r2": "BUCKET"
-}
-```
-
-生产服务端已配置以下变量。本文只记录用途，不包含秘密值或文件 ID：
-
-| 名称 | 用途 / 交接状态 |
-| --- | --- |
-| `OPENAI_API_KEY` | 生产 AI 凭证，已配置 |
-| `SKILL_FILES_JSON` | 14 个技能与 `_runtime` 的上传文件记录，已配置 |
-| `ADMIN_EMAIL` | 所有者首次管理员身份引导，已配置；随后绑定稳定用户 ID |
-| `AGENT_MODEL` | 交接时生产值为 `gpt-6-astra` |
-| `IMAGE_MODEL` | 交接时生产值为 `gpt-image-2.5-flare` |
-| `OPENAI_WEBHOOK_SECRET` | 尚未配置；不能据此宣称后台回调已经上线 |
-
-更新界面和源码时保留现有服务端变量，不用空的 `.env.example` 覆盖。模型名称是交接配置记录；更换模型前单独检查兼容性与项目访问权限。
-
-云端身份来自 Sites 注入的稳定用户 ID。生产用户隔离不能改成只按邮箱判断，也不能把本地模拟身份或测试请求头作为生产登录方案。
-
-云端 D1/R2 仍在原站点，换电脑后登录同一获准账号可访问对应云端数据。浏览器里尚未同步的项目与本地修改不会由 Git 转移；换设备前在网页导出 `.tuxu.json` 备份，照片与私有作品另行妥善保存。
-
-## 7. 验证方法与已知前置条件
-
-一般源码改动的基本检查：
-
-```powershell
-npx tsc --noEmit
-npm run build
-git diff --check
-```
-
-界面改动再检查桌面与约 390px 手机宽度：登录、新建、文案编辑、云端同步、图片裁切、AI 结果入口及 PNG 导出。涉及 AI 时检查真实结果能否查看、下载、保留原文并正确应用；不能只凭按钮存在就判定完成。
-
-| 验证脚本 | 使用前必须知道 |
-| --- | --- |
-| `scripts/qa-cloud.mjs` | 需要已安装 Chrome、5173 开发服务、5174 构建预览、共享本地数据库及 14 个技能资源就绪；会写入本地项目、素材和任务 |
-| `scripts/qa-ai-live.mjs`、`scripts/probe-agent.mjs`、`scripts/probe-design.mjs` | 真实、可能计费的 API 检查；依赖本机凭证、资源和网络，不作为普通文档修改的默认检查 |
-| `scripts/qa-apply-result.mjs` | 依赖先前真实任务生成的 `qa/v2/live-web/result.json`，全新克隆没有该文件 |
-| `scripts/qa-e2e.mjs`、`scripts/qa-visual.mjs` | 早期静态版本的验证脚本，部分端口和产物前提与当前版本不同，不是新电脑开箱入口 |
-
-`qa-cloud.mjs` 所需第二服务可在构建后用 `npm start -- --port 5174` 启动。5174 不带开发登录模拟，其测试身份头仅用于本地验证。现有完整云端验证实际通过 13 项，真实技能渲染、文案生成和应用、图像生成也已验证；详细记录见 [QA.md](QA.md)。
-
-Windows 上重新构建前，先停止占用 `dist/` 的预览进程，避免文件锁导致 `EPERM`。新电脑首次运行脚本不应默认具有旧机的 `qa/`、`outputs/` 或运行缓存。
-
-## 8. 更新 GitHub 与更新线上网站
-
-### GitHub 源码
-
-先查看当前分支和未提交修改。工作区干净时用 `git pull --ff-only` 更新，再修改、做对应检查、选择需要提交的文件，提交并推送到 `main`。发生分叉或存在他人的修改时先处理，不使用强制推送。
-
-这是公开仓库。不要提交 `.env.local`、上传文件清单、数据库、用户照片、作品、测试产物、部署凭证或原 Sites 私有 Git 历史。保留第三方许可。
-
-### 原 Sites 网站
-
-接续现有站点，使用第 1 节的 `project_id`，不要创建一个替代网站，也不要改写原站点的 D1/R2 绑定。
-
-1. 使用同一所有者账号的 Sites 插件，调用 `get_site` 读取现状及访问范围，再取得同项目的 `create_source_repository_write_credential`。
-2. 按当前 Sites 技能指引，使用 `scripts/site-workflow.mjs --project-id <原项目 ID>` 打开 Sites 管理的源码。凭证只经隐藏 stdin 传递，不放命令参数、文件或日志；保存 helper 返回的完整 opening result。
-3. 建议将 GitHub 开发目录和 Sites 管理目录分开。把本轮修改的应用文件同步到 Sites 目录，保留其 Git 状态、站点身份及私有数据，不直接更换 GitHub 的 `origin`。
-4. 按 Sites 技能通过 source helper 执行剩余检查及 `build-site.mjs` 构建、提交、推送与打包。使用本机安装的插件绝对路径，打包输出放在源码目录外；只执行尚未通过或输入已改变的检查。
-5. 将 helper 核验的 `project_id`、`commit_sha`、`archive` 原样交给发布工具。保持当前所有者私有范围时使用 `save_version_and_deploy_private`；发布前访问范围若有变化，先按实际范围选择正确工具。
-6. 核验部署终态为成功，记录实际新源码提交、版本 ID 和部署结果。GitHub 提交与 Sites 提交可能不同，分别记录。
-
-不得为了回调可达或方便测试而擅自公开整个网站。用户未来希望他人使用，但公开或邀请范围仍待明确；访问设置变更应另行按用户选择执行。
-
-### 两份源码的有意差异
-
-GitHub 是经过清理的公开导出，未包含原部署的私有历史和照片。`server/legacy-photos.json` 在公开仓库为空对象；这是预期，不是资源丢失。原网站仍保留所有者受保护的历史素材。
-
-从公开仓库同步回原 Sites 时，不要用空的历史照片清单无意覆盖原站私有清单。从 Sites 同步到公开仓库时，也不要反向带出原照片、`private-seed/` 或历史提交。
-
-其他差异：公开仓库内置 `design-skills/`；打包脚本默认读该目录；类型检查排除了技能资源内独立工程。详见 [docs/deployment.md](docs/deployment.md)。`docs/source-manifest.json` 记录公开资源的大小和哈希，修改已登记文件或新增交付文件时同步维护，清单不包含自身。
-
-## 9. 当前限制与后续方向
-
-当前每人每天 10 个任务、全站每天 60 个；每人最多 1 个并行任务，全站最多 6 个；每次图像素材生成最多 1 张。项目最多 20 页、每用户最多 60 个项目。图片支持 PNG/JPEG/WebP，单张最多 12 MB。这些限制不是固定金额的费用上限。
-
-后续若开放他人使用，建议按具体需求安排：
-
-1. 明确公开或邀请范围，验证真实第二用户登录及其项目隔离。
-2. 为关闭页面后的任务推进建立公开可达、签名校验的回调或其他服务端调度，并实际验证全链路。
-3. 补充使用量、失败任务和成本观察，再决定管理、收费或团队功能。
-4. 将本地 AI 转发地址改为可配置项，减少跨电脑开发步骤。
-
-这些是待办方向，不代表已经实施，也不要求接手时全部重做。
-
-## 10. 可复制给新电脑 Codex 的接续说明
-
-```text
-这是 P-Design / 图序项目。先阅读根目录 HANDOFF.md、README.md、docs/setup.md、docs/deployment.md 和 QA.md，再检查当前 Git 分支及工作区。按我接下来提出的需求继续开发。
-
-保留通用小红书设计定位、14 个技能按任务路由、原文保真、真实照片、用户数据隔离、结果先预览再应用和版本冲突保护。EJU 等历史产品不作为全局默认规则。
-
-现有 Sites 项目 ID 是 appgprj_6aecb5faa0b881919c03675fe284bf42。保留原站点身份、D1/R2、服务端秘密及访问范围；发布时阅读本机的 Sites 技能，通过其源码工作流更新原站点。GitHub 推送和 Sites 发布分别核验。
-
-不要输出或提交密钥、用户作品、私有照片和 Sites 私有历史。新电脑缺少本地凭证时，先完成不依赖真实 AI 的修改与检查，再按 HANDOFF 配置所需环境。不要把旧机测试产物存在当作前提，不要把尚未启用的后台回调或公开分享描述为已完成。
+每次修改前从 GitHub main 同步，修改后完成相应本地检查，提交并推送，再等 Railway 部署和核验线上实际提交一致。保留生产密钥、数据库、文件卷与用户项目；本地真实 AI 仅在需要时安全配置。不要输出或提交密钥、私有照片、用户作品、数据库及旧机私有缓存，也不要把只推送源码说成线上部署已完成。
 ```

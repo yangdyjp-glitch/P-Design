@@ -32,6 +32,11 @@
   ],
   "files": [
     {
+      "path": "docs/handoff-history-20261110.md",
+      "bytes": 36587,
+      "sha256": "7de0ebc8817e7f4f3ef91739a935e67bb8571a59ff5b7a4c719ffc5a04ef65ab"
+    },
+    {
       "path": "design-skills/taste-skill/assets/layout/heroes.json",
       "bytes": 37569,
       "sha256": "ec31203b4857901641dc2c8229ab52bb3dcebd7cadeb9619939a49e76061523e"
@@ -4323,8 +4328,8 @@
     },
     {
       "path": "HANDOFF.md",
-      "bytes": 36309,
-      "sha256": "cb75fbf82d15c162209afa9ffffab6544ca74f2d6e8cc2e31cc6862ed0bfaea0"
+      "bytes": 21690,
+      "sha256": "3f07b90a4b582ebb6b7a95d7e0f2c94b578d1bc10cd96774e7b1a72956060c75"
     },
     {
       "path": "hooks/use-mobile.ts",
@@ -4448,8 +4453,8 @@
     },
     {
       "path": "README.md",
-      "bytes": 8227,
-      "sha256": "27598611c2ae85434cd02bc0c671e8ca5b91b5d65e1554f88889962811a522c7"
+      "bytes": 8360,
+      "sha256": "20e5dfe4acacb060631b96ccec8956d461316d772934492dfb41824cc4eeefd5"
     },
     {
       "path": "scripts/api-local.mjs",
